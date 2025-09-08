@@ -19,7 +19,6 @@ class Node:
             raise ValueError("Next node index must be non-negative or None.")
 
 
-@dataclass
 class Signature(NamedTuple):
     """A signature for a hypergraph, defining the types of nodes and edges."""
 

@@ -13,10 +13,11 @@ repos:
     hooks:
       - id: run-tests
         name: Run pytest before push
-        entry: pytest
-        language: python
-        additional_dependencies: [pytest]
+        entry: .venv/bin/python
+        args: ["-m", "pytest"]
+        language: system
         stages: [pre-push]
+        pass_filenames: false
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
     hooks:

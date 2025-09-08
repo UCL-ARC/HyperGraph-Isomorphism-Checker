@@ -13,5 +13,3 @@ https://github.com/hellas-ai/open-hypergraphs
 https://github.com/yarrow-id/diagrams
 https://pypi.org/project/yarrow-polycirc/
 https://github.com/hellas-ai/catgrad
-
- 

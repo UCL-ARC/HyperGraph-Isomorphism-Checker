@@ -14,7 +14,8 @@ repos:
       - id: run-tests
         name: Run pytest before push
         entry: pytest
-        language: system
+        language: python
+        additional_dependencies: [pytest]
         stages: [pre-push]
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9

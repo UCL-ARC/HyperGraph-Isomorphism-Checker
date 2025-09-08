@@ -13,8 +13,8 @@ repos:
     hooks:
       - id: run-tests
         name: Run pytest before push
-        entry: .venv/bin/python
-        args: ["-m", "pytest"]
+        entry: uv
+        args: ["run", "pytest"]
         language: system
         stages: [pre-push]
         pass_filenames: false

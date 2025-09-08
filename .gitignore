@@ -25,3 +25,5 @@ coverage/
 *.log
 *.pid
 *.sock
+.venv/
+__pycache__/

@@ -1,6 +1,6 @@
 """Module to define hypergraphs and related structures."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import NamedTuple, Optional
 
 
@@ -33,3 +33,29 @@ class HyperEdge:
     sources: list[Node]
     targets: list[Node]
     label: str
+
+    @property
+    def signature(self) -> Signature:
+        return Signature(sources=self.sources, targets=self.targets)
+
+
+@dataclass
+class OpenHypergraph:
+    """An open hypergraph with input and output nodes."""
+
+    nodes: list[Node] = field(default_factory=list)
+    edges: list[HyperEdge] = field(default_factory=list)
+    input_nodes: list[Node] = field(default_factory=list)
+    output_nodes: list[Node] = field(default_factory=list)
+
+    def add_node(self, node: Node):
+        self.nodes.append(node)
+
+    def add_edge(self, edge: HyperEdge):
+        self.edges.append(edge)
+
+    def add_nodes(self, nodes: list[Node]):
+        self.nodes.extend(nodes)
+
+    def add_edges(self, edges: list[HyperEdge]):
+        self.edges.extend(edges)

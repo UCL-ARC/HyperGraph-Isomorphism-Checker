@@ -10,8 +10,32 @@ The plan of the milestones agreed with ARIA. See attached documents
 ## Development Setup
 
 ### Quick Start
+
+**Option 1: With uv (recommended)**
 ```bash
-# Install dependencies
+# Install dependencies (will prompt to install uv if needed)
+make install
+
+# Install pre-commit hooks
+make pre-commit-install
+```
+
+**Option 2: Traditional Python setup**
+```bash
+# Install dependencies with pip
+make install-pip
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install pre-commit hooks
+python -m pre_commit install
+python -m pre_commit install --hook-type pre-push
+```
+
+### Development Commands
+```bash
+# Install dependencies (will check for uv first)
 make install
 
 # Install pre-commit hooks (runs automatically before commits)

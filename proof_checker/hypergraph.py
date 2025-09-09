@@ -4,13 +4,13 @@ from dataclasses import dataclass, field
 from typing import NamedTuple, Optional
 
 
-@dataclass
+@dataclass(slots=True)
 class Node:
     """A node in a hypergraph."""
 
     label: str
-    prev: Optional[int] = None
-    next: Optional[int] = None
+    prev: Optional[int] = field(default=None)
+    next: Optional[int] = field(default=None)
 
     def __post_init__(self):
         if self.prev is not None and self.prev < 0:
@@ -38,7 +38,7 @@ class Signature(NamedTuple):
     targets: list[Node]
 
 
-@dataclass
+@dataclass(slots=True)
 class HyperEdge:
     """A hyperedge in a hypergraph."""
 

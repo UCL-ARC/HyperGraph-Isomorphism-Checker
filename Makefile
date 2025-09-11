@@ -25,7 +25,7 @@ help: ## Show this help message
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-setup: install pre-commit-install ## Complete project setup (install + pre-commit)
+setup: install-system install pre-commit-install ## Complete project setup (system deps + install + pre-commit)
 
 # =============================================================================
 # Environment Management
@@ -59,6 +59,29 @@ install-uv: ## Install uv package manager
 # =============================================================================
 # Dependency Installation
 # =============================================================================
+install-system: ## Install system dependencies (graphviz)
+	@echo "📦 Installing system dependencies..."
+	@if command -v apt-get >/dev/null 2>&1; then \
+		sudo apt-get update && sudo apt-get install -y graphviz; \
+	elif command -v yum >/dev/null 2>&1; then \
+		sudo yum install -y graphviz; \
+	elif command -v dnf >/dev/null 2>&1; then \
+		sudo dnf install -y graphviz; \
+	elif command -v brew >/dev/null 2>&1; then \
+		brew install graphviz; \
+	elif command -v pacman >/dev/null 2>&1; then \
+		sudo pacman -S graphviz; \
+	else \
+		echo "❌ Package manager not detected. Please install graphviz manually."; \
+		echo "   Ubuntu/Debian: sudo apt-get install graphviz"; \
+		echo "   RHEL/CentOS: sudo yum install graphviz"; \
+		echo "   Fedora: sudo dnf install graphviz"; \
+		echo "   macOS: brew install graphviz"; \
+		echo "   Arch: sudo pacman -S graphviz"; \
+		exit 1; \
+	fi
+	@echo "✅ System dependencies installed!"
+
 install: check-uv ## Install dependencies with uv
 	@echo "📦 Installing dependencies with uv..."
 	@uv sync --dev

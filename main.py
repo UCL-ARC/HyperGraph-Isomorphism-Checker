@@ -1,4 +1,6 @@
-from proof_checker.hypergraph import HyperEdge, Node, OpenHypergraph
+from proof_checker.hyperedge import HyperEdge
+from proof_checker.node import Node
+from proof_checker.hypergraph import OpenHypergraph
 from proof_checker.diagram import Diagram
 
 

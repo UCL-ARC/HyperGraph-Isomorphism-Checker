@@ -1,5 +1,20 @@
+from proof_checker.hypergraph import HyperEdge, Node
+from proof_checker.diagram import Diagram
+
+
 def main():
     print("Hello from data-parallel-proof-checker-1368!")
+
+    # Example usage
+    n1 = Node(label="A", prev=None, next=0)
+    n2 = Node(label="B", prev=0, next=None)
+    e1 = HyperEdge(sources=[n1], targets=[n2], label="f")
+
+    diagram = Diagram(nodes=[n1, n2], hyperEdges=[e1])
+    diagram.render("example_hypergraph")
+    source = diagram.source()
+    print("Diagram source:")
+    print(source)
 
 
 if __name__ == "__main__":

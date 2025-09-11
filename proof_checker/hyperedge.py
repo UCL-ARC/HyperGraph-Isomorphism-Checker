@@ -6,7 +6,7 @@ from typing import NamedTuple
 from proof_checker.node import Node
 
 
-class Signature(NamedTuple):
+class HyperEdgeSignature(NamedTuple):
     """A signature for a hypergraph, defining the types of nodes and edges."""
 
     sources: list[Node]
@@ -22,5 +22,5 @@ class HyperEdge:
     label: str
 
     @property
-    def signature(self) -> Signature:
-        return Signature(sources=self.sources, targets=self.targets)
+    def signature(self) -> HyperEdgeSignature:
+        return HyperEdgeSignature(sources=self.sources, targets=self.targets)

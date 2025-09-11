@@ -4,6 +4,8 @@ import pytest
 from proof_checker.hyperedge import HyperEdge
 from proof_checker.node import Node
 from proof_checker.hypergraph import OpenHypergraph
+
+
 @pytest.fixture
 def mock_nodes():
     """Create a set of mock nodes for testing."""

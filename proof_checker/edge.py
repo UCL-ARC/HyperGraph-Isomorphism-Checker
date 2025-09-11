@@ -1,4 +1,4 @@
-"""Module defining a egdge in a graph."""
+"""Module defining an edge in a graph."""
 
 from dataclasses import dataclass
 from typing import NamedTuple

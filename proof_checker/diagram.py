@@ -31,7 +31,7 @@ class Diagram:
         elif type == ElementType.EDGE:
             joiner = ","
         else:
-            raise ValueError("Type must be 'node' or 'edge'.")
+            raise ValueError("Type must be ElementType.NODE or ElementType.EDGE.")
 
         return joiner.join([label, str(index)])
 

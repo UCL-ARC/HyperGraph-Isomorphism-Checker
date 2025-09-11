@@ -5,7 +5,7 @@ from enum import Enum
 
 from graphviz import Digraph
 
-from proof_checker.hypergraph import HyperEdge, Node
+from proof_checker.hypergraph import HyperEdge, Node, OpenHypergraph
 
 
 class ElementType(Enum):
@@ -25,27 +25,14 @@ def diagram_label(label: str, index: int, type: ElementType) -> str:
     return joiner.join([label, str(index)])
 
 
-def drawArrows(self, hyperEdge: HyperEdge, edge_label: str, nodes: list[Node]):
-
-    # Draw arrows from nodes to edges
-    for s in hyperEdge.sources:
-        self.graphRep.edge(
-            diagram_label(s.label, nodes.index(s), ElementType.NODE), edge_label
-        )
-
-    # Draw arrows from edges to nodes
-    for t in hyperEdge.targets:
-        self.graphRep.edge(
-            edge_label, diagram_label(t.label, nodes.index(t), ElementType.NODE)
-        )
-
-
 @dataclass
 class Diagram:
     """A diagram representation of a hypergraph."""
 
-    nodes: list[Node]
-    hyperEdges: list[HyperEdge]
+    openHyperGraph: OpenHypergraph
+
+    nodes: list[Node] = field(init=False)
+    hyperEdges: list[HyperEdge] = field(init=False)
     graphRep: Digraph = field(init=False)
 
     def drawArrows(self, hyperEdge: HyperEdge, edge_label: str, nodes: list[Node]):
@@ -81,6 +68,13 @@ class Diagram:
         return self.graphRep
 
     def __post_init__(self):
+
+        if not self.openHyperGraph.is_valid():
+            raise ValueError("The provided OpenHypergraph is not valid.")
+
+        self.nodes = self.openHyperGraph.nodes
+        self.hyperEdges = self.openHyperGraph.edges
+
         self.graphRep = Digraph(format="png")
         self.drawGraph()
 

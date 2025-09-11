@@ -13,7 +13,7 @@ class ElementType(Enum):
     EDGE = "edge"
 
 
-@dataclass
+@dataclass(slots=True)
 class Diagram:
     """A diagram representation of a hypergraph."""
 

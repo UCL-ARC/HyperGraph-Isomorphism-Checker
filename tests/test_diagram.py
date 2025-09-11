@@ -67,5 +67,7 @@ def test_diagram_source(sample_hypergraph):
 def test_diagram_label():
     """Test the label property of the Diagram."""
 
-    with pytest.raises(ValueError, match="Type must be 'node' or 'edge'."):
+    with pytest.raises(
+        ValueError, match="Type must be ElementType.NODE or ElementType.EDGE."
+    ):
         Diagram.diagram_label("f", 0, "non-sensical")

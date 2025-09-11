@@ -1,54 +1,9 @@
 """Module to define hypergraphs and related structures."""
 
 from dataclasses import dataclass, field
-from typing import NamedTuple, Optional
 
-
-@dataclass(slots=True)
-class Node:
-    """A node in a hypergraph."""
-
-    label: str
-    prev: Optional[int] = field(default=None)
-    next: Optional[int] = field(default=None)
-
-    def __post_init__(self):
-        if self.prev is not None and self.prev < 0:
-            raise ValueError("Previous node index must be non-negative or None.")
-        if self.next is not None and self.next < 0:
-            raise ValueError("Next node index must be non-negative or None.")
-
-    @property
-    def is_isolated(self) -> bool:
-        return self.prev is None and self.next is None
-
-    @property
-    def is_input(self) -> bool:
-        return self.prev is None and self.next is not None
-
-    @property
-    def is_output(self) -> bool:
-        return self.next is None and self.prev is not None
-
-
-class Signature(NamedTuple):
-    """A signature for a hypergraph, defining the types of nodes and edges."""
-
-    sources: list[Node]
-    targets: list[Node]
-
-
-@dataclass(slots=True)
-class HyperEdge:
-    """A hyperedge in a hypergraph."""
-
-    sources: list[Node]
-    targets: list[Node]
-    label: str
-
-    @property
-    def signature(self) -> Signature:
-        return Signature(sources=self.sources, targets=self.targets)
+from proof_checker.hyperedge import HyperEdge
+from proof_checker.node import Node
 
 
 @dataclass

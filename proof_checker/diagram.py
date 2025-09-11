@@ -79,3 +79,15 @@ class Diagram:
             self.drawArrows(hyperEdge, edge_label, self.nodes)
 
         return self.graphRep
+
+    def __post_init__(self):
+        self.graphRep = Digraph(format="png")
+        self.drawGraph()
+
+    def render(self, filename: str = "hypergraph_diagram") -> None:
+        """Render the diagram to a file."""
+        self.graphRep.render(filename, view=False, cleanup=True)
+
+    def source(self) -> str:
+        """Return the source of the diagram."""
+        return self.graphRep.source

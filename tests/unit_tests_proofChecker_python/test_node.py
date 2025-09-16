@@ -1,7 +1,7 @@
 """Tests for node class in hypergraph module."""
 
 import pytest
-from proof_checker.hypergraph import Node
+from proofChecker_python_serial.hypergraph import Node
 
 
 def test_node_creation():

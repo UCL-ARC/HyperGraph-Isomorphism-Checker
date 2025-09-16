@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import NamedTuple
 
-from proof_checker.node import Node
+from proofChecker_python_serial.node import Node
 
 
 class EdgeSignature(NamedTuple):

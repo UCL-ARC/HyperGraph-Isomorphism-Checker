@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass, field
 
-from proof_checker.edge import Edge
-from proof_checker.node import Node
+from proofChecker_python_serial.edge import Edge
+from proofChecker_python_serial.node import Node
 
 
 @dataclass

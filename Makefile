@@ -1,7 +1,7 @@
 # =============================================================================
 # Configuration
 # =============================================================================
-PROJECT_NAME := proof_checker
+PROJECT_NAME := proofChecker_python_serial
 VENV_DIR := .venv
 UV_INSTALL_URL := https://astral.sh/uv/install.sh
 

@@ -1,9 +1,9 @@
 """Tests for Graph class in graph module."""
 
 import pytest
-from proof_checker.edge import Edge
-from proof_checker.graph import Graph
-from proof_checker.node import Node
+from proofChecker_python_serial.edge import Edge
+from proofChecker_python_serial.graph import Graph
+from proofChecker_python_serial.node import Node
 
 
 @pytest.fixture

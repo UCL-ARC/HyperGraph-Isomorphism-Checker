@@ -1,5 +1,6 @@
 """Tests for Diagram class in diagram module."""
 
+from pathlib import Path
 import pytest
 from proofChecker_python_serial.hypergraph import OpenHypergraph
 from proofChecker_python_serial.hyperedge import HyperEdge
@@ -31,20 +32,20 @@ def invalid_hypergraph():
     return OpenHypergraph(nodes=[node1, node2, node3], edges=[edge])
 
 
-def test_diagram_creation(sample_hypergraph):
+def test_diagram_creation(sample_hypergraph: OpenHypergraph):
     """Test creating a Diagram from a valid hypergraph."""
     diagram = Diagram(openHyperGraph=sample_hypergraph)
     assert len(diagram.nodes) == 3
     assert len(diagram.hyperEdges) == 1
 
 
-def test_diagram_creation_invalid_hypergraph(invalid_hypergraph):
+def test_diagram_creation_invalid_hypergraph(invalid_hypergraph: OpenHypergraph):
     """Test creating a Diagram from an invalid hypergraph raises an error."""
     with pytest.raises(ValueError, match="The provided OpenHypergraph is not valid."):
         Diagram(openHyperGraph=invalid_hypergraph)
 
 
-def test_diagram_render(sample_hypergraph, tmp_path):
+def test_diagram_render(sample_hypergraph: OpenHypergraph, tmp_path: Path):
     """Test rendering the diagram and getting its source."""
     diagram = Diagram(openHyperGraph=sample_hypergraph)
     output_path = tmp_path / "test_diagram"
@@ -54,7 +55,7 @@ def test_diagram_render(sample_hypergraph, tmp_path):
     assert (output_path.with_suffix(".png")).exists()
 
 
-def test_diagram_source(sample_hypergraph):
+def test_diagram_source(sample_hypergraph: OpenHypergraph):
     """Test getting the source of the diagram."""
     diagram = Diagram(openHyperGraph=sample_hypergraph)
     source = diagram.source()

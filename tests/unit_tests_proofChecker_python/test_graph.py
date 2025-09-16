@@ -7,7 +7,7 @@ from proofChecker_python_serial.node import Node
 
 
 @pytest.fixture
-def mock_nodes():
+def mock_nodes() -> dict[str, Node]:
     """Create a set of mock nodes for testing."""
     return {
         "input1": Node(label="X", prev=None, next=0),
@@ -21,7 +21,7 @@ def mock_nodes():
 
 
 @pytest.fixture
-def mock_edges(mock_nodes):
+def mock_edges(mock_nodes: dict[str, Node]) -> dict[str, Edge]:
     """Create a set of mock edges for testing."""
     return {
         "edge1": Edge(
@@ -81,7 +81,7 @@ def create_complex_graph(mock_nodes, mock_edges) -> Graph:
     return Graph(nodes=nodes, edges=edges)
 
 
-def create_invalid_graph_with_isolated(mock_nodes) -> Graph:
+def create_invalid_graph_with_isolated(mock_nodes: dict[str, Node]) -> Graph:
     """Create an invalid graph with isolated nodes."""
     nodes = [
         mock_nodes["input1"],
@@ -103,7 +103,9 @@ def test_graph_creation():
     assert graph.is_valid() is True
 
 
-def test_complex_graph_creation(mock_nodes, mock_edges):
+def test_complex_graph_creation(
+    mock_nodes: dict[str, Node], mock_edges: dict[str, Edge]
+):
     """Test creation of a more complex graph with multiple edges."""
     graph = create_complex_graph(mock_nodes, mock_edges)
 
@@ -114,7 +116,7 @@ def test_complex_graph_creation(mock_nodes, mock_edges):
     assert graph.is_valid() is True
 
 
-def test_graph_with_isolated_nodes(mock_nodes):
+def test_graph_with_isolated_nodes(mock_nodes: dict[str, Node]):
     """Test graph validation with isolated nodes."""
     graph = create_invalid_graph_with_isolated(mock_nodes)
 
@@ -123,7 +125,7 @@ def test_graph_with_isolated_nodes(mock_nodes):
     assert graph.is_valid() is False
 
 
-def test_edge_navigation(mock_nodes, mock_edges):
+def test_edge_navigation(mock_nodes: dict[str, Node], mock_edges: dict[str, Edge]):
     """Test basic edge access."""
     graph = create_complex_graph(mock_nodes, mock_edges)
 
@@ -137,7 +139,7 @@ def test_edge_navigation(mock_nodes, mock_edges):
     assert edge1.target == mock_nodes["intermediate1"]
 
 
-def test_edge_queries(mock_nodes, mock_edges):
+def test_edge_queries(mock_nodes: dict[str, Node], mock_edges: dict[str, Edge]):
     """Test edge query functionality."""
     graph = create_complex_graph(mock_nodes, mock_edges)
 
@@ -151,7 +153,7 @@ def test_edge_queries(mock_nodes, mock_edges):
     assert edge1.label == "f"
 
 
-def test_add_nodes_and_edges(mock_nodes, mock_edges):
+def test_add_nodes_and_edges(mock_nodes: dict[str, Node], mock_edges: dict[str, Edge]):
     """Test adding nodes and edges to graph."""
     graph = Graph()
 
@@ -177,7 +179,7 @@ def test_add_nodes_and_edges(mock_nodes, mock_edges):
     assert len(graph.nodes) == 3
 
 
-def test_remove_operations(mock_nodes, mock_edges):
+def test_remove_operations(mock_nodes: dict[str, Node], mock_edges: dict[str, Edge]):
     """Test basic graph modifications."""
     graph = create_complex_graph(mock_nodes, mock_edges)
     initial_node_count = len(graph.nodes)
@@ -192,7 +194,7 @@ def test_remove_operations(mock_nodes, mock_edges):
     assert mock_nodes["intermediate1"] in graph.nodes
 
 
-def test_cycle_detection(mock_nodes):
+def test_cycle_detection(mock_nodes: dict[str, Node]):
     """Test basic graph structure validation."""
     # Create simple acyclic graph
     acyclic_graph = Graph(
@@ -221,7 +223,7 @@ def test_cycle_detection(mock_nodes):
     assert len(acyclic_graph.edges) == 2
 
 
-def test_topological_sort(mock_nodes):
+def test_topological_sort(mock_nodes: dict[str, Node]):
     """Test basic graph ordering properties."""
     # Create acyclic graph
     graph = Graph(
@@ -254,7 +256,7 @@ def test_topological_sort(mock_nodes):
     assert mock_nodes["output1"] in graph.output_nodes
 
 
-def test_topological_sort_with_cycle(mock_nodes):
+def test_topological_sort_with_cycle(mock_nodes: dict[str, Node]):
     """Test graph validation."""
     # Create simple valid graph
     graph = Graph(
@@ -274,7 +276,7 @@ def test_graph_invalid_no_nodes():
     assert graph.is_valid() is False
 
 
-def test_validation_messages(mock_nodes):
+def test_validation_messages(mock_nodes: dict[str, Node]):
     """Test detailed validation messages."""
     # Test empty graph
     empty_graph = Graph()
@@ -289,7 +291,7 @@ def test_validation_messages(mock_nodes):
     assert "I" in str(errors)  # Should mention the isolated node label
 
 
-def test_node_reference_validation(mock_nodes):
+def test_node_reference_validation(mock_nodes: dict[str, Node]):
     """Test validation when edges reference nodes not in the graph."""
     # Create graph missing a node that an edge references
     graph = Graph(
@@ -316,7 +318,7 @@ def test_node_reference_validation(mock_nodes):
     assert graph.is_valid() is False
 
 
-def test_graph_no_edges(mock_nodes):
+def test_graph_no_edges(mock_nodes: dict[str, Node]):
     """Test that graph with nodes but no edges is invalid."""
     graph = Graph(
         nodes=[mock_nodes["input1"], mock_nodes["output1"]], edges=[]  # No edges
@@ -327,7 +329,7 @@ def test_graph_no_edges(mock_nodes):
     assert any("at least one edge" in error for error in errors)
 
 
-def test_graph_no_input_nodes(mock_nodes):
+def test_graph_no_input_nodes():
     """Test that graph with no input nodes is invalid."""
     # Create nodes that have no inputs (all have prev != None)
     node1 = Node(label="A", prev=1, next=0)  # Not an input node
@@ -345,7 +347,7 @@ def test_graph_no_input_nodes(mock_nodes):
     assert any("at least one input node" in error for error in errors)
 
 
-def test_graph_no_output_nodes(mock_nodes):
+def test_graph_no_output_nodes():
     """Test that graph with no output nodes is invalid."""
     # Create nodes that have no outputs (all have next != None)
     node1 = Node(label="A", prev=None, next=0)  # Input node

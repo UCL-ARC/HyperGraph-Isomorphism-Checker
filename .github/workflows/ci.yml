@@ -41,7 +41,7 @@ jobs:
 
     - name: Run tests with pytest
       run: |
-        uv run pytest --cov=proofChecker_python_serial --cov-report=xml --cov-report=term-missing
+        make test
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

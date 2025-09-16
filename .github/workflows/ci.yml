@@ -41,7 +41,7 @@ jobs:
 
     - name: Run tests with pytest
       run: |
-        make test
+        uv run make test
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

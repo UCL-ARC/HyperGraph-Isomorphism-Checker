@@ -1,0 +1,15 @@
+{
+  "graph_name": "TestInputGraph",
+  "comment": "Hyper Or Not Test",
+  "vertices": 
+  [
+    {"id": 1}, {"id": 2}, {"id": 3},
+    {"id": 4}, {"id": 5}, {"id": 6}
+  ],
+  "hyperedges": 
+  [
+    {"id": "e1", "nodes": [1, 2, 3]},
+    {"id": "e2", "nodes": [3, 4]},
+    {"id": "e3", "nodes": [4, 5, 6]}
+  ]
+}

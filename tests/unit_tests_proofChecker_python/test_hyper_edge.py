@@ -8,7 +8,7 @@ def test_hyperedge_creation():
     node2 = Node(index=1, label="b")
     node3 = Node(index=2, label="c")
 
-    edge = HyperEdge(sources=[node1, node2], targets=[node3], label="F")
+    edge = HyperEdge(sources=[node1, node2], targets=[node3], label="F", index=0)
 
     assert edge.sources == [node1, node2]
     assert edge.targets == [node3]

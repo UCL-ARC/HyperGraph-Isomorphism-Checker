@@ -24,6 +24,7 @@ class HyperEdgeSignature:
 
         self.signature_hash = self.create_hash(self.signature)
 
+    # TODO: Use a better hash function if needed: https://arxiv.org/pdf/1611.00029
     @staticmethod
     def create_hash(signature: str) -> int:
         """Create a simple hash for the signature string."""
@@ -37,6 +38,7 @@ class HyperEdge:
     sources: list[Node]
     targets: list[Node]
     label: str
+    index: int
 
     @property
     def signature(self) -> HyperEdgeSignature:

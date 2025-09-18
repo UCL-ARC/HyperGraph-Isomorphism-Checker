@@ -1,5 +1,6 @@
 """Module defining HyperEdge and Signature in a hypergraph."""
 
+import hashlib
 from dataclasses import dataclass, field
 
 from proofChecker_python_serial.node import Node
@@ -23,14 +24,10 @@ class HyperEdgeSignature:
 
         self.signature_hash = self.create_hash(self.signature)
 
-    # TODO: Use a better hash function if needed
     @staticmethod
     def create_hash(signature: str) -> int:
         """Create a simple hash for the signature string."""
-        hash_value = 0
-        for char in signature:
-            hash_value = (hash_value * 31 + ord(char)) % (10**9 + 7)
-        return hash_value
+        return int(hashlib.md5(signature.encode()).hexdigest(), 16)
 
 
 @dataclass(slots=True)

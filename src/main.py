@@ -8,9 +8,9 @@ def main():
     print("Hello from data-parallel-proof-checker-1368!")
 
     # Example usage
-    n1 = Node(label="A", prev=None, next=0)
-    n2 = Node(label="B", prev=0, next=None)
-    e1 = HyperEdge(sources=[n1], targets=[n2], label="f")
+    n1 = Node(index=0, label="a")
+    n2 = Node(index=1, label="b")
+    e1 = HyperEdge(sources=[n1], targets=[n2], label="F")
 
     hypergraph = OpenHypergraph(nodes=[n1, n2], edges=[e1])
     diagram = Diagram(openHyperGraph=hypergraph)

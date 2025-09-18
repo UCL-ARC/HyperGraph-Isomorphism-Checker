@@ -29,12 +29,8 @@ class HyperEdge:
 
     def create_signature(self) -> int:
 
-        source_node_index = [
-            node.index for node in sorted(self.sources, key=lambda node: node.index)
-        ]
-        target_node_index = [
-            node.index for node in sorted(self.targets, key=lambda node: node.index)
-        ]
+        source_node_index = [node.index for node in self.sources]
+        target_node_index = [node.index for node in self.targets]
 
         return self.create_hash(self.index, source_node_index, target_node_index)
 

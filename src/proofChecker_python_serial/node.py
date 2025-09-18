@@ -13,8 +13,8 @@ class Node:
     display_label: str = field(init=False)
 
     # For user-input validation purposes only
-    prev: Optional[int] = field(default=None, init=False)
-    next: Optional[int] = field(default=None, init=False)
+    prev: Optional[set[int]] = field(default=None, init=False)
+    next: Optional[set[int]] = field(default=None, init=False)
 
     def __post_init__(self):
         self.display_label = f"{self.label}, {self.index}"

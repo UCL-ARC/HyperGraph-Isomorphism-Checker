@@ -1,8 +1,11 @@
 {
-  "_comment": "This is a sample input format for a hypergraph.",
 
   "graph_name": "TestInputGraph",
-  "comment": "Hyper Or Not Test",
+  "comment": [
+    "Naming convention: type_label is a string,",
+    "lowercase strings for nodes,",
+    "uppercase strings for edges"
+  ],
   "nodes":
   [
     {"type_label": "a"}, {"type_label": "a"}, {"type_label": "a"},

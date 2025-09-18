@@ -140,7 +140,7 @@ class OpenHypergraph:
             if not self.check_nodes_in_graph(edge.sources + edge.targets):
                 raise ValueError(f"Edge {edge.label} has nodes not in hypergraph nodes")
 
-            OpenHypergraph.set_next_prev(edge)
+            self.set_next_prev(edge)
 
         self.set_input_nodes()
         self.set_output_nodes()

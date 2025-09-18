@@ -1,4 +1,6 @@
 {
+  "_comment": "This is a sample input format for a hypergraph.",
+
   "graph_name": "TestInputGraph",
   "comment": "Hyper Or Not Test",
   "vertices":

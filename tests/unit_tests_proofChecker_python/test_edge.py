@@ -1,7 +1,7 @@
 """Tests for Edge class in edge module."""
 
-from proof_checker.edge import Edge
-from proof_checker.node import Node
+from proofChecker_python_serial.edge import Edge
+from proofChecker_python_serial.node import Node
 
 
 def test_edge_creation():

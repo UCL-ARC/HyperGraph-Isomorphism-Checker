@@ -1,13 +1,13 @@
 """Tests for OpenHypergraph class in hypergraph module."""
 
 import pytest
-from proof_checker.hyperedge import HyperEdge
-from proof_checker.node import Node
-from proof_checker.hypergraph import OpenHypergraph
+from proofChecker_python_serial.hyperedge import HyperEdge
+from proofChecker_python_serial.node import Node
+from proofChecker_python_serial.hypergraph import OpenHypergraph
 
 
 @pytest.fixture
-def mock_nodes():
+def mock_nodes() -> dict[str, Node]:
     """Create a set of mock nodes for testing."""
     return {
         "input1": Node(label="X", prev=None, next=0),
@@ -21,7 +21,7 @@ def mock_nodes():
 
 
 @pytest.fixture
-def mock_edges(mock_nodes):
+def mock_edges(mock_nodes: dict[str, Node]):
     """Create a set of mock edges for testing."""
     return {
         "edge1": HyperEdge(
@@ -63,7 +63,9 @@ def create_sample_hypergraph() -> OpenHypergraph:
     return OpenHypergraph(nodes=[node1, node2, node3], edges=[edge])
 
 
-def create_complex_hypergraph(mock_nodes, mock_edges) -> OpenHypergraph:
+def create_complex_hypergraph(
+    mock_nodes: dict[str, Node], mock_edges: dict[str, HyperEdge]
+) -> OpenHypergraph:
     """Create a more complex hypergraph using mock data."""
     nodes = [
         mock_nodes["input1"],
@@ -77,7 +79,9 @@ def create_complex_hypergraph(mock_nodes, mock_edges) -> OpenHypergraph:
     return OpenHypergraph(nodes=nodes, edges=edges)
 
 
-def create_invalid_hypergraph_with_isolated(mock_nodes) -> OpenHypergraph:
+def create_invalid_hypergraph_with_isolated(
+    mock_nodes: dict[str, Node],
+) -> OpenHypergraph:
     """Create an invalid hypergraph with isolated nodes."""
     nodes = [
         mock_nodes["input1"],
@@ -105,7 +109,9 @@ def test_open_hypergraph_creation():
     assert hypergraph.is_valid() is True
 
 
-def test_complex_hypergraph_creation(mock_nodes, mock_edges):
+def test_complex_hypergraph_creation(
+    mock_nodes: dict[str, Node], mock_edges: dict[str, HyperEdge]
+):
     """Test creation of a more complex hypergraph with multiple edges."""
     hypergraph = create_complex_hypergraph(mock_nodes, mock_edges)
 
@@ -122,13 +128,13 @@ def test_empty_hypergraph():
     assert hypergraph.is_valid() is False
 
 
-def test_hypergraph_no_nodes(mock_edges):
+def test_hypergraph_no_nodes(mock_edges: dict[str, HyperEdge]):
     """Test hypergraph validation with no nodes."""
     hypergraph = OpenHypergraph(nodes=[], edges=[mock_edges["edge1"]])
     assert hypergraph.is_valid() is False
 
 
-def test_hypergraph_no_edges(mock_nodes):
+def test_hypergraph_no_edges(mock_nodes: dict[str, Node]):
     """Test hypergraph validation with no edges."""
     hypergraph = OpenHypergraph(
         nodes=[mock_nodes["input1"], mock_nodes["output1"]], edges=[]
@@ -145,7 +151,7 @@ def test_hypergraph_with_isolated_nodes(mock_nodes):
     assert hypergraph.is_valid() is False
 
 
-def test_edge_signatures(mock_edges):
+def test_edge_signatures(mock_edges: dict[str, HyperEdge]):
     """Test that edges have correct signatures."""
     edge1 = mock_edges["edge1"]
     signature = edge1.signature
@@ -157,7 +163,7 @@ def test_edge_signatures(mock_edges):
     assert signature.targets[0].label == "Z"
 
 
-def test_split_edge_pattern(mock_nodes, mock_edges):
+def test_split_edge_pattern(mock_edges: dict[str, HyperEdge]):
     """Test a split pattern (1 input -> 2 outputs)."""
     split_edge = mock_edges["split_edge"]
 
@@ -166,7 +172,7 @@ def test_split_edge_pattern(mock_nodes, mock_edges):
     assert split_edge.label == "s"
 
 
-def test_merge_edge_pattern(mock_nodes, mock_edges):
+def test_merge_edge_pattern(mock_edges: dict[str, HyperEdge]):
     """Test a merge pattern (2 inputs -> 1 output)."""
     merge_edge = mock_edges["merge_edge"]
 
@@ -175,7 +181,9 @@ def test_merge_edge_pattern(mock_nodes, mock_edges):
     assert merge_edge.label == "m"
 
 
-def test_add_nodes_and_edges(mock_nodes, mock_edges):
+def test_add_nodes_and_edges(
+    mock_nodes: dict[str, Node], mock_edges: dict[str, HyperEdge]
+):
     """Test adding nodes and edges to hypergraph."""
     hypergraph = OpenHypergraph()
 
@@ -197,7 +205,7 @@ def test_add_nodes_and_edges(mock_nodes, mock_edges):
     assert len(hypergraph.edges) == 2
 
 
-def test_validation_messages(mock_nodes):
+def test_validation_messages(mock_nodes: dict[str, Node]):
     """Test detailed validation messages."""
     # Test empty hypergraph
     empty_hypergraph = OpenHypergraph()
@@ -212,7 +220,7 @@ def test_validation_messages(mock_nodes):
     assert "I" in str(errors)  # Should mention the isolated node label
 
 
-def test_node_reference_validation(mock_nodes):
+def test_node_reference_validation(mock_nodes: dict[str, Node]):
     """Test validation when edges reference nodes not in the hypergraph."""
     # Create hypergraph missing a node that an edge references
     hypergraph = OpenHypergraph(
@@ -231,7 +239,7 @@ def test_node_reference_validation(mock_nodes):
     assert hypergraph.is_valid() is False
 
 
-def test_open_hypergraph_invalid_no_inputs(mock_nodes):
+def test_open_hypergraph_invalid_no_inputs(mock_nodes: dict[str, Node]):
     """Test that hypergraph with no input nodes is invalid."""
     hypergraph = OpenHypergraph(
         nodes=[mock_nodes["output1"], mock_nodes["output2"]],
@@ -246,7 +254,7 @@ def test_open_hypergraph_invalid_no_inputs(mock_nodes):
     assert hypergraph.is_valid() is False
 
 
-def test_open_hypergraph_invalid_no_outputs(mock_nodes):
+def test_open_hypergraph_invalid_no_outputs(mock_nodes: dict[str, Node]):
     """Test that hypergraph with no output nodes is invalid."""
     hypergraph = OpenHypergraph(
         nodes=[mock_nodes["input1"], mock_nodes["input2"]],
@@ -261,7 +269,7 @@ def test_open_hypergraph_invalid_no_outputs(mock_nodes):
     assert hypergraph.is_valid() is False
 
 
-def test_open_hypergraph_invalid_absurd_node(mock_nodes):
+def test_open_hypergraph_invalid_absurd_node(mock_nodes: dict[str, Node]):
     """Test that hypergraph with connections to a non-existent node is invalid."""
     absurd_node = Node(label="Absurd", prev=0, next=None)  # Invalid prev index
     hypergraph = OpenHypergraph(

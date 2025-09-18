@@ -6,28 +6,35 @@ from proofChecker_python_serial.hyperedge import HyperEdge
 from proofChecker_python_serial.node import Node
 
 
-@dataclass
+@dataclass(slots=True)
 class OpenHypergraph:
     """An open hypergraph with input and output nodes."""
 
     nodes: list[Node] = field(default_factory=list)
     edges: list[HyperEdge] = field(default_factory=list)
 
-    @property
-    def input_nodes(self) -> list[Node]:
+    input_nodes: list[Node] = field(default_factory=list, init=False)
+    output_nodes: list[Node] = field(default_factory=list, init=False)
+    isolated_nodes: list[Node] = field(default_factory=list, init=False)
+
+    def set_input_nodes(self) -> list[Node]:
         """Nodes with no incoming edges."""
-        return [node for node in self.nodes if node.is_input]
+        self.input_nodes = [node for node in self.nodes if node.prev is None]
+        return self.input_nodes
 
-    @property
-    def output_nodes(self) -> list[Node]:
+    def set_output_nodes(self) -> list[Node]:
         """Nodes with no outgoing edges."""
-        return [node for node in self.nodes if node.is_output]
+        self.output_nodes = [node for node in self.nodes if node.next is None]
+        return self.output_nodes
 
-    @property
-    def isolated_nodes(self) -> list[Node]:
+    def set_isolated_nodes(self) -> list[Node]:
         """Nodes with no incoming or outgoing edges."""
-        return [node for node in self.nodes if node.is_isolated]
+        self.isolated_nodes = [
+            node for node in self.nodes if node.prev is None and node.next is None
+        ]
+        return self.isolated_nodes
 
+    # TODO: Improve efficiency by caching results and invalidating on changes
     def is_valid(self) -> bool:
         """Check if the hypergraph is valid. For detailed error messages, use validate()."""
         if not self.nodes:
@@ -101,3 +108,40 @@ class OpenHypergraph:
     def add_edges(self, edges: list[HyperEdge]):
         """Add multiple edges to the hypergraph."""
         self.edges.extend(edges)
+
+    def check_nodes_in_graph(self, nodes: list[Node]) -> bool:
+        """Check if all nodes are in the hypergraph."""
+        return all(node in self.nodes for node in nodes)
+
+    @staticmethod
+    def set_next_prev(edge: HyperEdge):
+        """Set the next and previous edges for nodes based on edges in the hypergraph."""
+
+        for node in edge.sources:
+            if node.next is None:
+                node.next = edge.signature.signature_hash
+            else:
+                raise ValueError(
+                    f"Source node {node.label} of edge {edge.label} already has a next edge"
+                )
+
+        for node in edge.targets:
+            if node.prev is None:
+                node.prev = edge.signature.signature_hash
+            else:
+                raise ValueError(
+                    f"Target node {node.label} of edge {edge.label} already has a previous edge"
+                )
+
+    def __post_init__(self):
+
+        for edge in self.edges:
+
+            if not self.check_nodes_in_graph(edge.sources + edge.targets):
+                raise ValueError(f"Edge {edge.label} has nodes not in hypergraph nodes")
+
+            OpenHypergraph.set_next_prev(edge)
+
+        self.set_input_nodes()
+        self.set_output_nodes()
+        self.set_isolated_nodes()

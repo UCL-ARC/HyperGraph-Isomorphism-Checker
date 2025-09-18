@@ -8,24 +8,9 @@ from typing import Optional
 class Node:
     """A node in a hypergraph."""
 
+    index: int
     label: str
-    prev: Optional[int] = field(default=None)
-    next: Optional[int] = field(default=None)
 
-    def __post_init__(self):
-        if self.prev is not None and self.prev < 0:
-            raise ValueError("Previous node index must be non-negative or None.")
-        if self.next is not None and self.next < 0:
-            raise ValueError("Next node index must be non-negative or None.")
-
-    @property
-    def is_isolated(self) -> bool:
-        return self.prev is None and self.next is None
-
-    @property
-    def is_input(self) -> bool:
-        return self.prev is None and self.next is not None
-
-    @property
-    def is_output(self) -> bool:
-        return self.next is None and self.prev is not None
+    # For user-input validation purposes only
+    prev: Optional[int] = field(default=None, init=False)
+    next: Optional[int] = field(default=None, init=False)

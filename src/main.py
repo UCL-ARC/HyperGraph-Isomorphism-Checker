@@ -37,6 +37,9 @@ def main():
     print("Diagram source:")
     print(source)
 
+    print(nodes[0].display_label)
+    print(edges[0].display_label)
+
 
 if __name__ == "__main__":
     main()

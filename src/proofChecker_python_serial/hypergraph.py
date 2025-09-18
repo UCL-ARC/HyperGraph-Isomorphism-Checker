@@ -119,7 +119,7 @@ class OpenHypergraph:
 
         for node in edge.sources:
             if node.next is None:
-                node.next = edge.signature.signature_hash
+                node.next = edge.signature
             else:
                 raise ValueError(
                     f"Source node {node.label} of edge {edge.label} already has a next edge"
@@ -127,7 +127,7 @@ class OpenHypergraph:
 
         for node in edge.targets:
             if node.prev is None:
-                node.prev = edge.signature.signature_hash
+                node.prev = edge.signature
             else:
                 raise ValueError(
                     f"Target node {node.label} of edge {edge.label} already has a previous edge"

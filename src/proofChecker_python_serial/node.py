@@ -10,7 +10,11 @@ class Node:
 
     index: int
     label: str
+    display_label: str = field(init=False)
 
     # For user-input validation purposes only
     prev: Optional[int] = field(default=None, init=False)
     next: Optional[int] = field(default=None, init=False)
+
+    def __post_init__(self):
+        self.display_label = f"{self.label}, {self.index}"

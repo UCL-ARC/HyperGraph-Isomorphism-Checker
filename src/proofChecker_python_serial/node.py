@@ -32,4 +32,4 @@ class Node:
             raise ValueError("Label must not contain digits.")
 
         self.display_label = f"{self.label}, {self.index}"
-        self.id = f"{self.label}{self.index}"
+        self.id = f"{self.index}{self.label}"

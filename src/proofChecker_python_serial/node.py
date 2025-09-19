@@ -11,6 +11,7 @@ class Node:
     index: int
     label: str
     display_label: str = field(init=False)
+    signature: str = field(default="", init=False)
 
     # For user-input validation purposes only
     prev: Optional[set[int]] = field(default=None, init=False)

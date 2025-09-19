@@ -16,6 +16,7 @@ class HyperEdge:
 
     signature: int = field(init=False)
     display_label: str = field(init=False)
+    id: str = field(default="", init=False)
 
     def create_display_label(self) -> str:
 
@@ -36,6 +37,31 @@ class HyperEdge:
 
     def __post_init__(self):
 
+        if not isinstance(self.index, int) or self.index < 0:
+            raise ValueError("Index must be a non-negative integer.")
+
+        if not isinstance(self.label, str):
+            raise ValueError("Label must be a string.")
+
+        if self.label == "":
+            raise ValueError("Label must be a non-empty string.")
+
+        if "0123456789" in self.label:
+            raise ValueError("Label must not contain digits.")
+
+        if not isinstance(self.sources, list) or len(self.sources) == 0:
+            raise ValueError("Sources must be a non-empty list of Node objects.")
+
+        if not all(isinstance(node, Node) for node in self.sources):
+            raise ValueError("All elements in sources must be Node objects.")
+
+        if not isinstance(self.targets, list) or len(self.targets) == 0:
+            raise ValueError("Targets must be a non-empty list of Node objects.")
+
+        if not all(isinstance(node, Node) for node in self.targets):
+            raise ValueError("All elements in targets must be Node objects.")
+
+        self.id = f"{self.index}{self.label}"
         self.signature = self.create_signature()
         self.display_label = self.create_display_label()
 

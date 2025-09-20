@@ -5,7 +5,10 @@ from typing import Any
 
 def validate_index(index: Any, field_name: str = "Index") -> None:
     """Validate that index is a non-negative integer."""
-    if not isinstance(index, int) or index < 0:
+    if not isinstance(index, int):
+        raise ValueError(f"{field_name} must be an integer.")
+
+    if index < 0:
         raise ValueError(f"{field_name} must be a non-negative integer.")
 
 

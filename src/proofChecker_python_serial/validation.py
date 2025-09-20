@@ -29,8 +29,11 @@ def validate_label(
 def validate_common_fields(obj: Any, allow_digits_in_label: bool = False) -> None:
     """Validate common fields (index and label) present in multiple classes."""
 
-    if not hasattr(obj, "index") or not hasattr(obj, "label"):
-        raise ValueError("Object must have 'index' and 'label' attributes.")
+    if not hasattr(obj, "index"):
+        raise ValueError("Object must have 'index' attribute.")
+
+    if not hasattr(obj, "label"):
+        raise ValueError("Object must have 'label' attribute.")
 
     validate_index(getattr(obj, "index"))
     validate_label(getattr(obj, "label"), allow_digits=allow_digits_in_label)

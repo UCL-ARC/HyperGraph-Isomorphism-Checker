@@ -291,3 +291,31 @@ def test_open_hypergraph_invalid_absurd_node(mock_nodes: dict[str, Node]):
                 )
             ],
         )
+
+
+def test_invalid_branch_creation(mock_nodes: dict[str, Node]):
+    """Test hypergraph with invalid branching (node used as both input and output)."""
+
+    node_a = mock_nodes["input1"]
+    node_b = mock_nodes["output1"]
+    node_c = mock_nodes["output2"]
+
+    edge1 = HyperEdge(sources=[node_a], targets=[node_b], label="f", index=0)
+    edge2 = HyperEdge(sources=[node_a], targets=[node_c], label="g", index=1)
+
+    with pytest.raises(ValueError):
+        OpenHypergraph(nodes=[node_a, node_b, node_c], edges=[edge1, edge2])
+
+
+def test_invalid_branch_merge(mock_nodes: dict[str, Node]):
+    """Test hypergraph with invalid merging (node used as both input and output)."""
+
+    node_a = mock_nodes["input1"]
+    node_b = mock_nodes["input2"]
+    node_c = mock_nodes["output2"]
+
+    edge1 = HyperEdge(sources=[node_a], targets=[node_c], label="f", index=0)
+    edge2 = HyperEdge(sources=[node_b], targets=[node_c], label="g", index=1)
+
+    with pytest.raises(ValueError):
+        OpenHypergraph(nodes=[node_a, node_b, node_c], edges=[edge1, edge2])

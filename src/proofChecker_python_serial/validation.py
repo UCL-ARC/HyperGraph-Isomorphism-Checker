@@ -25,6 +25,9 @@ def validate_label(
     if not allow_digits and any(char.isdigit() for char in label):
         raise ValueError(f"{field_name} must not contain digits.")
 
+    if any(char in label for char in ["-", "_", " "]):
+        raise ValueError(f"{field_name} must not contain '-', '_', or ' ' characters.")
+
 
 def validate_common_fields(obj: Any, allow_digits_in_label: bool = False) -> None:
     """Validate common fields (index and label) present in multiple classes."""

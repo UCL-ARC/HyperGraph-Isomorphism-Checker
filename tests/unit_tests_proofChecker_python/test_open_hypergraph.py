@@ -1,9 +1,12 @@
 """Tests for OpenHypergraph class in hypergraph module."""
 
 import pytest
+import json
+import tempfile
+import os
 from proofChecker_python_serial.hyperedge import HyperEdge
 from proofChecker_python_serial.node import Node
-from proofChecker_python_serial.hypergraph import OpenHypergraph
+from proofChecker_python_serial.hypergraph import OpenHypergraph, create_hypergraph
 
 
 @pytest.fixture
@@ -337,3 +340,212 @@ def test_invalid_graph_with_unknown_node(mock_nodes: dict[str, Node]):
     hypergraph = OpenHypergraph(nodes=[node_a, node_b], edges=[edge])
     assert hypergraph.is_valid() is False
     assert len(hypergraph.validate()) > 0
+
+
+# Tests for create_hypergraph function
+@pytest.fixture
+def sample_hypergraph_json():
+    """Create sample JSON data for hypergraph creation testing."""
+    return {
+        "graph_name": "TestGraph",
+        "comment": ["Test hypergraph for unit testing"],
+        "nodes": [
+            {"type_label": "a"},
+            {"type_label": "b"},
+            {"type_label": "c"},
+            {"type_label": "d"},
+        ],
+        "hyperedges": [
+            {"type_label": "F", "source_nodes": [0, 1], "target_nodes": [2]},
+            {"type_label": "G", "source_nodes": [2], "target_nodes": [3]},
+        ],
+    }
+
+
+@pytest.fixture
+def temp_json_file(sample_hypergraph_json):
+    """Create a temporary JSON file for testing."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(sample_hypergraph_json, f)
+        temp_file_path = f.name
+
+    yield temp_file_path
+
+    # Cleanup
+    os.unlink(temp_file_path)
+
+
+def test_create_hypergraph_basic(temp_json_file):
+    """Test basic hypergraph creation from JSON file."""
+    hypergraph = create_hypergraph(temp_json_file)
+
+    # Test nodes creation
+    assert len(hypergraph.nodes) == 4
+    assert hypergraph.nodes[0].label == "a"
+    assert hypergraph.nodes[0].index == 0
+    assert hypergraph.nodes[1].label == "b"
+    assert hypergraph.nodes[1].index == 1
+    assert hypergraph.nodes[2].label == "c"
+    assert hypergraph.nodes[2].index == 2
+    assert hypergraph.nodes[3].label == "d"
+    assert hypergraph.nodes[3].index == 3
+
+    # Test edges creation
+    assert len(hypergraph.edges) == 2
+
+    edge1 = hypergraph.edges[0]
+    assert edge1.label == "F"
+    assert edge1.index == 0
+    assert len(edge1.sources) == 2
+    assert len(edge1.targets) == 1
+    assert edge1.sources[0] == hypergraph.nodes[0]  # node "a"
+    assert edge1.sources[1] == hypergraph.nodes[1]  # node "b"
+    assert edge1.targets[0] == hypergraph.nodes[2]  # node "c"
+
+    edge2 = hypergraph.edges[1]
+    assert edge2.label == "G"
+    assert edge2.index == 1
+    assert len(edge2.sources) == 1
+    assert len(edge2.targets) == 1
+    assert edge2.sources[0] == hypergraph.nodes[2]  # node "c"
+    assert edge2.targets[0] == hypergraph.nodes[3]  # node "d"
+
+
+def test_create_hypergraph_complex():
+    """Test hypergraph creation with more complex structure."""
+    complex_json = {
+        "graph_name": "ComplexGraph",
+        "nodes": [
+            {"type_label": "x"},
+            {"type_label": "y"},
+            {"type_label": "z"},
+            {"type_label": "w"},
+            {"type_label": "u"},
+            {"type_label": "v"},
+        ],
+        "hyperedges": [
+            {"type_label": "A", "source_nodes": [0], "target_nodes": [2, 3]},
+            {"type_label": "B", "source_nodes": [1], "target_nodes": [4]},
+            {"type_label": "C", "source_nodes": [2, 3, 4], "target_nodes": [5]},
+        ],
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(complex_json, f)
+        temp_file_path = f.name
+
+    try:
+        hypergraph = create_hypergraph(temp_file_path)
+
+        # Test basic structure
+        assert len(hypergraph.nodes) == 6
+        assert len(hypergraph.edges) == 3
+
+        # Test edge A: 1 source -> 2 targets
+        edge_a = hypergraph.edges[0]
+        assert edge_a.label == "A"
+        assert len(edge_a.sources) == 1
+        assert len(edge_a.targets) == 2
+
+        # Test edge C: 3 sources -> 1 target
+        edge_c = hypergraph.edges[2]
+        assert edge_c.label == "C"
+        assert len(edge_c.sources) == 3
+        assert len(edge_c.targets) == 1
+
+    finally:
+        os.unlink(temp_file_path)
+
+
+def test_create_hypergraph_empty_file():
+    """Test error handling for malformed JSON."""
+    empty_json = {"graph_name": "EmptyGraph", "nodes": [], "hyperedges": []}
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(empty_json, f)
+        temp_file_path = f.name
+
+    try:
+        hypergraph = create_hypergraph(temp_file_path)
+        assert len(hypergraph.nodes) == 0
+        assert len(hypergraph.edges) == 0
+        assert hypergraph.is_valid() is False  # Empty hypergraph is invalid
+
+    finally:
+        os.unlink(temp_file_path)
+
+
+def test_create_hypergraph_invalid_file():
+    """Test error handling for non-existent file."""
+    with pytest.raises(FileNotFoundError):
+        create_hypergraph("non_existent_file.json")
+
+
+def test_create_hypergraph_malformed_json():
+    """Test error handling for malformed JSON."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        f.write("{ invalid json }")
+        temp_file_path = f.name
+
+    try:
+        with pytest.raises(json.JSONDecodeError):
+            create_hypergraph(temp_file_path)
+    finally:
+        os.unlink(temp_file_path)
+
+
+def test_create_hypergraph_missing_fields():
+    """Test error handling for JSON missing required fields."""
+    incomplete_json = {
+        "graph_name": "IncompleteGraph",
+        "nodes": [{"type_label": "a"}],
+        # Missing "hyperedges" field
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(incomplete_json, f)
+        temp_file_path = f.name
+
+    try:
+        with pytest.raises(KeyError):
+            create_hypergraph(temp_file_path)
+    finally:
+        os.unlink(temp_file_path)
+
+
+def test_create_hypergraph_invalid_node_indices():
+    """Test error handling for invalid node indices in edges."""
+    invalid_json = {
+        "graph_name": "InvalidGraph",
+        "nodes": [{"type_label": "a"}, {"type_label": "b"}],
+        "hyperedges": [
+            {
+                "type_label": "F",
+                "source_nodes": [0],
+                "target_nodes": [5],
+            }  # Index 5 doesn't exist
+        ],
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(invalid_json, f)
+        temp_file_path = f.name
+
+    try:
+        with pytest.raises(IndexError):
+            create_hypergraph(temp_file_path)
+    finally:
+        os.unlink(temp_file_path)
+
+
+def test_create_hypergraph_signature_generation(temp_json_file):
+    """Test that hypergraph signature is properly generated during creation."""
+    hypergraph = create_hypergraph(temp_json_file)
+
+    # The signature should be generated in __post_init__
+    assert hypergraph.signature != ""
+    assert isinstance(hypergraph.signature, str)
+
+    # Should contain edge information
+    assert "F" in hypergraph.signature  # First edge label
+    assert "G" in hypergraph.signature  # Second edge label

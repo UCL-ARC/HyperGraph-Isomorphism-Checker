@@ -81,9 +81,6 @@ class Diagram:
 
     def __post_init__(self):
 
-        if not self.openHyperGraph.is_valid():
-            raise ValueError("The provided OpenHypergraph is not valid.")
-
         self.nodes = self.openHyperGraph.nodes
         self.hyperEdges = self.openHyperGraph.edges
 

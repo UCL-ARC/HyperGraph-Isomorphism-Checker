@@ -125,7 +125,8 @@ def test_complex_hypergraph_creation(
     assert len(hypergraph.edges) == 3
     assert len(hypergraph.input_nodes) == 2
     assert len(hypergraph.output_nodes) == 2
-    assert hypergraph.is_valid() is True
+    # assert hypergraph.is_valid() is True
+    assert hypergraph.validate() == []
 
 
 def test_empty_hypergraph():
@@ -137,8 +138,8 @@ def test_empty_hypergraph():
 def test_hypergraph_no_nodes(mock_edges: dict[str, HyperEdge]):
     """Test hypergraph validation with no nodes."""
 
-    with pytest.raises(ValueError):
-        OpenHypergraph(nodes=[], edges=[mock_edges["edge1"]])
+    hypergraph = OpenHypergraph(nodes=[], edges=[mock_edges["edge1"]])
+    assert hypergraph.is_valid() is False
 
 
 def test_hypergraph_no_edges(mock_nodes: dict[str, Node]):
@@ -228,18 +229,18 @@ def test_node_reference_validation(mock_nodes: dict[str, Node]):
     """Test validation when edges reference nodes not in the hypergraph."""
     # Create hypergraph missing a node that an edge references
 
-    with pytest.raises(ValueError):
-        OpenHypergraph(
-            nodes=[mock_nodes["input1"]],  # Missing output1 that edge references
-            edges=[
-                HyperEdge(
-                    sources=[mock_nodes["input1"]],
-                    targets=[mock_nodes["output1"]],
-                    label="b",
-                    index=0,
-                )
-            ],
-        )
+    hypergraph = OpenHypergraph(
+        nodes=[mock_nodes["input1"]],  # Missing output1 that edge references
+        edges=[
+            HyperEdge(
+                sources=[mock_nodes["input1"]],
+                targets=[mock_nodes["output1"]],
+                label="b",
+                index=0,
+            )
+        ],
+    )
+    assert hypergraph.is_valid() is False
 
 
 def test_open_hypergraph_invalid_no_inputs(mock_nodes: dict[str, Node]):
@@ -279,18 +280,19 @@ def test_open_hypergraph_invalid_absurd_node(mock_nodes: dict[str, Node]):
     """Test that hypergraph with connections to a non-existent node is invalid."""
     absurd_node = Node(label="Absurd", index=2)  # Not in the hypergraph node list
 
-    with pytest.raises(ValueError):
-        OpenHypergraph(
-            nodes=[mock_nodes["input1"], mock_nodes["output1"]],
-            edges=[
-                HyperEdge(
-                    sources=[mock_nodes["input1"]],
-                    targets=[absurd_node],
-                    label="d",
-                    index=0,
-                )
-            ],
-        )
+    hypergraph = OpenHypergraph(
+        nodes=[mock_nodes["input1"], mock_nodes["output1"]],
+        edges=[
+            HyperEdge(
+                sources=[mock_nodes["input1"]],
+                targets=[absurd_node],
+                label="d",
+                index=0,
+            )
+        ],
+    )
+
+    assert hypergraph.is_valid() is False
 
 
 def test_invalid_branch_creation(mock_nodes: dict[str, Node]):
@@ -319,3 +321,19 @@ def test_invalid_branch_merge(mock_nodes: dict[str, Node]):
 
     with pytest.raises(ValueError):
         OpenHypergraph(nodes=[node_a, node_b, node_c], edges=[edge1, edge2])
+
+
+def test_invalid_graph_with_unknown_node(mock_nodes: dict[str, Node]):
+    """Test hypergraph with an edge referencing a node not in the node list."""
+
+    node_a = mock_nodes["input1"]
+    node_b = mock_nodes["output1"]
+    unknown_node = Node(label="Unknown", index=99)  # Not in the hypergraph node list
+
+    edge = HyperEdge(
+        sources=[node_a], targets=[node_b, unknown_node], label="f", index=0
+    )
+
+    hypergraph = OpenHypergraph(nodes=[node_a, node_b], edges=[edge])
+    assert hypergraph.is_valid() is False
+    assert len(hypergraph.validate()) > 0

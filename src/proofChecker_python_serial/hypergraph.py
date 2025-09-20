@@ -111,10 +111,6 @@ class OpenHypergraph:
         """Add multiple edges to the hypergraph."""
         self.edges.extend(edges)
 
-    def check_nodes_in_graph(self, nodes: list[Node]) -> bool:
-        """Check if all nodes are in the hypergraph."""
-        return all(node in self.nodes for node in nodes)
-
     @staticmethod
     def set_next_prev(edge: HyperEdge):
         """Set the next and previous edges for nodes based on edges in the hypergraph."""
@@ -139,9 +135,6 @@ class OpenHypergraph:
 
         signature_parts: list[str] = []
         for edge in self.edges:
-
-            if not self.check_nodes_in_graph(edge.sources + edge.targets):
-                raise ValueError(f"Edge {edge.label} has nodes not in hypergraph nodes")
 
             self.set_next_prev(edge)
 

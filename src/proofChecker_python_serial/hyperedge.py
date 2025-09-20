@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 
 from proofChecker_python_serial.node import Node
+from proofChecker_python_serial.validation import validate_common_fields
+from proofChecker_python_serial.node_validation import validate_node_list
 
 
 @dataclass(slots=True)
@@ -37,29 +39,9 @@ class HyperEdge:
 
     def __post_init__(self):
 
-        if not isinstance(self.index, int) or self.index < 0:
-            raise ValueError("Index must be a non-negative integer.")
-
-        if not isinstance(self.label, str):
-            raise ValueError("Label must be a string.")
-
-        if self.label == "":
-            raise ValueError("Label must be a non-empty string.")
-
-        if "0123456789" in self.label:
-            raise ValueError("Label must not contain digits.")
-
-        if not isinstance(self.sources, list) or len(self.sources) == 0:
-            raise ValueError("Sources must be a non-empty list of Node objects.")
-
-        if not all(isinstance(node, Node) for node in self.sources):
-            raise ValueError("All elements in sources must be Node objects.")
-
-        if not isinstance(self.targets, list) or len(self.targets) == 0:
-            raise ValueError("Targets must be a non-empty list of Node objects.")
-
-        if not all(isinstance(node, Node) for node in self.targets):
-            raise ValueError("All elements in targets must be Node objects.")
+        validate_common_fields(self, allow_digits_in_label=False)
+        validate_node_list(self.sources, "Sources")
+        validate_node_list(self.targets, "Targets")
 
         self.id = f"{self.index}{self.label}"
         self.signature = self.create_signature()

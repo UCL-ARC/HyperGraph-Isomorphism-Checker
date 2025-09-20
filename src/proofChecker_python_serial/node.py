@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+from proofChecker_python_serial.validation import validate_common_fields
+
 
 @dataclass(slots=True)
 class Node:
@@ -19,17 +21,7 @@ class Node:
 
     def __post_init__(self):
 
-        if not isinstance(self.index, int) or self.index < 0:
-            raise ValueError("Index must be a non-negative integer.")
-
-        if not isinstance(self.label, str):
-            raise ValueError("Label must be a string.")
-
-        if self.label == "":
-            raise ValueError("Label must be a non-empty string.")
-
-        if "0123456789" in self.label:
-            raise ValueError("Label must not contain digits.")
+        validate_common_fields(self, allow_digits_in_label=False)
 
         self.display_label = f"{self.label}, {self.index}"
         self.id = f"{self.index}{self.label}"

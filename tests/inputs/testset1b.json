@@ -25,5 +25,6 @@
     {"type_label": "!!", "source_nodes": [3], "target_nodes": [4, 5, 6]},
     {"type_label": "@@", "source_nodes": [0, 1, 2], "target_nodes": [3]},
     {"type_label": "$$", "source_nodes": [6, 9], "target_nodes": [7, 8, 10]}
-  ]
+  ],
+  "expected_signature": "0@@-0!_1@_2#-3$ 1!!-3$-4%_5^_6* 2$$-6*_9+-7(_8~_10)"
 }

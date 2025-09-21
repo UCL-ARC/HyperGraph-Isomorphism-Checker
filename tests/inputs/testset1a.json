@@ -25,5 +25,6 @@
     {"type_label": "XX", "source_nodes": [0, 1, 2], "target_nodes": [3]},
     {"type_label": "YY", "source_nodes": [3], "target_nodes": [4, 5, 6]},
     {"type_label": "ZZ", "source_nodes": [6, 9], "target_nodes": [7, 8, 10]}
-  ]
+  ],
+  "expected_signature": "0XX-0A_1B_2C-3D 1YY-3D-4E_5F_6G 2ZZ-6G_9A-7H_8I_10C"
 }

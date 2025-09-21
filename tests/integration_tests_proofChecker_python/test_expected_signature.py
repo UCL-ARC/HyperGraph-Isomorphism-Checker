@@ -28,7 +28,7 @@ def get_files_with_expected_signature():
 @pytest.mark.parametrize("filepath", get_json_files(), ids=lambda p: p.name)
 def test_hypergraph_creation(filepath: Path):
     """Test a single JSON file for hypergraph validity."""
-    hypergraph = create_hypergraph(filepath)
+    hypergraph = create_hypergraph(str(filepath))
 
     assert hypergraph is not None
     assert len(hypergraph.nodes) > 0
@@ -47,7 +47,7 @@ def test_expected_signature(filepath: Path):
     if expected_signature is None:
         pytest.skip(f"No expected_signature field in {filepath.name}")
 
-    hypergraph = create_hypergraph(filepath)
+    hypergraph = create_hypergraph(str(filepath))
     actual_signature = hypergraph.signature
 
     assert actual_signature == expected_signature, (

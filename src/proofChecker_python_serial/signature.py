@@ -54,3 +54,32 @@ class Signature:
             nodes.update(sources.split("_"))
             nodes.update(targets.split("_"))
         return list(nodes)
+
+    @property
+    def num_sources_all_edges(self) -> list[int]:
+        """Return the list of number of sources for each edge."""
+
+        num: list[int] = []
+        for edge in self.edges:
+            _, sources, _ = edge.split("-")
+            num.append(len(sources.split("_")))
+        return num
+
+    @property
+    def num_targets_all_edges(self) -> list[int]:
+        """Return the list of number of targets for each edge."""
+
+        num: list[int] = []
+        for edge in self.edges:
+            _, _, targets = edge.split("-")
+            num.append(len(targets.split("_")))
+        return num
+
+    @property
+    def num_sources_and_targets_all_edges(self) -> list[int]:
+        """Return the list of (number of sources, number of targets) for each edge."""
+
+        num: list[int] = []
+        for edge in self.edges:
+            num.append(edge.count("_") + 2)  # +2 for the two groups
+        return num

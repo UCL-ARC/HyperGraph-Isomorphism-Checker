@@ -195,6 +195,107 @@ class TestSignatureValidationMessages:
         assert "Signature must be a string" in error_msg
 
 
+class TestSignatureCountProperties:
+    """Test properties that count sources and targets."""
+
+    def test_num_sources_all_edges_single_edge(self):
+        """Test num_sources_all_edges with single edge."""
+        # Single source, single target
+        signature = Signature("1F-2a-3b")
+        assert signature.num_sources_all_edges == [1]
+
+        # Multiple sources, single target
+        signature = Signature("1F-2a_3b_4c-5d")
+        assert signature.num_sources_all_edges == [3]
+
+        # Single source, multiple targets
+        signature = Signature("1F-2a-3b_4c")
+        assert signature.num_sources_all_edges == [1]
+
+    def test_num_sources_all_edges_multiple_edges(self):
+        """Test num_sources_all_edges with multiple edges."""
+        signature = Signature("1F-2a-3b 4G-5c_6d-7e 8H-9f_10g_11h-12i_13j")
+        expected = [1, 2, 3]
+        assert signature.num_sources_all_edges == expected
+
+    def test_num_targets_all_edges_single_edge(self):
+        """Test num_targets_all_edges with single edge."""
+        # Single source, single target
+        signature = Signature("1F-2a-3b")
+        assert signature.num_targets_all_edges == [1]
+
+        # Single source, multiple targets
+        signature = Signature("1F-2a-3b_4c_5d")
+        assert signature.num_targets_all_edges == [3]
+
+        # Multiple sources, single target
+        signature = Signature("1F-2a_3b-4c")
+        assert signature.num_targets_all_edges == [1]
+
+    def test_num_targets_all_edges_multiple_edges(self):
+        """Test num_targets_all_edges with multiple edges."""
+        signature = Signature("1F-2a-3b 4G-5c-6d_7e 8H-9f-10g_11h_12i")
+        expected = [1, 2, 3]
+        assert signature.num_targets_all_edges == expected
+
+    def test_num_sources_and_targets_all_edges_single_edge(self):
+        """Test num_sources_and_targets_all_edges with single edge."""
+        # Single source, single target: 0 underscores + 2 = 2 total nodes
+        signature = Signature("1F-2a-3b")
+        assert signature.num_sources_and_targets_all_edges == [2]
+
+        # Multiple sources, single target: 2 underscores + 2 = 4 total nodes
+        signature = Signature("1F-2a_3b_4c-5d")
+        assert signature.num_sources_and_targets_all_edges == [4]
+
+        # Single source, multiple targets: 2 underscores + 2 = 4 total nodes
+        signature = Signature("1F-2a-3b_4c_5d")
+        assert signature.num_sources_and_targets_all_edges == [4]
+
+    def test_num_sources_and_targets_all_edges_multiple_edges(self):
+        """Test num_sources_and_targets_all_edges with multiple edges."""
+        # Edge 1: "1F-2a-3b" -> 0 underscores + 2 = 2 nodes
+        # Edge 2: "4G-5c_6d-7e" -> 1 underscore + 2 = 3 nodes
+        # Edge 3: "8H-9f_10g-11h_12i_13j" -> 3 underscores + 2 = 5 nodes
+        signature = Signature("1F-2a-3b 4G-5c_6d-7e 8H-9f_10g-11h_12i_13j")
+        expected = [2, 3, 5]
+        assert signature.num_sources_and_targets_all_edges == expected
+
+    def test_count_properties_consistency(self):
+        """Test that count properties are consistent with each other."""
+        signature = Signature("1F-2a_3b-4c_5d 6G-7e-8f_9g_10h")
+
+        sources = signature.num_sources_all_edges
+        targets = signature.num_targets_all_edges
+        total = signature.num_sources_and_targets_all_edges
+
+        # For each edge, sources + targets should equal total
+        for i in range(len(sources)):
+            assert sources[i] + targets[i] == total[i]
+
+    def test_complex_edge_patterns(self):
+        """Test with complex edge patterns having many sources and targets."""
+        # Very complex edge with many groups
+        signature = Signature("1F-2a_3b_4c_5d_6e-7f_8g_9h_10i")
+
+        assert signature.num_sources_all_edges == [5]  # 5 source nodes
+        assert signature.num_targets_all_edges == [4]  # 4 target nodes
+        assert signature.num_sources_and_targets_all_edges == [9]
+
+    def test_edge_count_properties_empty_case(self):
+        """Test edge case with minimal valid signature."""
+        signature = Signature("1F-2a-3b")
+
+        # Should have exactly one edge with one source and one target
+        assert len(signature.num_sources_all_edges) == 1
+        assert len(signature.num_targets_all_edges) == 1
+        assert len(signature.num_sources_and_targets_all_edges) == 1
+
+        assert signature.num_sources_all_edges[0] == 1
+        assert signature.num_targets_all_edges[0] == 1
+        assert signature.num_sources_and_targets_all_edges[0] == 2
+
+
 class TestSignatureRealWorldExamples:
     """Test signature with realistic examples."""
 
@@ -209,6 +310,11 @@ class TestSignatureRealWorldExamples:
         expected_nodes = {"1a", "2b", "3c", "4d", "5e", "6f"}
         assert set(signature.node_signatures) == expected_nodes
 
+        # Test count properties for this realistic example
+        assert signature.num_sources_all_edges == [2, 1, 2]  # 2, 1, 2 sources
+        assert signature.num_targets_all_edges == [1, 1, 1]  # 1, 1, 1 targets
+        assert signature.num_sources_and_targets_all_edges == [3, 2, 3]  # 3, 2, 3 total
+
     def test_complex_proof_signature(self):
         """Test with a more complex proof signature."""
         signature = Signature("0F-1x_2y_3z-4w 1G-4w-5a_6b 2H-5a_6b_7c-8d_9e")
@@ -218,3 +324,8 @@ class TestSignatureRealWorldExamples:
         # Should extract all unique nodes
         expected_nodes = {"1x", "2y", "3z", "4w", "5a", "6b", "7c", "8d", "9e"}
         assert set(signature.node_signatures) == expected_nodes
+
+        # Test count properties for this complex example
+        assert signature.num_sources_all_edges == [3, 1, 3]  # 3, 1, 3 sources
+        assert signature.num_targets_all_edges == [1, 2, 2]  # 1, 2, 2 targets
+        assert signature.num_sources_and_targets_all_edges == [4, 3, 5]  # 4, 3, 5 total

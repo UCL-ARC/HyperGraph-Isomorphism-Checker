@@ -26,7 +26,7 @@ class Diagram:
     graphRep: Digraph = field(init=False)
 
     @staticmethod
-    def diagram_label(label: str, index: int, type: ElementType) -> str:
+    def diagram_label(label: str, index: int, type: ElementType, hash: int = -1) -> str:
 
         if type == ElementType.NODE:
             joiner = ";"
@@ -35,7 +35,12 @@ class Diagram:
         else:
             raise ValueError("Type must be ElementType.NODE or ElementType.EDGE.")
 
-        return joiner.join([label, str(index)])
+        final = joiner.join([label, str(index)])
+
+        if type == ElementType.EDGE:
+            final = f"{final}\n\n{hash}"
+
+        return final
 
     def drawArrows(self, hyperEdge: HyperEdge, edge_label: str, nodes: list[Node]):
 
@@ -63,7 +68,10 @@ class Diagram:
 
         for hyperEdge in self.hyperEdges:
             edge_label = self.diagram_label(
-                hyperEdge.label, self.hyperEdges.index(hyperEdge), ElementType.EDGE
+                hyperEdge.label,
+                self.hyperEdges.index(hyperEdge),
+                ElementType.EDGE,
+                hash=hyperEdge.signature,
             )
             self.graphRep.node(edge_label, shape="box")
 

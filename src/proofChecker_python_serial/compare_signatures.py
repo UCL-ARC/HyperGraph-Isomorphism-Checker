@@ -42,44 +42,41 @@ class CompareSignatures:
 
     def __post_init__(self):
 
+        details_list = []
+
         if not self.are_equal_lengths():
-            self.details = (
+            details_list.append(
                 f"Signatures have different lengths: "
                 f"{self.signature1.signature_length} vs {self.signature2.signature_length}"
             )
-            self.are_equal = False
-            return
 
         if not self.are_equal_num_edges():
-            self.details = (
+            details_list.append(
                 f"Signatures have different number of edges: "
                 f"{self.signature1.num_edges} vs {self.signature2.num_edges}"
             )
-            self.are_equal = False
-            return
 
         if not self.are_equal_num_sources_targets():
-            self.details = (
+            details_list.append(
                 f"Signatures have different number of sources and targets: "
                 f"{self.signature1.num_sources_and_targets_all_edges} vs {self.signature2.num_sources_and_targets_all_edges}"
             )
-            self.are_equal = False
-            return
 
         if not self.are_equal_num_sources_all_edges():
-            self.details = (
+            details_list.append(
                 f"Signatures have different number of sources for edges: "
                 f"{self.signature1.num_sources_all_edges} vs {self.signature2.num_sources_all_edges}"
             )
-            self.are_equal = False
-            return
 
         if not self.are_equal_num_targets_all_edges():
-            self.details = (
+            details_list.append(
                 f"Signatures have different number of targets for edges: "
                 f"{self.signature1.num_targets_all_edges} vs {self.signature2.num_targets_all_edges}"
             )
-            self.are_equal = False
-            return
 
-        self.are_equal = True
+        if details_list:
+            self.details = "\n".join(details_list)
+            self.are_equal = False
+        else:
+            self.details = "Signatures are equal."
+            self.are_equal = True

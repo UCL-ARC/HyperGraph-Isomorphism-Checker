@@ -24,3 +24,33 @@ def test_node_creation_with_user_defined_next():
 def test_node_without_index():
     with pytest.raises(TypeError):
         Node(label="A")
+
+
+def test_node_without_label():
+    with pytest.raises(TypeError):
+        Node(index=0)
+
+
+def test_node_with_negative_index():
+    with pytest.raises(ValueError):
+        Node(index=-1, label="A")
+
+
+def test_node_with_empty_label():
+    with pytest.raises(ValueError):
+        Node(index=0, label="")
+
+
+def test_node_with_digits_in_label():
+    with pytest.raises(ValueError):
+        Node(index=0, label="A1")
+
+
+def test_node_with_non_string_label():
+    with pytest.raises(ValueError):
+        Node(index=0, label=123)
+
+
+def test_node_with_non_integer_index():
+    with pytest.raises(ValueError):
+        Node(index="zero", label="A")

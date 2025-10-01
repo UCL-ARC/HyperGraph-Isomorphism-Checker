@@ -81,9 +81,6 @@ class Diagram:
 
     def __post_init__(self):
 
-        if not self.openHyperGraph.is_valid():
-            raise ValueError("The provided OpenHypergraph is not valid.")
-
         self.nodes = self.openHyperGraph.nodes
         self.hyperEdges = self.openHyperGraph.edges
 
@@ -97,3 +94,13 @@ class Diagram:
     def source(self) -> str:
         """Return the source of the diagram."""
         return self.graphRep.source
+
+
+def draw_graph(hypergraph: OpenHypergraph):
+    """Demonstrate hypergraph creation and rendering."""
+
+    diagram = Diagram(openHyperGraph=hypergraph)
+    diagram.render("hypergraph_diagram")
+    source = diagram.source()
+    print("Diagram source:")
+    print(source)

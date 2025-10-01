@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 
 from proofChecker_python_serial.node import Node
+from proofChecker_python_serial.validation import validate_common_fields
+from proofChecker_python_serial.node_validation import validate_node_list
 
 
 @dataclass(slots=True)
@@ -16,6 +18,7 @@ class HyperEdge:
 
     signature: int = field(init=False)
     display_label: str = field(init=False)
+    id: str = field(default="", init=False)
 
     def create_display_label(self) -> str:
 
@@ -36,6 +39,11 @@ class HyperEdge:
 
     def __post_init__(self):
 
+        validate_common_fields(self, allow_digits_in_label=False)
+        validate_node_list(self.sources, "Sources")
+        validate_node_list(self.targets, "Targets")
+
+        self.id = f"{self.index}{self.label}"
         self.signature = self.create_signature()
         self.display_label = self.create_display_label()
 

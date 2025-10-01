@@ -1,6 +1,7 @@
 """Module to define hypergraphs and related structures."""
 
 from dataclasses import dataclass, field
+import json
 
 from proofChecker_python_serial.hyperedge import HyperEdge
 from proofChecker_python_serial.node import Node
@@ -16,6 +17,8 @@ class OpenHypergraph:
     input_nodes: list[Node] = field(default_factory=list, init=False)
     output_nodes: list[Node] = field(default_factory=list, init=False)
     isolated_nodes: list[Node] = field(default_factory=list, init=False)
+
+    signature: str = field(default="", init=False)
 
     def set_input_nodes(self) -> list[Node]:
         """Nodes with no incoming edges."""
@@ -109,10 +112,6 @@ class OpenHypergraph:
         """Add multiple edges to the hypergraph."""
         self.edges.extend(edges)
 
-    def check_nodes_in_graph(self, nodes: list[Node]) -> bool:
-        """Check if all nodes are in the hypergraph."""
-        return all(node in self.nodes for node in nodes)
-
     @staticmethod
     def set_next_prev(edge: HyperEdge):
         """Set the next and previous edges for nodes based on edges in the hypergraph."""
@@ -135,13 +134,41 @@ class OpenHypergraph:
 
     def __post_init__(self):
 
+        signature_parts: list[str] = []
         for edge in self.edges:
 
-            if not self.check_nodes_in_graph(edge.sources + edge.targets):
-                raise ValueError(f"Edge {edge.label} has nodes not in hypergraph nodes")
-
             self.set_next_prev(edge)
+
+            source_sig_part = "_".join(source.id for source in edge.sources)
+            target_sig_part = "_".join(target.id for target in edge.targets)
+            signature_parts.append(
+                f"{edge.index}{edge.label}-{source_sig_part}-{target_sig_part}"
+            )
+
+        self.signature = " ".join(signature_parts)
 
         self.set_input_nodes()
         self.set_output_nodes()
         self.set_isolated_nodes()
+
+
+def create_hypergraph(filepath: str) -> OpenHypergraph:
+    """Create a hypergraph from a JSON file."""
+    with open(filepath, "r") as f:
+        data = json.load(f)
+
+    nodes = [
+        Node(index=i, label=node["type_label"]) for i, node in enumerate(data["nodes"])
+    ]
+
+    edges = [
+        HyperEdge(
+            sources=[nodes[src] for src in edge["source_nodes"]],
+            targets=[nodes[tgt] for tgt in edge["target_nodes"]],
+            label=edge["type_label"],
+            index=i,
+        )
+        for i, edge in enumerate(data["hyperedges"])
+    ]
+    hypergraph = OpenHypergraph(nodes=nodes, edges=edges)
+    return hypergraph

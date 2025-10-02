@@ -17,12 +17,6 @@ class HyperEdge:
 
     def create_display_label(self) -> str:
 
-        # sorted_sources = sorted(self.sources, key=lambda node: node.index)
-        # sorted_targets = sorted(self.targets, key=lambda node: node.index)
-
-        # source_labels = ",".join(node.label for node in sorted_sources)
-        # target_labels = ",".join(node.label for node in sorted_targets)
-
         return f"{self.label}, {self.index}"
 
     def create_signature(self) -> int:

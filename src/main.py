@@ -52,8 +52,9 @@ def main():
 
     isomorphic, p_nodes, p_edges = MC_isomorphism(G1, G2)
 
-    print(isomorphic, p_nodes, p_edges)
-    # print(f"G1 and G2 isomorphic = {"True" if isomorphic else "False", p_nodes, p_edges}")
+    print(
+        f"G1 and G2 isomorphic = {'True' if isomorphic else 'False', p_nodes, p_edges}"
+    )
 
 
 if __name__ == "__main__":

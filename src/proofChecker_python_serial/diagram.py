@@ -47,7 +47,7 @@ class Diagram:
         # Draw arrows from nodes to edges
         for s in hyperEdge.sources:
             self.graphRep.edge(
-                self.diagram_label(s.label, nodes.index(s), ElementType.NODE),
+                self.diagram_label(self.nodes[s].label, s, ElementType.NODE),
                 edge_label,
             )
 
@@ -55,7 +55,7 @@ class Diagram:
         for t in hyperEdge.targets:
             self.graphRep.edge(
                 edge_label,
-                self.diagram_label(t.label, nodes.index(t), ElementType.NODE),
+                self.diagram_label(self.nodes[t].label, t, ElementType.NODE),
             )
 
     def drawGraph(self):

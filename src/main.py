@@ -6,6 +6,7 @@ from proofChecker_python_serial.hyperedge import HyperEdge
 from proofChecker_python_serial.node import Node
 from proofChecker_python_serial.hypergraph import OpenHypergraph
 from proofChecker_python_serial.diagram import Diagram
+import random
 
 
 def create_hypergraph(filepath: str) -> OpenHypergraph:
@@ -19,14 +20,18 @@ def create_hypergraph(filepath: str) -> OpenHypergraph:
 
     edges = [
         HyperEdge(
-            sources=[nodes[src] for src in edge["source_nodes"]],
-            targets=[nodes[tgt] for tgt in edge["target_nodes"]],
+            sources=[src for src in edge["source_nodes"]],
+            targets=[tgt for tgt in edge["target_nodes"]],
             label=edge["type_label"],
             index=i,
         )
         for i, edge in enumerate(data["hyperedges"])
     ]
-    hypergraph = OpenHypergraph(nodes=nodes, edges=edges)
+    inputs = data["Inputs"]
+    outputs = data["Outputs"]
+    hypergraph = OpenHypergraph(
+        nodes=nodes, edges=edges, input_nodes=inputs, output_nodes=outputs
+    )
     return hypergraph
 
 
@@ -52,16 +57,188 @@ def is_valid_dimensions(
     return True
 
 
+def permute_graph(g):
+    n = len(g.nodes)
+    permutation = list(range(n))
+    random.shuffle(permutation)
+    nodes = []
+    input_nodes = []
+    output_nodes = []
+
+    i = 0
+    for i in range(n):
+        nodes.append(Node(i, g.nodes[permutation[i]].label))
+        i += 1
+
+    for i in g.input_nodes:
+        input_nodes.append(permutation[i])
+
+    for o in g.output_nodes:
+        output_nodes.append(permutation[o])
+
+    i = 0
+    edges = []
+    for e in g.edges:
+        s = []
+        t = []
+        for j in range(len(e.sources)):
+            s.append(permutation[e.sources[j]])
+        for j in range(len(e.targets)):
+            t.append(permutation[e.targets[j]])
+        edges.append(HyperEdge(s, t, e.label, i))
+        i += 1
+    print("make new grpah")
+    g2 = OpenHypergraph(nodes, edges, input_nodes, output_nodes)
+    return permutation, g2
+
+
+def print_graph(G1):
+    print(
+        [(n.index, n.label) for n in G1.nodes],
+        [(e.label, e.sources, e.targets) for e in G1.edges],
+        G1.input_nodes,
+        G1.output_nodes,
+    )
+
+
+def MC_isomorphism(g1, g2):
+    """Check for graph isomorphism in monogamous, cartesian case"""
+
+    def check_lengths(l1, l2):
+        return len(l1) == len(l2)
+
+    len_checks = (
+        check_lengths(g1.nodes, g2.nodes)
+        and check_lengths(g1.input_nodes, g2.input_nodes)
+        and check_lengths(g1.output_nodes, g2.output_nodes)
+        and check_lengths(g1.edges, g2.edges)
+    )
+    if not len_checks:
+        return False
+
+    n = len(g1.nodes)
+    pi = [-1] * n  # list for the permutations
+    E = len(g1.edges)
+    edge_map = [-1] * E
+
+    visited_nodes = []
+    visited_edges = []
+
+    n_inputs = len(g1.input_nodes)
+    n_outputs = len(g2.output_nodes)
+
+    def update_permutation(p, i, j):
+        if p[i] == -1 or p[i] == j:
+            p[i] = j
+            return True
+        else:
+            return False
+
+    valid = True
+
+    # We can begin with the input and output nodes
+    for i in range(n_inputs):
+        valid &= update_permutation(pi, g1.input_nodes[i], g2.input_nodes[i])
+    for o in range(n_outputs):
+        valid &= update_permutation(pi, g1.output_nodes[o], g2.output_nodes[o])
+
+    # depth-first graph traversal
+    for i in range(n):
+        print(f"Next {i}", g1.nodes[i].next, g2.nodes[i].next)
+        print(f"Prev {i}", g1.nodes[i].prev, g2.nodes[i].prev)
+
+    def check_edge_equality(e1, e2):
+        print("Check equality", e1, e2)
+        if (e1 is None) or (e2 is None):
+            return e1 is None and e2 is None
+
+        edge1 = g1.edges[e1]
+        edge2 = g2.edges[e2]
+
+        return (
+            (edge1.label == edge2.label)
+            and check_lengths(edge1.sources, edge2.sources)
+            and check_lengths(edge1.targets, edge2.targets)
+        )
+
+    def explore_edges(e1, e2):
+        if e1 in visited_edges:
+            return edge_map[e1] == e2
+
+        if not check_edge_equality(e1, e2):
+            return False
+
+        if e1 is None:
+            return True
+        else:
+            visited_edges.append(e1)
+            valid = update_permutation(edge_map, e1, e2)
+            if valid:
+                print(g1.edges[e1], g2.edges[e2])
+                n_sources = len(g1.edges[e1].sources)
+                n_targets = len(g1.edges[e1].targets)
+                t1 = g1.edges[e1].targets
+                t2 = g2.edges[e2].targets
+                # check sources
+                for s in range(n_sources):
+                    s1 = g1.edges[e1].sources[s]
+                    s2 = g2.edges[e2].sources[s]
+                    v1, v2 = g1.nodes[s1], g2.nodes[s2]
+                    print(f"Prev nodes = {v1, v2}")
+                    valid &= update_permutation(pi, v1.index, v2.index)
+                    valid &= traverse_from_nodes(v1, v2)
+                # check targets
+                for t in range(n_targets):
+                    t1 = g1.edges[e1].targets[t]
+                    t2 = g2.edges[e2].targets[t]
+                    v1, v2 = g1.nodes[t1], g2.nodes[t2]
+                    print(f"Prev nodes = {v1, v2}")
+                    valid &= update_permutation(pi, v1.index, v2.index)
+                    valid &= traverse_from_nodes(v1, v2)
+            return valid
+
+    def traverse_from_nodes(v1, v2):
+        print(f"Traversing {v1, v2}")
+        if v1.index in visited_nodes:
+            return v2.index == pi[v1.index]
+
+        visited_nodes.append(v1)
+        # check prev edge
+        valid = True
+        valid &= explore_edges(v1.next, v2.next)
+        valid &= explore_edges(v1.prev, v2.prev)
+
+        return valid
+
+    for i in range(n_inputs):
+        v1 = g1.nodes[g1.input_nodes[i]]
+        v2 = g2.nodes[g2.input_nodes[i]]
+
+        valid &= traverse_from_nodes(v1, v2)
+
+    if any([i == -1 for i in pi]):
+        raise ValueError(f"Permutation incomplete: {pi}")
+
+    return (valid, pi, edge_map)
+
+
 def main():
 
-    hypergraph = create_hypergraph("InputFormat.json")
-    draw_graph(hypergraph)
+    G1 = create_hypergraph("Graph_cycle.json")
+    # draw_graph(G1)
 
-    hypergraph1 = create_hypergraph("tests/inputs/graph1.json")
-    hypergraph2 = create_hypergraph("tests/inputs/graph2.json")
+    (p, G2) = permute_graph(G1)
+    draw_graph(G2)
 
-    validity = is_valid_dimensions(hypergraph1, hypergraph2)
-    print(f"Input graphs have valid dimensions: {validity}")
+    print(p)
+
+    print_graph(G1)
+    print_graph(G2)
+
+    isomorphic, p_nodes, p_edges = MC_isomorphism(G1, G2)
+
+    print(isomorphic, p_nodes, p_edges)
+    # print(f"G1 and G2 isomorphic = {"True" if isomorphic else "False", p_nodes, p_edges}")
 
 
 if __name__ == "__main__":

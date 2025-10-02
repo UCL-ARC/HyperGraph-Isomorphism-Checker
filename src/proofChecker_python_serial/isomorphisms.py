@@ -83,7 +83,7 @@ def MC_isomorphism(g1, g2):
         print(f"Next {i}", g1.nodes[i].next, g2.nodes[i].next)
         print(f"Prev {i}", g1.nodes[i].prev, g2.nodes[i].prev)
 
-    def check_edge_equality(e1, e2):
+    def check_edge_compatibility(e1, e2):
         print("Check equality", e1, e2)
         if (e1 is None) or (e2 is None):
             return e1 is None and e2 is None
@@ -101,7 +101,7 @@ def MC_isomorphism(g1, g2):
         if e1 in visited_edges:
             return edge_map[e1] == e2
 
-        if not check_edge_equality(e1, e2):
+        if not check_edge_compatibility(e1, e2):
             return False
 
         if e1 is None:

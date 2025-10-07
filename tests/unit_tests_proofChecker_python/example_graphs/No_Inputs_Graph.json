@@ -1,0 +1,22 @@
+{
+    "graph_name": "TestInputGraph",
+    "comment": [
+      "Naming convention: type_label is a string,",
+      "lowercase strings for nodes,",
+      "uppercase strings for edges"
+    ],
+    "nodes":
+    [
+      {"type_label": "b"}, {"type_label": "a"}, {"type_label": "b"}
+    ],
+    "hyperedges":
+    [
+      {"type_label": "F", "source_nodes": [], "target_nodes": [0]},
+      {"type_label": "G", "source_nodes": [0], "target_nodes": [1,2]}
+    ],
+    "Inputs":
+    [
+    ],
+    "Outputs":
+    [1,2]
+  }

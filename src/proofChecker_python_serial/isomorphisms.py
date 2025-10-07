@@ -139,7 +139,6 @@ def MC_isomorphism(g1, g2):
             return v2.index == pi[v1.index]
 
         visited_nodes.append(v1)
-        # check prev edge
         valid = True
         valid &= explore_edges(v1.next, v2.next)
         valid &= explore_edges(v1.prev, v2.prev)
@@ -149,6 +148,12 @@ def MC_isomorphism(g1, g2):
     for i in range(n_inputs):
         v1 = g1.nodes[g1.input_nodes[i]]
         v2 = g2.nodes[g2.input_nodes[i]]
+
+        valid &= traverse_from_nodes(v1, v2)
+
+    for o in range(n_outputs):
+        v1 = g1.nodes[g1.output_nodes[o]]
+        v2 = g2.nodes[g2.output_nodes[o]]
 
         valid &= traverse_from_nodes(v1, v2)
 

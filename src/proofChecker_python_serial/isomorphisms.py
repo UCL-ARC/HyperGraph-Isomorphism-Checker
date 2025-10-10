@@ -42,6 +42,8 @@ def check_edge_compatibility(
     e1: int, e2: int, g1: OpenHypergraph, g2: OpenHypergraph
 ) -> bool:
     print("Check equality", e1, e2)
+
+    # If one is None, the other must be None too for the return to be True
     if (e1 is None) or (e2 is None):
         return e1 is None and e2 is None
 
@@ -75,28 +77,30 @@ def explore_edges(
     else:
         visited_edges.append(e1)
         valid = update_mapping(edge_map, e1, e2)
-        if valid:
-            print(g1.edges[e1], g2.edges[e2])
-            n_sources = len(g1.edges[e1].sources)
-            n_targets = len(g1.edges[e1].targets)
-            t1 = g1.edges[e1].targets
-            t2 = g2.edges[e2].targets
-            # check sources
-            for s in range(n_sources):
-                s1 = g1.edges[e1].sources[s]
-                s2 = g2.edges[e2].sources[s]
-                v1, v2 = g1.nodes[s1], g2.nodes[s2]
-                print(f"Prev nodes = {v1, v2}")
-                valid &= update_mapping(pi, v1.index, v2.index)
-                valid &= traverse_from_nodes(v1, v2)
-            # check targets
-            for t in range(n_targets):
-                t1 = g1.edges[e1].targets[t]
-                t2 = g2.edges[e2].targets[t]
-                v1, v2 = g1.nodes[t1], g2.nodes[t2]
-                print(f"Prev nodes = {v1, v2}")
-                valid &= update_mapping(pi, v1.index, v2.index)
-                valid &= traverse_from_nodes(v1, v2)
+        if not valid:
+            return False
+
+        print(g1.edges[e1], g2.edges[e2])
+        n_sources = len(g1.edges[e1].sources)
+        n_targets = len(g1.edges[e1].targets)
+
+        # check sources
+        for s in range(n_sources):
+            s1 = g1.edges[e1].sources[s]
+            s2 = g2.edges[e2].sources[s]
+            v1, v2 = g1.nodes[s1], g2.nodes[s2]
+            print(f"Prev nodes = {v1, v2}")
+            valid &= update_mapping(pi, v1.index, v2.index)
+            valid &= traverse_from_nodes(v1, v2)
+
+        # check targets
+        for t in range(n_targets):
+            t1 = g1.edges[e1].targets[t]
+            t2 = g2.edges[e2].targets[t]
+            v1, v2 = g1.nodes[t1], g2.nodes[t2]
+            print(f"Prev nodes = {v1, v2}")
+            valid &= update_mapping(pi, v1.index, v2.index)
+            valid &= traverse_from_nodes(v1, v2)
         return valid
 
 
@@ -120,7 +124,9 @@ def traverse_from_nodes(
     return valid
 
 
-def MC_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph) -> bool:
+def MC_isomorphism(
+    g1: OpenHypergraph, g2: OpenHypergraph
+) -> tuple[bool, list[int], list[int]]:
     """Check for graph isomorphism in monogamous, cartesian case"""
 
     if not (
@@ -129,7 +135,7 @@ def MC_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph) -> bool:
         and len(g1.output_nodes) == len(g2.output_nodes)
         and len(g1.edges) == len(g2.edges)
     ):
-        return False
+        return (False, [], [])
 
     n = len(g1.nodes)
     pi = [-1] * n  # list for the permutations

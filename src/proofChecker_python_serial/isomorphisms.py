@@ -2,39 +2,25 @@ from proofChecker_python_serial.hypergraph import OpenHypergraph, Node, HyperEdg
 import random
 
 
-def permute_graph(g):
-    n = len(g.nodes)
-    permutation = list(range(n))
+def permute_graph(g: OpenHypergraph) -> tuple[list[int], OpenHypergraph]:
+    """Return a permuted version of the input graph and the permutation used"""
+
+    permutation = list(range(len(g.nodes)))
     random.shuffle(permutation)
-    nodes = []
-    input_nodes = []
-    output_nodes = []
 
-    i = 0
-    for i in range(n):
-        nodes.append(Node(i, g.nodes[permutation[i]].label))
-        i += 1
+    nodes = [Node(i, g.nodes[permute].label) for i, permute in enumerate(permutation)]
+    input_nodes = [permutation[i] for i in g.input_nodes]
+    output_nodes = [permutation[o] for o in g.output_nodes]
 
-    for i in g.input_nodes:
-        input_nodes.append(permutation[i])
-
-    for o in g.output_nodes:
-        output_nodes.append(permutation[o])
-
-    i = 0
     edges = []
-    for e in g.edges:
-        s = []
-        t = []
-        for j in range(len(e.sources)):
-            s.append(permutation[e.sources[j]])
-        for j in range(len(e.targets)):
-            t.append(permutation[e.targets[j]])
-        edges.append(HyperEdge(s, t, e.label, i))
-        i += 1
-    print("make new grpah")
-    g2 = OpenHypergraph(nodes, edges, input_nodes, output_nodes)
-    return permutation, g2
+
+    for index, edge in enumerate(g.edges):
+        sources = [permutation[src] for src in edge.sources]
+        targets = [permutation[tgt] for tgt in edge.targets]
+        edges.append(HyperEdge(sources, targets, edge.label, index))
+
+    permuted_graph = OpenHypergraph(nodes, edges, input_nodes, output_nodes)
+    return permutation, permuted_graph
 
 
 def MC_isomorphism(g1, g2):

@@ -122,10 +122,12 @@ class Isomorphism:
 
         if e1 is None:
             return True
+        elif not self.is_isomorphic:
+            return False
         else:
             self.visited_edges.append(e1)
-            valid = self.update_mapping(self.edge_mapping, e1, e2)
-            if not valid:
+            self.is_isomorphic = self.update_mapping(e1, e2, mode="edge")
+            if not self.is_isomorphic:
                 return False
 
             # print(g1.edges[e1], g2.edges[e2])
@@ -139,8 +141,10 @@ class Isomorphism:
                 s2 = self.graphs[1].edges[e2].sources[s]
                 v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
                 print(f"Prev nodes = {v1, v2}")
-                valid &= self.update_mapping(self.node_mapping, v1.index, v2.index)
-                valid &= self.traverse_from_nodes(v1, v2)
+                self.is_isomorphic &= self.update_mapping(
+                    v1.index, v2.index, mode="node"
+                )
+                self.is_isomorphic &= self.traverse_from_nodes(v1, v2)
 
             # check targets
             for t in range(n_targets):
@@ -148,9 +152,11 @@ class Isomorphism:
                 t2 = self.graphs[1].edges[e2].targets[t]
                 v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
                 print(f"Prev nodes = {v1, v2}")
-                valid &= self.update_mapping(self.node_mapping, v1.index, v2.index)
-                valid &= self.traverse_from_nodes(v1, v2)
-            return valid
+                self.is_isomorphic &= self.update_mapping(
+                    v1.index, v2.index, mode="node"
+                )
+                self.is_isomorphic &= self.traverse_from_nodes(v1, v2)
+            return self.is_isomorphic
 
     def traverse_from_nodes(self, v1: Node, v2: Node) -> bool:
         print(f"Traversing {v1, v2}")
@@ -158,11 +164,11 @@ class Isomorphism:
             return v2.index == self.node_mapping[v1.index]
 
         self.visited_nodes.append(v1)
-        valid = True
-        valid &= self.explore_edges(v1.next, v2.next)
-        valid &= self.explore_edges(v1.prev, v2.prev)
+        self.is_isomorphic = True
+        self.is_isomorphic &= self.explore_edges(v1.next, v2.next)
+        self.is_isomorphic &= self.explore_edges(v1.prev, v2.prev)
 
-        return valid
+        return self.is_isomorphic
 
     def check_MC_isomorphism(self) -> tuple[bool, list[int], list[int]]:
         """Check for graph isomorphism in monogamous, cartesian case"""
@@ -180,16 +186,24 @@ class Isomorphism:
             v1 = g1.nodes[input_1]
             v2 = g2.nodes[input_2]
 
-            valid &= self.traverse_from_nodes(v1, v2)
+            self.is_isomorphic &= self.traverse_from_nodes(v1, v2)
 
         # Transverse from the output nodes
         for output_1, output_2 in zip(g1.output_nodes, g2.output_nodes):
             v1 = g1.nodes[output_1]
             v2 = g2.nodes[output_2]
 
-            valid &= self.traverse_from_nodes(v1, v2)
+            self.is_isomorphic &= self.traverse_from_nodes(v1, v2)
 
         if any([i == -1 for i in self.node_mapping]):
             raise ValueError(f"Permutation incomplete: {self.node_mapping}")
 
-        return (valid, self.node_mapping, self.edge_mapping)
+        return (self.is_isomorphic, self.node_mapping, self.edge_mapping)
+
+
+def MC_isomorphism(
+    g1: OpenHypergraph, g2: OpenHypergraph
+) -> tuple[bool, list[int], list[int]]:
+
+    iso = Isomorphism((g1, g2))
+    return iso.check_MC_isomorphism()

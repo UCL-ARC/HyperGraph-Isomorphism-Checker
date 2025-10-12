@@ -22,6 +22,11 @@ def Random_Permutation_Test(graph_file):
     )
     (pi, g2) = permute_graph(g1)  # calculates a random permutation of the graph
 
+    print(f"Permutation: {pi}")
+
+    print(f"Graph 1: {g1}")
+    print(f"Graph 2: {g2}")
+
     isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
     assert_isomorphism(g1, g2, pi, p_nodes, p_edges, isomorphic)
 

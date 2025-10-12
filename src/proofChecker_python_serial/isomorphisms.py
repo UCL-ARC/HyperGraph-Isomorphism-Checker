@@ -82,6 +82,7 @@ class Isomorphism:
         if mapping[i] in (-1, j):
             mapping[i] = j
             self.is_isomorphic = True
+            print(f"Mapping {mode} {i} -> {j}")
         else:
             self.is_isomorphic = False
 
@@ -114,6 +115,8 @@ class Isomorphism:
         )
 
     def explore_edges(self, e1: int, e2: int) -> bool:
+
+        print(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
             return self.edge_mapping[e1] == e2
 

@@ -1,7 +1,11 @@
 from proofChecker_python_serial.hypergraph import OpenHypergraph, Node, HyperEdge
 import random
+import logging
 
 from dataclasses import dataclass, field
+
+# Set up logger for this module
+logger = logging.getLogger(__name__)
 
 
 def permute_graph(g: OpenHypergraph) -> tuple[list[int], OpenHypergraph]:
@@ -70,8 +74,8 @@ class Isomorphism:
         else:
             raise ValueError(f"Mode must be 'node' or 'edge', got {mode}")
 
-        print(f"Current mapping {mode}: {mapping}")
-        print(f"Updating mapping {mode}: {i} -> {j}")
+        logger.debug(f"Current mapping {mode}: {mapping}")
+        logger.debug(f"Updating mapping {mode}: {i} -> {j}")
 
         if i < 0 or i >= len(mapping):
             raise ValueError(
@@ -85,7 +89,7 @@ class Isomorphism:
         if mapping[i] in (-1, j):
             mapping[i] = j
             self.is_isomorphic = True
-            print(f"Mapping {mode} {i} -> {j}")
+            logger.debug(f"Mapping {mode} {i} -> {j}")
         else:
             self.is_isomorphic = False
 
@@ -102,11 +106,13 @@ class Isomorphism:
                 self.update_mapping(i, j, mode)
 
     def check_edge_compatibility(self, e1: int | None, e2: int | None) -> bool:
-        print("Check equality", e1, e2)
+        logger.debug(f"Check equality: e1={e1}, e2={e2}")
 
-        # If one is None, the other must be None too for the return to be True
-        if (e1 is None) or (e2 is None):
-            return e1 is None and e2 is None
+        if e1 is None and e2 is None:
+            return True
+
+        if e1 is None or e2 is None:
+            return False
 
         edge1 = self.graphs[0].edges[e1]
         edge2 = self.graphs[1].edges[e2]
@@ -119,7 +125,7 @@ class Isomorphism:
 
     def explore_edges(self, e1: int | None, e2: int | None):
 
-        print(f"Exploring edges {e1, e2}")
+        logger.debug(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
             return self.edge_mapping[e1] == e2
 
@@ -132,28 +138,30 @@ class Isomorphism:
             return False
         else:
             self.visited_edges.append(e1)
-            print(f"Mapping edge {e1} -> {e2}")
-            print(f"Currently is_isomorphic = {self.is_isomorphic}")
+            logger.debug(f"Mapping edge {e1} -> {e2}")
+            logger.debug(f"Currently is_isomorphic = {self.is_isomorphic}")
             self.update_mapping(e1, e2, mode="edge")
-            print(f"Currently is_isomorphic = {self.is_isomorphic}")
-            print("Checkpoint 1")
+            logger.debug(f"Currently is_isomorphic = {self.is_isomorphic}")
+            logger.debug("Checkpoint 1")
             if not self.is_isomorphic:
                 return False
-            print("Checkpoint 2")
+            logger.debug("Checkpoint 2")
 
-            # print(g1.edges[e1], g2.edges[e2])
-            print(self.graphs[0].edges[e1], self.graphs[1].edges[e2])
+            # Commented out: logger.debug(g1.edges[e1], g2.edges[e2])
+            logger.debug(
+                f"Edges: {self.graphs[0].edges[e1]}, {self.graphs[1].edges[e2]}"
+            )
             n_sources = len(self.graphs[0].edges[e1].sources)
             n_targets = len(self.graphs[0].edges[e1].targets)
 
-            print(f"n_sources, n_targets = {n_sources, n_targets}")
+            logger.debug(f"n_sources, n_targets = {n_sources, n_targets}")
 
             # check sources
             for s in range(n_sources):
                 s1 = self.graphs[0].edges[e1].sources[s]
                 s2 = self.graphs[1].edges[e2].sources[s]
                 v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
-                print(f"Prev nodes = {v1, v2}")
+                logger.debug(f"Prev nodes = {v1, v2}")
                 self.update_mapping(v1.index, v2.index, mode="node")
                 self.traverse_from_nodes(v1, v2)
 
@@ -162,12 +170,12 @@ class Isomorphism:
                 t1 = self.graphs[0].edges[e1].targets[t]
                 t2 = self.graphs[1].edges[e2].targets[t]
                 v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
-                print(f"Prev nodes = {v1, v2}")
+                logger.debug(f"Prev nodes = {v1, v2}")
                 self.update_mapping(v1.index, v2.index, mode="node")
                 self.traverse_from_nodes(v1, v2)
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
-        print(f"Traversing {v1, v2}")
+        logger.debug(f"Traversing {v1, v2}")
         if v1.index in self.visited_nodes:
             return v2.index == self.node_mapping[v1.index]
 
@@ -191,7 +199,7 @@ class Isomorphism:
             v1 = g1.nodes[input_1]
             v2 = g2.nodes[input_2]
 
-            print(f"Starting traversal from input nodes {v1, v2}")
+            logger.debug(f"Starting traversal from input nodes {v1, v2}")
 
             self.traverse_from_nodes(v1, v2)
 
@@ -216,6 +224,6 @@ def MC_isomorphism(
 
     ret = iso.check_MC_isomorphism()
 
-    print(f"Visited nodes: {iso.visited_nodes}")
+    logger.info(f"Visited nodes: {iso.visited_nodes}")
 
     return ret

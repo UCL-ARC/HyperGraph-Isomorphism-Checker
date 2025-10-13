@@ -117,7 +117,7 @@ class Isomorphism:
             and (len(edge1.targets) == len(edge2.targets))
         )
 
-    def explore_edges(self, e1: int | None, e2: int | None) -> bool:
+    def explore_edges(self, e1: int | None, e2: int | None):
 
         print(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
@@ -165,7 +165,6 @@ class Isomorphism:
                 print(f"Prev nodes = {v1, v2}")
                 self.update_mapping(v1.index, v2.index, mode="node")
                 self.traverse_from_nodes(v1, v2)
-            return self.is_isomorphic
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
         print(f"Traversing {v1, v2}")
@@ -173,9 +172,8 @@ class Isomorphism:
             return v2.index == self.node_mapping[v1.index]
 
         self.visited_nodes.append(v1.index)
-        self.is_isomorphic = True
-        self.is_isomorphic &= self.explore_edges(v1.next, v2.next)
-        self.is_isomorphic &= self.explore_edges(v1.prev, v2.prev)
+        self.explore_edges(v1.next, v2.next)
+        self.explore_edges(v1.prev, v2.prev)
 
     def check_MC_isomorphism(self) -> tuple[bool, list[int], list[int]]:
         """Check for graph isomorphism in monogamous, cartesian case"""
@@ -221,17 +219,3 @@ def MC_isomorphism(
     print(f"Visited nodes: {iso.visited_nodes}")
 
     return ret
-
-
-if __name__ == "__main__":
-
-    from proofChecker_python_serial.graph_utils import create_hypergraph
-
-    g1 = create_hypergraph(
-        "tests/unit_tests_proofChecker_python/example_graphs/MA_Graph.json"
-    )
-    (pi, g2) = permute_graph(g1)  # calculates a random permutation of the graph
-
-    print(f"Permutation: {pi}")
-
-    isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)

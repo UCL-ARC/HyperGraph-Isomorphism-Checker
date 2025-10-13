@@ -126,9 +126,7 @@ class Isomorphism:
         if not self.check_edge_compatibility(e1, e2):
             return False
 
-        if e1 is None:
-            return True
-        elif e2 is None:
+        if e1 is None or e2 is None:
             return True
         elif not self.is_isomorphic:
             return False

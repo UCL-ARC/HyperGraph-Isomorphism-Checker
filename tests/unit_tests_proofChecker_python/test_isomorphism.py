@@ -16,10 +16,11 @@ def assert_isomorphism(g1, g2, pi, p_nodes, p_edges, isomorphic):
         assert i in p_edges
 
 
+test_graph_dir = "tests/unit_tests_proofChecker_python/example_graphs/"
+
+
 def Random_Permutation_Test(graph_file):
-    g1 = create_hypergraph(
-        "tests/unit_tests_proofChecker_python/example_graphs/" + graph_file
-    )
+    g1 = create_hypergraph(test_graph_dir + graph_file)
     (pi, g2) = permute_graph(g1)  # calculates a random permutation of the graph
 
     isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
@@ -38,8 +39,21 @@ def test_MA_no_outputs_isomorphic():
     Random_Permutation_Test("No_Outputs_Graph.json")
 
 
-def test_monogamous_acylic_non_isomorphic():
-    pass
+acyclic_non_isomorphisms = [
+    "Acyclic_Wrong_Edge_Label.json",
+    "Acyclic_Wrong_Input_Connectivity.json",
+    "Acyclic_Missing_Node.json",
+    "Acyclic_Reordered_Edge_Output.json",
+]
+
+
+@pytest.mark.parametrize("graph_file", acyclic_non_isomorphisms)
+def test_monogamous_acylic_non_isomorphic(graph_file):
+    g1 = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
+    g2 = create_hypergraph(test_graph_dir + graph_file)
+
+    isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
+    assert not isomorphic
 
 
 def test_node_back_tracking_isomorphic():

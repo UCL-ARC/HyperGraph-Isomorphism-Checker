@@ -31,6 +31,7 @@ def permute_graph(g: OpenHypergraph) -> tuple[list[int], OpenHypergraph]:
 
 @dataclass(slots=True)
 class Isomorphism:
+    """Class to check isomorphism between two hypergraphs."""
 
     graphs: tuple[OpenHypergraph, OpenHypergraph]
     node_mapping: list[int] = field(init=False)
@@ -42,13 +43,17 @@ class Isomorphism:
 
     @property
     def n_nodes(self) -> int:
+        """Return the number of nodes in the graphs."""
         return len(self.graphs[0].nodes)
 
     @property
     def n_edges(self) -> int:
+        """Return the number of edges in the graphs."""
         return len(self.graphs[0].edges)
 
     def __post_init__(self):
+        """Post-initialization checks for isomorphism. Includes basic size checks."""
+
         g1, g2 = self.graphs
         if not (
             len(g1.nodes) == len(g2.nodes)
@@ -65,7 +70,7 @@ class Isomorphism:
             self.is_isomorphic = True
 
     def update_mapping(self, i: int, j: int, mode: str):
-        """Update the mapping p with i -> j, return False if inconsistent"""
+        """Update the mapping p with i -> j, Sets is_isomorphic to False if inconsistent"""
 
         if mode == "node":
             mapping = self.node_mapping
@@ -94,7 +99,7 @@ class Isomorphism:
             self.is_isomorphic = False
 
     def update_mapping_list(self, list1: list[int], list2: list[int], mode: str):
-        """Update the mapping p with i -> j for all i in list1 and j in list2, return False if inconsistent"""
+        """Update the mapping p with i -> j for all i in list1 and j in list2, Sets is_isomorphic to False if inconsistent"""
 
         if len(list1) != len(list2):
             raise ValueError(
@@ -106,6 +111,8 @@ class Isomorphism:
                 self.update_mapping(i, j, mode)
 
     def check_edge_compatibility(self, e1: int | None, e2: int | None) -> bool:
+        """Checks the length of sources and targets and labels of two edges for compatibility"""
+
         logger.debug(f"Check equality: e1={e1}, e2={e2}")
 
         if e1 is None and e2 is None:
@@ -124,6 +131,7 @@ class Isomorphism:
         )
 
     def explore_edges(self, e1: int | None, e2: int | None):
+        """Explore edges e1 and e2, updating mappings and traversing connected nodes."""
 
         logger.debug(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
@@ -175,6 +183,8 @@ class Isomorphism:
                 self.traverse_from_nodes(v1, v2)
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
+        """Traverse the graph from nodes v1 and v2, exploring connected edges and nodes."""
+
         logger.debug(f"Traversing {v1, v2}")
         if v1.index in self.visited_nodes:
             return v2.index == self.node_mapping[v1.index]

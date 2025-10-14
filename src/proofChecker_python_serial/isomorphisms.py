@@ -103,7 +103,9 @@ class Isomorphism:
         else:
             self.is_isomorphic = False
 
-    def update_mapping_list(self, list1: list[int], list2: list[int], mode: str):
+    def update_mapping_list(
+        self, list1: list[int], list2: list[int], mode: MappingMode
+    ):
         """Update the mapping p with i -> j for all i in list1 and j in list2, Sets is_isomorphic to False if inconsistent"""
 
         if len(list1) != len(list2):

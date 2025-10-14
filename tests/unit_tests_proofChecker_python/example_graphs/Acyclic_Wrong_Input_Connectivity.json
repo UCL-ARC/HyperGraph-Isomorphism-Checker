@@ -1,0 +1,25 @@
+{
+
+    "graph_name": "TestNonMonogamousAcyclicGraph",
+    "comment": [
+      "Naming convention: type_label is a string,",
+      "lowercase strings for nodes,",
+      "uppercase strings for edges"
+    ],
+    "nodes":
+    [
+      {"type_label": "a"}, {"type_label": "a"}, {"type_label": "b"}, {"type_label": "b"},
+      {"type_label": "a"}, {"type_label": "b"}, {"type_label": "c"}
+    ],
+    "hyperedges":
+    [
+      {"type_label": "F", "source_nodes": [1, 0], "target_nodes": [3]},
+      {"type_label": "G", "source_nodes": [3, 2, 6], "target_nodes": [4, 5]}
+    ],
+    "Inputs":
+    [
+      0, 1, 2
+    ],
+    "Outputs":
+    [4, 5]
+  }

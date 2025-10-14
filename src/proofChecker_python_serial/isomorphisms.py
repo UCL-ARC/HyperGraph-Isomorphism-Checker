@@ -42,7 +42,7 @@ class Isomorphism:
     graphs: tuple[OpenHypergraph, OpenHypergraph]
     node_mapping: list[int] = field(init=False)
     edge_mapping: list[int] = field(init=False)
-    is_isomorphic: bool = field(init=False)
+    mapping_valid: bool = field(init=False)
 
     visited_nodes: list[int] = field(default_factory=list, init=False)
     visited_edges: list[int] = field(default_factory=list, init=False)
@@ -67,13 +67,13 @@ class Isomorphism:
             and len(g1.output_nodes) == len(g2.output_nodes)
             and len(g1.edges) == len(g2.edges)
         ):
-            self.is_isomorphic = False
+            self.mapping_valid = False
             self.node_mapping = []
             self.edge_mapping = []
         else:
             self.node_mapping = [-1] * self.n_nodes
             self.edge_mapping = [-1] * self.n_edges
-            self.is_isomorphic = True
+            self.mapping_valid = True
 
     def update_mapping(self, i: int, j: int, mode: MappingMode):
         """Update the mapping p with i -> j, Sets is_isomorphic to False if inconsistent"""
@@ -101,9 +101,11 @@ class Isomorphism:
             mapping[i] = j
             logger.debug(f"Mapping {mode} {i} -> {j}")
         else:
-            self.is_isomorphic = False
+            self.mapping_valid = False
 
-    def update_mapping_list(self, list1: list[int], list2: list[int], mode: str):
+    def update_mapping_list(
+        self, list1: list[int], list2: list[int], mode: MappingMode
+    ):
         """Update the mapping p with i -> j for all i in list1 and j in list2, Sets is_isomorphic to False if inconsistent"""
 
         if len(list1) != len(list2):
@@ -112,7 +114,7 @@ class Isomorphism:
             )
 
         for i, j in zip(list1, list2):
-            if self.is_isomorphic:
+            if self.mapping_valid:
                 self.update_mapping(i, j, mode)
 
     def check_edge_compatibility(self, e1: int | None, e2: int | None) -> bool:
@@ -140,23 +142,28 @@ class Isomorphism:
 
         logger.debug(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
-            return self.edge_mapping[e1] == e2
+            self.mapping_valid = (
+                False if self.edge_mapping[e1] != e2 else self.mapping_valid
+            )
+            return
 
         if not self.check_edge_compatibility(e1, e2):
-            return False
+            self.mapping_valid = False
+            return
 
-        if e1 is None or e2 is None:
-            return True
-        elif not self.is_isomorphic:
-            return False
+        if (e1 is None) or (e2 is None):
+            if e1 != e2:
+                self.mapping_valid = False
+            return
+
         else:
             self.visited_edges.append(e1)
             logger.debug(f"Mapping edge {e1} -> {e2}")
-            logger.debug(f"Currently is_isomorphic = {self.is_isomorphic}")
-            self.update_mapping(e1, e2, mode=MappingMode.EDGE)
-            logger.debug(f"Currently is_isomorphic = {self.is_isomorphic}")
+            logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
+            self.update_mapping(e1, e2, MappingMode.EDGE)
+            logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
             logger.debug("Checkpoint 1")
-            if not self.is_isomorphic:
+            if not self.mapping_valid:
                 return False
             logger.debug("Checkpoint 2")
 
@@ -176,7 +183,10 @@ class Isomorphism:
                 v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
                 logger.debug(f"Prev nodes = {v1, v2}")
                 self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
-                self.traverse_from_nodes(v1, v2)
+                if self.mapping_valid:
+                    self.traverse_from_nodes(v1, v2)
+                else:
+                    return
 
             # check targets
             for t in range(n_targets):
@@ -185,14 +195,19 @@ class Isomorphism:
                 v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
                 logger.debug(f"Prev nodes = {v1, v2}")
                 self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
-                self.traverse_from_nodes(v1, v2)
+                if self.mapping_valid:
+                    self.traverse_from_nodes(v1, v2)
+                else:
+                    return
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
         """Traverse the graph from nodes v1 and v2, exploring connected edges and nodes."""
 
         logger.debug(f"Traversing {v1, v2}")
         if v1.index in self.visited_nodes:
-            return v2.index == self.node_mapping[v1.index]
+            if v2.index != self.node_mapping[v1.index]:
+                self.mapping_valid = False
+            return
 
         self.visited_nodes.append(v1.index)
         self.explore_edges(v1.next, v2.next)
@@ -204,11 +219,11 @@ class Isomorphism:
         g1, g2 = self.graphs
 
         # We can begin with mapping the input and output nodes only
-        if self.is_isomorphic:
+        if self.mapping_valid:
             self.update_mapping_list(
                 g1.input_nodes, g2.input_nodes, mode=MappingMode.NODE
             )
-        if self.is_isomorphic:
+        if self.mapping_valid:
             self.update_mapping_list(
                 g1.output_nodes, g2.output_nodes, mode=MappingMode.NODE
             )
@@ -229,10 +244,11 @@ class Isomorphism:
 
             self.traverse_from_nodes(v1, v2)
 
-        if any([i == -1 for i in self.node_mapping]):
-            raise ValueError(f"Permutation incomplete: {self.node_mapping}")
+        if self.mapping_valid:
+            if any([i == -1 for i in self.node_mapping]):
+                raise ValueError(f"Permutation incomplete: {self.node_mapping}")
 
-        return (self.is_isomorphic, self.node_mapping, self.edge_mapping)
+        return (self.mapping_valid, self.node_mapping, self.edge_mapping)
 
 
 def MC_isomorphism(
@@ -241,7 +257,7 @@ def MC_isomorphism(
 
     iso = Isomorphism((g1, g2))
 
-    ret = iso.check_MC_isomorphism()
+    ret = iso.check_MC_isomorphism() if iso.mapping_valid else (False, [], [])
 
     logger.info(f"Visited nodes: {iso.visited_nodes}")
 

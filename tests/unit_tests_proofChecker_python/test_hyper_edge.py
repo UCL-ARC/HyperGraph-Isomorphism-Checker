@@ -13,4 +13,4 @@ def test_hyperedge_creation():
     assert edge.sources == [node1, node2]
     assert edge.targets == [node3]
     assert edge.label == "F"
-    assert edge.display_label == "F, 0 (a,b)->(c)"
+    assert edge.display_label == "F, 0"

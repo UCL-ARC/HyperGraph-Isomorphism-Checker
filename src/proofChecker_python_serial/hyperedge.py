@@ -2,15 +2,13 @@
 
 from dataclasses import dataclass, field
 
-from proofChecker_python_serial.node import Node
-
 
 @dataclass(slots=True)
 class HyperEdge:
     """A hyperedge in a hypergraph."""
 
-    sources: list[Node]
-    targets: list[Node]
+    sources: list[int]
+    targets: list[int]
     label: str
     index: int
 
@@ -19,18 +17,12 @@ class HyperEdge:
 
     def create_display_label(self) -> str:
 
-        sorted_sources = sorted(self.sources, key=lambda node: node.index)
-        sorted_targets = sorted(self.targets, key=lambda node: node.index)
-
-        source_labels = ",".join(node.label for node in sorted_sources)
-        target_labels = ",".join(node.label for node in sorted_targets)
-
-        return f"{self.label}, {self.index} ({source_labels})->({target_labels})"
+        return f"{self.label}, {self.index}"
 
     def create_signature(self) -> int:
 
-        source_node_index = [node.index for node in self.sources]
-        target_node_index = [node.index for node in self.targets]
+        source_node_index = [node for node in self.sources]
+        target_node_index = [node for node in self.targets]
 
         return self.create_hash(self.index, source_node_index, target_node_index)
 

@@ -13,26 +13,8 @@ class OpenHypergraph:
     nodes: list[Node] = field(default_factory=list)
     edges: list[HyperEdge] = field(default_factory=list)
 
-    input_nodes: list[Node] = field(default_factory=list, init=False)
-    output_nodes: list[Node] = field(default_factory=list, init=False)
-    isolated_nodes: list[Node] = field(default_factory=list, init=False)
-
-    def set_input_nodes(self) -> list[Node]:
-        """Nodes with no incoming edges."""
-        self.input_nodes = [node for node in self.nodes if node.prev is None]
-        return self.input_nodes
-
-    def set_output_nodes(self) -> list[Node]:
-        """Nodes with no outgoing edges."""
-        self.output_nodes = [node for node in self.nodes if node.next is None]
-        return self.output_nodes
-
-    def set_isolated_nodes(self) -> list[Node]:
-        """Nodes with no incoming or outgoing edges."""
-        self.isolated_nodes = [
-            node for node in self.nodes if node.prev is None and node.next is None
-        ]
-        return self.isolated_nodes
+    input_nodes: list[int] = field(default_factory=list)
+    output_nodes: list[int] = field(default_factory=list)
 
     # TODO: Improve efficiency by caching results and invalidating on changes
     def is_valid(self) -> bool:
@@ -43,18 +25,9 @@ class OpenHypergraph:
         if not self.edges:
             return False
 
-        if not self.input_nodes:
-            return False
-
-        if not self.output_nodes:
-            return False
-
-        if self.isolated_nodes:
-            return False
-
         for edge in self.edges:
             for node in edge.sources + edge.targets:
-                if node not in self.nodes:
+                if node >= len(self.nodes):
                     return False
 
         return True
@@ -68,28 +41,6 @@ class OpenHypergraph:
 
         if not self.edges:
             errors.append("Hypergraph must contain at least one edge")
-
-        if not self.input_nodes:
-            errors.append("Hypergraph must have at least one input node")
-
-        if not self.output_nodes:
-            errors.append("Hypergraph must have at least one output node")
-
-        isolated = self.isolated_nodes
-        if isolated:
-            isolated_labels = [node.label for node in isolated]
-            errors.append(f"Hypergraph contains isolated nodes: {isolated_labels}")
-
-        # Check for nodes referenced in edges but not in the node list
-        missing_nodes: list[Node] = []
-        for edge in self.edges:
-            for node in edge.sources + edge.targets:
-                if node not in self.nodes and node not in missing_nodes:
-                    missing_nodes.append(node)
-
-        if missing_nodes:
-            missing_labels = [node.label for node in missing_nodes]
-            errors.append(f"Edges reference nodes not in hypergraph: {missing_labels}")
 
         return errors
 
@@ -109,25 +60,27 @@ class OpenHypergraph:
         """Add multiple edges to the hypergraph."""
         self.edges.extend(edges)
 
-    def check_nodes_in_graph(self, nodes: list[Node]) -> bool:
+    def check_nodes_in_graph(self, nodes) -> bool:
         """Check if all nodes are in the hypergraph."""
-        return all(node in self.nodes for node in nodes)
+        return all(node < len(self.nodes) for node in nodes)
 
-    @staticmethod
-    def set_next_prev(edge: HyperEdge):
+    def set_next_prev(self, edge: HyperEdge):
         """Set the next and previous edges for nodes based on edges in the hypergraph."""
 
-        for node in edge.sources:
+        for v in edge.sources:
+            print(v)
+            node = self.nodes[v]
             if node.next is None:
-                node.next = {edge.signature}
+                node.next = edge.index
             else:
                 raise ValueError(
                     f"Source node {node.label} of edge {edge.label} already has a next edge. This is not currently supported."
                 )
 
-        for node in edge.targets:
+        for v in edge.targets:
+            node = self.nodes[v]
             if node.prev is None:
-                node.prev = {edge.signature}
+                node.prev = edge.index
             else:
                 raise ValueError(
                     f"Target node {node.label} of edge {edge.label} already has a previous edge. This is not currently supported."
@@ -141,7 +94,3 @@ class OpenHypergraph:
                 raise ValueError(f"Edge {edge.label} has nodes not in hypergraph nodes")
 
             self.set_next_prev(edge)
-
-        self.set_input_nodes()
-        self.set_output_nodes()
-        self.set_isolated_nodes()

@@ -3,6 +3,7 @@ import random
 import logging
 
 from dataclasses import dataclass, field
+from enum import Enum
 
 # Set up logger for this module
 logger = logging.getLogger(__name__)
@@ -27,6 +28,11 @@ def permute_graph(g: OpenHypergraph) -> tuple[list[int], OpenHypergraph]:
 
     permuted_graph = OpenHypergraph(nodes, edges, input_nodes, output_nodes)
     return permutation, permuted_graph
+
+
+class MappingMode(Enum):
+    NODE = "node"
+    EDGE = "edge"
 
 
 @dataclass(slots=True)
@@ -69,12 +75,12 @@ class Isomorphism:
             self.edge_mapping = [-1] * self.n_edges
             self.is_isomorphic = True
 
-    def update_mapping(self, i: int, j: int, mode: str):
+    def update_mapping(self, i: int, j: int, mode: MappingMode):
         """Update the mapping p with i -> j, Sets is_isomorphic to False if inconsistent"""
 
-        if mode == "node":
+        if mode == MappingMode.NODE:
             mapping = self.node_mapping
-        elif mode == "edge":
+        elif mode == MappingMode.EDGE:
             mapping = self.edge_mapping
         else:
             raise ValueError(f"Mode must be 'node' or 'edge', got {mode}")
@@ -148,7 +154,7 @@ class Isomorphism:
             self.visited_edges.append(e1)
             logger.debug(f"Mapping edge {e1} -> {e2}")
             logger.debug(f"Currently is_isomorphic = {self.is_isomorphic}")
-            self.update_mapping(e1, e2, mode="edge")
+            self.update_mapping(e1, e2, mode=MappingMode.EDGE)
             logger.debug(f"Currently is_isomorphic = {self.is_isomorphic}")
             logger.debug("Checkpoint 1")
             if not self.is_isomorphic:
@@ -170,7 +176,7 @@ class Isomorphism:
                 s2 = self.graphs[1].edges[e2].sources[s]
                 v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
                 logger.debug(f"Prev nodes = {v1, v2}")
-                self.update_mapping(v1.index, v2.index, mode="node")
+                self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
                 self.traverse_from_nodes(v1, v2)
 
             # check targets
@@ -179,7 +185,7 @@ class Isomorphism:
                 t2 = self.graphs[1].edges[e2].targets[t]
                 v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
                 logger.debug(f"Prev nodes = {v1, v2}")
-                self.update_mapping(v1.index, v2.index, mode="node")
+                self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
                 self.traverse_from_nodes(v1, v2)
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
@@ -200,9 +206,13 @@ class Isomorphism:
 
         # We can begin with mapping the input and output nodes only
         if self.is_isomorphic:
-            self.update_mapping_list(g1.input_nodes, g2.input_nodes, mode="node")
+            self.update_mapping_list(
+                g1.input_nodes, g2.input_nodes, mode=MappingMode.NODE
+            )
         if self.is_isomorphic:
-            self.update_mapping_list(g1.output_nodes, g2.output_nodes, mode="node")
+            self.update_mapping_list(
+                g1.output_nodes, g2.output_nodes, mode=MappingMode.NODE
+            )
 
         # Transverse from the input nodes
         for input_1, input_2 in zip(g1.input_nodes, g2.input_nodes):

@@ -99,7 +99,6 @@ class Isomorphism:
 
         if mapping[i] in (-1, j):
             mapping[i] = j
-            self.is_isomorphic = True
             logger.debug(f"Mapping {mode} {i} -> {j}")
         else:
             self.is_isomorphic = False

@@ -16,7 +16,7 @@ def assert_isomorphism(g1, g2, pi, p_nodes, p_edges, isomorphic):
         assert i in p_edges
 
 
-test_graph_dir = "tests/unit_tests_proofChecker_python/example_graphs/"
+test_graph_dir = "tests/inputs/"
 
 
 def Random_Permutation_Test(graph_file):

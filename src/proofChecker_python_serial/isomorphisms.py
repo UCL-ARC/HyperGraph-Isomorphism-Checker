@@ -97,9 +97,18 @@ class Isomorphism:
                 f"Index {j} out of bounds for permutation of size {len(mapping)}"
             )
 
-        if mapping[i] in (-1, j):
-            mapping[i] = j
-            logger.debug(f"Mapping {mode} {i} -> {j}")
+        if mapping[i] == j:
+            return
+        elif mapping[i] == -1:
+            if j in mapping:
+                # Another node is already mapped to j
+                self.mapping_valid = False
+                logger.debug(
+                    f"Contradiction mapping {mode} {i} -> {j}; existing mapping {mapping.index(j)} -> {j}"
+                )
+            else:
+                mapping[i] = j
+                logger.debug(f"Mapping {mode} {i} -> {j}")
         else:
             self.mapping_valid = False
 

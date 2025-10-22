@@ -68,7 +68,6 @@ class OpenHypergraph:
         """Set the next and previous edges for nodes based on edges in the hypergraph."""
 
         for v in edge.sources:
-            print(v)
             node = self.nodes[v]
             if node.next is None:
                 node.next = edge.index

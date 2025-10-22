@@ -71,7 +71,7 @@ For a candidate pair of nodes $(n_1, n_2)$:
 
 Updating the edge permutation works likewise.
 
-#### Algorithm stuff again this organisation is terrible
+#### Step by step algorithm
 
 1. Check that the size of the node, edge, global input, and global output lists in $g_1$ and $g_2$ are equal.
 2. For each global input/output:

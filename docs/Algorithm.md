@@ -16,9 +16,21 @@ If there are $n$ global inputs there is an injection from $\{1 ... n\} \rightarr
 
 All wires / boxes in the string diagram (nodes / hyperedges in the hypergraph) are connected to at least one global input or output by some path. There are no disconnected subgraphs (or these can be ignored).
 
-### Example graphs and isomorphic representations
+### Example graph and representations
 
+Consider the following graph and two representations that we need to test for isomorphism.
 
+![ExampleGraph](ExampleGraph.png)
+
+The green numbers label nodes with their index in representation 1, and the gold numbers label nodes with their index in representation 2. Note that both the nodes and edges are represented in a different order.
+
+From the (ordered) global input and output lists, the beginning of the node permutation can be immediately deduced:
+
+$\pi^n = [6, 4, 1, -, 0, 3, -]$
+
+By traversing the graph we can check that the nodes connect to edges of the correct type and in the correct way (correct input/output port), and visit the internal nodes not yet accounted for.
+
+Note that back-tracking from an edge (exploring inputs as well as outputs) is necessary in the traversal algorithm to ensure that node 6 (in representation 1) can be reached from an input/output.
 
 ## The Isomorphism algorithm
 
@@ -125,14 +137,20 @@ Disconnected subgraphs can be calculated by graph traversal. We will assume that
 
 The number of disconnected sub-graphs in $g_1$ and $g_2$ must be the same, which can be used as an initial check. Any sub-graphs which connect to the global inputs and outputs can be checked for isomorphism using the graph traversal algorithm described above.
 
-We shall therefore assume that each of $g^i_1$ and $g^i_2$ are disconnected sub-graphs which do no have paths to any global inputs or outputs. Each sub-graph is monogamous but may contain cycles.
-
-Isomorphism requires that there is a one to one mapping between subgraphs $\pi^g$ such that:
+We are then left with a collection of disconnected sub-graphs for $g_1$ and $g_2$. Isomorphism requires that there is a one to one mapping between subgraphs $\pi^g$ such that:
 
 $\pi^g(i) = j \implies g^i_1 \cong g^j_2$
 
-We need to find this mapping and demonstrate the isomorphism for each subgraph.
+In other words, the sub-graphs of $g_1$ and $g_2$ must form pairs related by isomorphism. Note that these pairs are not necessarily unique, since we can have multiple identical sub-graphs.
 
-We'll start with trying to assert isomorphism for two subgraph _candidates_, without the aid of global input/output maps to provide a starting point.
+To find valid pairs of sub-graphs we can initially apply simple checks such as size checks, but a graph traversal will be required for some (potentially all) candidates depending on the similarity of the subgraphs.
 
-Since the subgraph is fully connected, the (non)isomorphism can be established by simple traversal as soon as a single pair has been identified.
+### Comparing two sub-graph isomorphism candidates
+
+We shall assume that we have a pair of connected subgraphs $g^\prime_1$ and $g^\prime_2$ that have no paths to global inputs/outputs. Each sub-graph is monogamous but may contain cycles.
+
+Since the subgraph is fully connected, the (non)isomorphism can be established by simple traversal as soon as a single matching pair has been definitively identified. By this we mean a pair $(n_1, n_2)$ such that $g^\prime_1 \cong g^\prime_2 \implies \pi^n(n_1, n_2)$. For example, if only one node in $g_1$ has no preceding edge, and a following edge labelled $F$, and likewise in $g_2$, then these nodes would have to be identified with one another if an isomorphism is to exist. Since the graph is fully connected, a traversal from the pair $(n_1, n_2)$ will visit all nodes and edges.
+
+Strategies for identifying candidate pairs of nodes quickly may vary in success depending on the nature of the graphs. In the general (worst) case, this can be found by selecting a node $n_1$ from $g_1$ and iterating over possible nodes in $g_2$, returning early if a contradiction is reached. This amounts to a depth-first search of possible solutions. Nodes which are easily ruled out by initial checks (such as checking next/previous edge) will return very quickly. The list of possible candidates can be made shorter and easier to search by some existing sorting on Nodes based on their connecting edges. This kind of search does parallelise strongly since candidates can be explored entirely independently.
+
+A linear time transformation to a canonical representation would avert the need for a depth first search.

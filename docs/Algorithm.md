@@ -2,12 +2,11 @@
 
 ## Monogamous, Cartesian string diagrams
 
-In this instance the algorithm we will be dealing with string diagrams which have the following restrictions:
+The string diagram generating the hypergraph has the following restrictions:
 
-- There is no splitting or joining of wires
+- (a) There is no splitting or joining of wires
     - This means that if a node has a preceding or following edge, then it is unique.
-
-Cycles are permitted.
+- (b) Cycles are permitted.
 
 ### Global inputs and outputs
 
@@ -36,11 +35,13 @@ Note that back-tracking from an edge (exploring inputs as well as outputs) is ne
 
 ### Overview
 
-For two graphs being compared, we want to find (if there exists) a permutation of the node / edges lists which transforms one graph into the other or, equivalently, a one-to-one mapping between the nodes and edges of each graph.
+For two graphs being compared, **we want to find (if there exists) a permutation of the node / edges lists which transforms one graph into the other or, equivalently, a one-to-one mapping between the nodes and edges of each graph.
+**
 
-Since the global input and output nodes are already uniquely identified by the mapping described in the previous section, we can immediately identify the nodes which map to the same global input or output.
+(1) The global input and output nodes are already uniquely identified by the mapping described in the previous section. Thus we can immediately identify the nodes which map to the same global input or output.
 
-We then proceed to compare the graphs through a graph traversal starting from each global input/output node. The graph traversal proceeds until a contradiction is met (non-isomorphic) or all nodes and edges have been visited (isomorphic). We will maintain a list of visited nodes to prevent looping around cycles or back-tracking through paths we have already covered.
+(2) We compare the graphs via serial traversal starting from each global input/output node. The graph traversal proceeds until a contradiction is met (non-isomorphic) or all nodes and edges have been visited (isomorphic). 
+    We will maintain a list of visited nodes to prevent looping around cycles or back-tracking through paths we have already covered (max allowed memory determines if we need to split this).
 
 ### Details
 

@@ -48,10 +48,10 @@ nav:
       - Quick Start: getting-started/quickstart.md
   - API Reference:
       - Node: api/node.md
-      - Edge: api/edge.md
       - HyperEdge: api/hyperedge.md
-      - Graph: api/graph.md
       - Hypergraph: api/hypergraph.md
+      - Draw: api/draw.md
+      - Graph Utilities: api/graph_utils.md
       - Signature: api/signature.md
       - Diagram: api/diagram.md
       - Isomorphisms: api/isomorphisms.md

@@ -1,4 +1,4 @@
-# HyperGraph Isomorphism Checker 
+# HyperGraph Isomorphism Checker
 
 Welcome to the documentation for the Hypergraph Isomorphism Checker (HgIC) project!
 

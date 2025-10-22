@@ -1,20 +1,20 @@
-# Data Parallel Proof Checker
+# HyperGraph Isomorphism Checker 
 
-Welcome to the documentation for the Data Parallel Proof Checker project!
+Welcome to the documentation for the Hypergraph Isomorphism Checker (HgIC) project!
 
 ## Overview
 
-The Data Parallel Proof Checker is a Python library for working with hypergraphs, directed graphs, and proof verification. It provides a robust framework for representing and manipulating graph structures commonly used in formal verification and proof checking.
+The current version is a serial Python library for directed hypergraphs.
 
 ## Key Features
 
-- 🔗 **Graph Structures**: Support for both simple directed graphs and hypergraphs
+- 🔗 **Graph Structures**: Support for direct hypergraphs/graphs
 - ✅ **Validation**: Comprehensive validation of graph structures and signatures
 - 🎨 **Visualization**: Built-in support for rendering graphs using Graphviz
 - 🧪 **Well-Tested**: Extensive test coverage with pytest
 - 🚀 **Type-Safe**: Full type hints for better IDE support and code quality
 
-## Quick Example
+## Use Case
 
 ```python
 from proofChecker_python_serial.node import Node
@@ -38,7 +38,7 @@ if graph.is_valid():
 
 ## Getting Started
 
-Check out the [Installation Guide](getting-started/installation.md) to get started with the Data Parallel Proof Checker.
+Check out the [Installation Guide](getting-started/installation.md) to get started with the HgIC.
 
 ## Project Structure
 

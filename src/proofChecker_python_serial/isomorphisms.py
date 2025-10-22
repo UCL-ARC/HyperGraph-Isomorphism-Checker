@@ -222,6 +222,30 @@ class Isomorphism:
         self.explore_edges(v1.next, v2.next)
         self.explore_edges(v1.prev, v2.prev)
 
+    def check_subgraph_isomorphism(
+        self, v1: int, v2: int
+    ) -> tuple[bool, list[int], list[int]]:
+        """Check for disconnected subgraph isomorphism where no nodes connect
+        to global inputs or outputs"""
+
+        g1, g2 = self.graphs
+
+        if (v1 < 0 or v1 > len(g1.nodes)) or (v2 < 0 or v2 > len(g2.nodes)):
+            raise ValueError(
+                f"Node pair {(v1, v2)} not in the node sets for graph pair."
+            )
+
+        # beginning by mapping v1 to v2 as a first attempt
+        self.update_mapping(v1, v2, MappingMode.NODE)
+
+        self.traverse_from_nodes(g1.nodes[v1], g2.nodes[v2])
+
+        if self.mapping_valid:
+            if any([i == -1 for i in self.node_mapping]):
+                raise ValueError(f"Permutation incomplete: {self.node_mapping}")
+
+        return (self.mapping_valid, self.node_mapping, self.edge_mapping)
+
     def check_MC_isomorphism(self) -> tuple[bool, list[int], list[int]]:
         """Check for graph isomorphism in monogamous, cartesian case"""
 
@@ -258,6 +282,23 @@ class Isomorphism:
                 raise ValueError(f"Permutation incomplete: {self.node_mapping}")
 
         return (self.mapping_valid, self.node_mapping, self.edge_mapping)
+
+
+def Disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
+    """Compares two monogamous subgraph isomorphism candidates (g1, g2) which
+    have no paths to global inputs and outputs, and checks for ismorphism."""
+
+    ## Check basic sizes to begin with
+    if len(g1.nodes) != len(g2.nodes) or len(g1.edges) != len(g2.edges):
+        return False
+
+    v1 = 0
+    for v2 in range(len(g2.nodes)):
+        iso = Isomorphism((g1, g2))
+        isomorphic, p_nodes, p_edges = iso.check_subgraph_isomorphism(v1, v2)
+        if isomorphic:
+            return isomorphic, p_nodes, p_edges
+    return False, [], []
 
 
 def MC_isomorphism(

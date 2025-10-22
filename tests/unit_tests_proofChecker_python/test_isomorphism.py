@@ -1,5 +1,9 @@
 from proofChecker_python_serial.graph_utils import create_hypergraph
-from proofChecker_python_serial.isomorphisms import MC_isomorphism, permute_graph
+from proofChecker_python_serial.isomorphisms import (
+    MC_isomorphism,
+    permute_graph,
+    Disconnected_subgraph_isomorphism,
+)
 import pytest
 
 
@@ -25,6 +29,23 @@ def Random_Permutation_Test(graph_file):
 
     isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
     assert_isomorphism(g1, g2, pi, p_nodes, p_edges, isomorphic)
+
+
+def test_mono_disconnected_subgraph():
+    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
+    g2 = create_hypergraph(test_graph_dir + "Disconnected2.json")
+
+    (isomorphic, p_nodes, p_edges) = Disconnected_subgraph_isomorphism(g1, g2)
+    assert isomorphic
+    print(p_nodes)
+
+
+def test_mono_disconnected_subgraph_noniso():
+    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
+    g2 = create_hypergraph(test_graph_dir + "Disconnected3.json")
+
+    (isomorphic, p_nodes, p_edges) = Disconnected_subgraph_isomorphism(g1, g2)
+    assert not isomorphic
 
 
 def test_monogamous_acyclic_ismorphic():

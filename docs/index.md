@@ -8,7 +8,7 @@ The current version is a serial Python library for directed hypergraphs.
 
 ## Key Features
 
-- 🔗 **Graph Structures**: Support for direct hypergraphs/graphs
+- 🔗 **Graph Structures**: Support for directed hypergraphs/graphs
 - ✅ **Validation**: Comprehensive validation of graph structures and signatures
 - 🎨 **Visualization**: Built-in support for rendering graphs using Graphviz
 - 🧪 **Well-Tested**: Extensive test coverage with pytest

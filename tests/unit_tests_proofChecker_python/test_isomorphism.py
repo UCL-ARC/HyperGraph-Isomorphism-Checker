@@ -1,13 +1,11 @@
 from proofChecker_python_serial.graph_utils import create_hypergraph
 from proofChecker_python_serial.isomorphisms import MC_isomorphism, permute_graph
-from proofChecker_python_serial.draw import print_graph
 import pytest
 
 
 def assert_isomorphism(g1, g2, pi_n, pi_e, p_nodes, p_edges, isomorphic):
     assert isomorphic
     assert p_nodes == pi_n
-    print(p_nodes, pi_n)
     assert p_edges == pi_e
     n_nodes = len(g1.nodes)
     n_edges = len(g2.edges)
@@ -15,8 +13,10 @@ def assert_isomorphism(g1, g2, pi_n, pi_e, p_nodes, p_edges, isomorphic):
     assert len(p_edges) == n_edges
     for i in range(n_nodes):
         assert i in p_nodes
+        assert g1.nodes[i].label == g2.nodes[p_nodes[i]].label
     for i in range(n_edges):
         assert i in p_edges
+        assert g1.edges[i].label == g2.edges[p_edges[i]].label
 
     for i in range(n_edges):
         e1 = g1.edges[i]
@@ -35,9 +35,9 @@ def Random_Permutation_Test(graph_file):
     g1 = create_hypergraph(test_graph_dir + graph_file)
     (pi_n, pi_e, g2) = permute_graph(g1)  # calculates a random permutation of the graph
 
-    print_graph(g1)
-    print_graph(g2)
-    print(pi_n, pi_e)
+    # print_graph(g1)
+    # print_graph(g2)
+    # print(pi_n, pi_e)
 
     isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
     assert_isomorphism(g1, g2, pi_n, pi_e, p_nodes, p_edges, isomorphic)

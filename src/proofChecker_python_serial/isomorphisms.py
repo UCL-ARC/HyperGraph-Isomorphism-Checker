@@ -12,9 +12,12 @@ logger = logging.getLogger(__name__)
 def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergraph]:
     """Return a permuted version of the input graph and the permutation used"""
 
+    def invert_permutation(p):
+        return [p.index(i) for i in range(len(p))]
+
     node_permutation = list(range(len(g.nodes)))
-    node_reverse_permutation = [node_permutation[i] for i in node_permutation]
     random.shuffle(node_permutation)
+    node_reverse_permutation = invert_permutation(node_permutation)
 
     nodes = [
         Node(i, g.nodes[permute].label)
@@ -26,10 +29,10 @@ def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergra
     edges = []
 
     edge_permutation = list(range(len(g.edges)))
-    edge_reverse_permutation = [edge_permutation[i] for i in edge_permutation]
+    random.shuffle(edge_permutation)
+    edge_reverse_permutation = invert_permutation(edge_permutation)
     for i in range(len(g.edges)):
         edge = g.edges[edge_reverse_permutation[i]]
-        print(i, edge)
         sources = [node_permutation[src] for src in edge.sources]
         targets = [node_permutation[tgt] for tgt in edge.targets]
         edges.append(HyperEdge(sources, targets, edge.label, i))

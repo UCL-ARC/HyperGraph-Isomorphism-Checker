@@ -46,6 +46,7 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Quick Start: getting-started/quickstart.md
+      - Algorithm: getting-started/algorithm.md
   - API Reference:
       - Node: api/node.md
       - HyperEdge: api/hyperedge.md

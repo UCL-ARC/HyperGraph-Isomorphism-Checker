@@ -10,8 +10,8 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/Data-Parallel-Proof-Checker-1368.git
-cd Data-Parallel-Proof-Checker-1368
+git clone https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker
+cd HyperGraph-Isomorphism-Checker
 ```
 
 2. Install system dependencies:

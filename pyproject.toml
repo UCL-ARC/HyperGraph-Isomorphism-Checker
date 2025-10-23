@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "data-parallel-proof-checker-1368"
 version = "0.1.0"
-description = "Data Parallel Proof Checker"
+description = "HyperGraph Isomorphism Checker"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

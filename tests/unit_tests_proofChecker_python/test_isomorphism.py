@@ -27,6 +27,13 @@ def Random_Permutation_Test(graph_file):
     assert_isomorphism(g1, g2, pi, p_nodes, p_edges, isomorphic)
 
 
+def check_non_isomorphic(graph_file_1, graph_file_2):
+    g1 = create_hypergraph(test_graph_dir + graph_file_1)
+    g2 = create_hypergraph(test_graph_dir + graph_file_2)
+    (isomorphic, _, _) = MC_isomorphism(g1, g2)
+    assert not isomorphic
+
+
 def test_monogamous_acyclic_ismorphic():
     Random_Permutation_Test("MA_Graph.json")
 
@@ -49,11 +56,7 @@ acyclic_non_isomorphisms = [
 
 @pytest.mark.parametrize("graph_file", acyclic_non_isomorphisms)
 def test_monogamous_acylic_non_isomorphic(graph_file):
-    g1 = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
-    g2 = create_hypergraph(test_graph_dir + graph_file)
-
-    isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
-    assert not isomorphic
+    check_non_isomorphic("Acyclic_Graph.json", graph_file)
 
 
 def test_node_back_tracking_isomorphic():
@@ -61,15 +64,11 @@ def test_node_back_tracking_isomorphic():
 
 
 def test_edge_back_tracking_isomorphic():
-    pass
-
-
-def test_node_back_tracking_non_isomorphic():
-    pass
+    Random_Permutation_Test("Edge_Backtrack.json")
 
 
 def test_edge_back_tracking_non_isomorphic():
-    pass
+    check_non_isomorphic("Edge_Backtrack.json", "Edge_Backtrack_NonIsomorphism.json")
 
 
 cyclic_graphs = ["Cyclic_Graph.json", "Recursive_Function_Graph.json"]
@@ -81,7 +80,7 @@ def test_cyclic_ismorphic(graph_file):
 
 
 def test_cyclic_non_isomorphic():
-    pass
+    check_non_isomorphic("Cyclic_Graph.json", "Cyclic_NonIsomorphism.json")
 
 
 def test_all_features_isomorphic():

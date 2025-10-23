@@ -9,25 +9,33 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
-def permute_graph(g: OpenHypergraph) -> tuple[list[int], OpenHypergraph]:
+def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergraph]:
     """Return a permuted version of the input graph and the permutation used"""
 
-    permutation = list(range(len(g.nodes)))
-    random.shuffle(permutation)
+    node_permutation = list(range(len(g.nodes)))
+    node_reverse_permutation = [node_permutation[i] for i in node_permutation]
+    random.shuffle(node_permutation)
 
-    nodes = [Node(i, g.nodes[permute].label) for i, permute in enumerate(permutation)]
-    input_nodes = [permutation[i] for i in g.input_nodes]
-    output_nodes = [permutation[o] for o in g.output_nodes]
+    nodes = [
+        Node(i, g.nodes[permute].label)
+        for i, permute in enumerate(node_reverse_permutation)
+    ]
+    input_nodes = [node_permutation[i] for i in g.input_nodes]
+    output_nodes = [node_permutation[o] for o in g.output_nodes]
 
     edges = []
 
-    for index, edge in enumerate(g.edges):
-        sources = [permutation[src] for src in edge.sources]
-        targets = [permutation[tgt] for tgt in edge.targets]
-        edges.append(HyperEdge(sources, targets, edge.label, index))
+    edge_permutation = list(range(len(g.edges)))
+    edge_reverse_permutation = [edge_permutation[i] for i in edge_permutation]
+    for i in range(len(g.edges)):
+        edge = g.edges[edge_reverse_permutation[i]]
+        print(i, edge)
+        sources = [node_permutation[src] for src in edge.sources]
+        targets = [node_permutation[tgt] for tgt in edge.targets]
+        edges.append(HyperEdge(sources, targets, edge.label, i))
 
     permuted_graph = OpenHypergraph(nodes, edges, input_nodes, output_nodes)
-    return permutation, permuted_graph
+    return node_permutation, edge_permutation, permuted_graph
 
 
 class MappingMode(Enum):

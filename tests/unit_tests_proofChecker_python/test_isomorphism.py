@@ -1,5 +1,6 @@
 from proofChecker_python_serial.graph_utils import create_hypergraph
 from proofChecker_python_serial.isomorphisms import MC_isomorphism, permute_graph
+from proofChecker_python_serial.hypergraph import OpenHypergraph
 import pytest
 
 
@@ -98,6 +99,24 @@ def test_cyclic_ismorphic(graph_file):
 
 def test_cyclic_non_isomorphic():
     check_non_isomorphic("Cyclic_Graph.json", "Cyclic_NonIsomorphism.json")
+
+
+def test_unit_graph():
+    Random_Permutation_Test("Unit_Graph.json")
+    check_non_isomorphic("Unit_Graph.json", "Non_Isomorphic_Unit.json")
+
+
+@pytest.mark.parametrize("graph_file", acyclic_non_isomorphisms)
+def test_empty_graph(graph_file):
+    """Empty graph should be isomorphic to itself but not to any other graphs"""
+    g1 = OpenHypergraph([], [], [], [])
+    g2 = OpenHypergraph([], [], [], [])
+    isomorphic, _, _ = MC_isomorphism(g1, g2)
+    assert isomorphic
+
+    g3 = create_hypergraph(test_graph_dir + graph_file)
+    isomorphic, _, _ = MC_isomorphism(g1, g3)
+    assert not isomorphic
 
 
 def test_all_features_isomorphic():

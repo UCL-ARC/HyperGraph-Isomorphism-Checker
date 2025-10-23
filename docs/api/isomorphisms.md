@@ -86,7 +86,9 @@ print(f"Permutation used: {permutation}")
 
 ## How Isomorphism is Computed
 
-The [`check_MC_isomorphism`](../../src/proofChecker_python_serial/isomorphisms.py ) method implements a **graph traversal-based algorithm** specifically designed for monogamous, cartesian (MC) hypergraphs. Here's a detailed explanation of how it works:
+This section explains the algorithm used in the `MC_isomorphism` function in terms of code logic and steps. In order to understand the mathematical reasoning behind the algorithm, please refer to the [algorithm documentation](../getting-started/algorithm.md).
+
+The `check_MC_isomorphism` method implements a **graph traversal-based algorithm** specifically designed for monogamous, cartesian (MC) hypergraphs. Here's a detailed explanation of how it works:
 
 ### Step-by-Step Algorithm
 

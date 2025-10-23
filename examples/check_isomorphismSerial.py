@@ -3,9 +3,9 @@
 import logging
 
 from pathlib import Path
-from proofChecker_python_serial.isomorphisms import MC_isomorphism
-from proofChecker_python_serial.graph_utils import create_hypergraph
-from proofChecker_python_serial.draw import draw_graph
+from IsomorphismChecker_python_serial.isomorphisms import MC_isomorphism
+from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
+from IsomorphismChecker_python_serial.draw import draw_graph
 
 import argparse
 

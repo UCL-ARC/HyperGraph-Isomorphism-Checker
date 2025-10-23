@@ -7,7 +7,7 @@ Graph Input example.
 ### Creating Nodes
 
 ```python
-from proofChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.node import Node
 
 # Create input node (no previous connections)
 input_node = Node(index=0, label="X")
@@ -22,8 +22,8 @@ output_node = Node(index=2, label="Z")
 ### Creating a Simple Graph
 
 ```python
-from proofChecker_python_serial.graph import Graph
-from proofChecker_python_serial.edge import Edge
+from IsomorphismChecker_python_serial.graph import Graph
+from IsomorphismChecker_python_serial.edge import Edge
 
 # Create edges
 edge1 = Edge(source=input_node, target=intermediate, label="f")
@@ -49,8 +49,8 @@ else:
 ### Creating a Hypergraph
 
 ```python
-from proofChecker_python_serial.hypergraph import OpenHypergraph
-from proofChecker_python_serial.hyperedge import HyperEdge
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.hyperedge import HyperEdge
 
 # Create nodes
 nodes = [
@@ -77,7 +77,7 @@ hypergraph = OpenHypergraph(
 ### Loading from JSON
 
 ```python
-from proofChecker_python_serial.hypergraph import create_hypergraph
+from IsomorphismChecker_python_serial.hypergraph import create_hypergraph
 
 # Load from JSON file
 with open("path/to/hypergraph.json", "r") as f:
@@ -91,7 +91,7 @@ hypergraph = create_hypergraph(data)
 ### Rendering Graphs
 
 ```python
-from proofChecker_python_serial.diagram import Diagram
+from IsomorphismChecker_python_serial.diagram import Diagram
 
 # Create diagram from graph
 diagram = Diagram(openHyperGraph=graph)
@@ -119,7 +119,7 @@ if errors:
 ### Signature Validation
 
 ```python
-from proofChecker_python_serial.signature import Signature
+from IsomorphismChecker_python_serial.signature import Signature
 
 # Create and validate signature
 sig = Signature("a-b c-d")

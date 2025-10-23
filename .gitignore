@@ -31,3 +31,6 @@ __pycache__/
 .coverage
 *.png
 *.pdf
+
+# docs output
+site/

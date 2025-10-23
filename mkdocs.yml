@@ -1,8 +1,8 @@
-site_name: Data Parallel Proof Checker
-site_description: Documentation for the Data Parallel Proof Checker project
+site_name: HyperGraph Isomorphism Checker
+site_description: Documentation for the HyperGraph Isomorphism Checker project
 site_author: Your Name
-repo_url: https://github.com/yourusername/Data-Parallel-Proof-Checker-1368
-repo_name: Data-Parallel-Proof-Checker-1368
+repo_url: https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker
+repo_name: HyperGraph-Isomorphism-Checker
 
 theme:
   name: material

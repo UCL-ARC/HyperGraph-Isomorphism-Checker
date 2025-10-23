@@ -1,4 +1,4 @@
-from proofChecker_python_serial.hypergraph import OpenHypergraph, Node, HyperEdge
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph, Node, HyperEdge
 import random
 import logging
 

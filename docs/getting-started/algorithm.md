@@ -1,5 +1,7 @@
 # An Explanation of the Open Hypergraph Isomorphism Approach
 
+This page describes the mathematical folrmulation of hypergraph isomorphism as implemented in this package. If you are looking for a code-level explanation of the algorithm, please see the [isomorphism API documentation](../api/isomorphisms.md).
+
 ## Monogamous, Cartesian string diagrams
 
 In this instance the algorithm we will be dealing with string diagrams which have the following restrictions:

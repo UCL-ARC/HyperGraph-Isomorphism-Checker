@@ -1,6 +1,6 @@
 # Quick Start
 
-This guide will help you get started with the Data Parallel Proof Checker.
+Graph Input example.
 
 ## Basic Graph Creation
 

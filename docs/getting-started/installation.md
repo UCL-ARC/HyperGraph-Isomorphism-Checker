@@ -56,7 +56,7 @@ Download and install from [graphviz.org](https://graphviz.org/download/)
 ## Verify Installation
 
 ```python
-from proofChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.node import Node
 
 # Create a simple node
 node = Node(index=0, label="test")
@@ -85,5 +85,5 @@ make test
 Or with coverage:
 
 ```bash
-pytest --cov=proofChecker_python_serial
+pytest --cov=IsomorphismChecker_python_serial
 ```

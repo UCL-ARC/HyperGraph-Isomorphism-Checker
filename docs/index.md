@@ -17,9 +17,9 @@ The current version is a serial Python library for directed hypergraphs.
 ## Use Case
 
 ```python
-from proofChecker_python_serial.node import Node
-from proofChecker_python_serial.edge import Edge
-from proofChecker_python_serial.graph import Graph
+from IsomorphismChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.edge import Edge
+from IsomorphismChecker_python_serial.graph import Graph
 
 # Create nodes
 n1 = Node(index=0, label="A")
@@ -43,7 +43,7 @@ Check out the [Installation Guide](getting-started/installation.md) to get start
 ## Project Structure
 
 ```
-src/proofChecker_python_serial/
+src/IsomorphismChecker_python_serial/
 ├── node.py              # Node definitions
 ├── edge.py              # Simple edge definitions
 ├── hyperedge.py         # Hyperedge definitions

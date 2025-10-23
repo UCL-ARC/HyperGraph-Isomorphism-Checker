@@ -38,7 +38,7 @@ All new features should include tests:
 ```python
 # tests/test_your_feature.py
 import pytest
-from proofChecker_python_serial.your_module import YourClass
+from IsomorphismChecker_python_serial.your_module import YourClass
 
 def test_your_feature():
     obj = YourClass(param=value)

@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/proofChecker_python_serial"]
+packages = ["src/IsomorphismChecker_python_serial"]
 
 [dependency-groups]
 dev = [

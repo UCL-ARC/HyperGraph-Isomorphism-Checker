@@ -229,6 +229,10 @@ class Isomorphism:
                 self.mapping_valid = False
             return
 
+        if v1.label != v2.label:
+            self.mapping_valid = False
+            return
+
         self.visited_nodes.append(v1.index)
         self.explore_edges(v1.next, v2.next)
         self.explore_edges(v1.prev, v2.prev)

@@ -67,6 +67,7 @@ acyclic_non_isomorphisms = [
     "Acyclic_Wrong_Input_Connectivity.json",
     "Acyclic_Missing_Node.json",
     "Acyclic_Reordered_Edge_Output.json",
+    "Acyclic_Wrong_Node_Label.json",
 ]
 
 

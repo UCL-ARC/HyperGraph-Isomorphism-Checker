@@ -1,4 +1,3 @@
-
 # Data Parallel Proof Checker
 
 [![CI](https://github.com/UCL-ARC/Data-Parallel-Proof-Checker-1368/actions/workflows/ci.yml/badge.svg)](https://github.com/UCL-ARC/Data-Parallel-Proof-Checker-1368/actions/workflows/ci.yml)

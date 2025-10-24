@@ -10,8 +10,8 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/Data-Parallel-Proof-Checker-1368.git
-cd Data-Parallel-Proof-Checker-1368
+git clone https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker
+cd HyperGraph-Isomorphism-Checker
 ```
 
 2. Install system dependencies:
@@ -56,7 +56,7 @@ Download and install from [graphviz.org](https://graphviz.org/download/)
 ## Verify Installation
 
 ```python
-from proofChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.node import Node
 
 # Create a simple node
 node = Node(index=0, label="test")
@@ -85,5 +85,5 @@ make test
 Or with coverage:
 
 ```bash
-pytest --cov=proofChecker_python_serial
+pytest --cov=IsomorphismChecker_python_serial
 ```

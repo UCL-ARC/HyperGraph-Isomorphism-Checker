@@ -5,9 +5,9 @@
 Create a simple linear processing pipeline:
 
 ```python
-from proofChecker_python_serial.node import Node
-from proofChecker_python_serial.edge import Edge
-from proofChecker_python_serial.graph import Graph
+from IsomorphismChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.edge import Edge
+from IsomorphismChecker_python_serial.graph import Graph
 
 # Create pipeline nodes
 input_node = Node(index=0, label="input")
@@ -30,7 +30,7 @@ pipeline = Graph(
 
 # Validate and visualize
 if pipeline.is_valid():
-    from proofChecker_python_serial.diagram import Diagram
+    from IsomorphismChecker_python_serial.diagram import Diagram
     diagram = Diagram(openHyperGraph=pipeline)
     diagram.render("pipeline")
 ```
@@ -38,9 +38,9 @@ if pipeline.is_valid():
 ## Example 2: Hypergraph with Multiple Sources/Targets
 
 ```python
-from proofChecker_python_serial.hypergraph import OpenHypergraph
-from proofChecker_python_serial.hyperedge import HyperEdge
-from proofChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.hyperedge import HyperEdge
+from IsomorphismChecker_python_serial.node import Node
 
 # Create nodes for a merge-split pattern
 nodes = [
@@ -80,8 +80,8 @@ print(f"Output nodes: {[n.label for n in hypergraph.output_nodes]}")
 ## Example 3: Loading and Processing JSON Files
 
 ```python
-from proofChecker_python_serial.json_utils import read_all_jsons_in_directory
-from proofChecker_python_serial.hypergraph import create_hypergraph
+from IsomorphismChecker_python_serial.json_utils import read_all_jsons_in_directory
+from IsomorphismChecker_python_serial.hypergraph import create_hypergraph
 
 # Load all hypergraph JSON files
 json_files = read_all_jsons_in_directory("path/to/jsons")
@@ -107,8 +107,8 @@ for filename, data in json_files.items():
 ## Example 4: Signature Comparison
 
 ```python
-from proofChecker_python_serial.signature import Signature
-from proofChecker_python_serial.compare_signatures import CompareSignatures
+from IsomorphismChecker_python_serial.signature import Signature
+from IsomorphismChecker_python_serial.compare_signatures import CompareSignatures
 
 # Create signatures
 sig1 = Signature("a-b c-d")
@@ -127,8 +127,8 @@ else:
 ## Example 5: Custom Validation
 
 ```python
-from proofChecker_python_serial.graph import Graph
-from proofChecker_python_serial.validation import validate_label, validate_index
+from IsomorphismChecker_python_serial.graph import Graph
+from IsomorphismChecker_python_serial.validation import validate_label, validate_index
 
 # Custom graph creation with validation
 def create_validated_graph(nodes_data, edges_data):

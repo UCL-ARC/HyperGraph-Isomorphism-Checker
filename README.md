@@ -1,10 +1,11 @@
 
-# Data Parallel Proof Checker
+# HyperGraph Isomorphism Checker
 
-[![CI](https://github.com/UCL-ARC/Data-Parallel-Proof-Checker-1368/actions/workflows/ci.yml/badge.svg)](https://github.com/UCL-ARC/Data-Parallel-Proof-Checker-1368/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/UCL-ARC/Data-Parallel-Proof-Checker-1368/branch/main/graph/badge.svg)](https://codecov.io/gh/UCL-ARC/Data-Parallel-Proof-Checker-1368)
+[![CI](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/actions/workflows/ci.yml/badge.svg)](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/UCL-ARC/HyperGraph-Isomorphism-Checker/branch/main/graph/badge.svg)](https://codecov.io/gh/UCL-ARC/HyperGraph-Isomorphism-Checker)
 
-The project description
+The project description:
+
 The plan of the milestones agreed with ARIA. See attached documents
 
 1. https://doi.org/10.48550/arXiv.2305.08768

@@ -1,5 +1,5 @@
-from proofChecker_python_serial.hypergraph import OpenHypergraph
-from proofChecker_python_serial.diagram import Diagram
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.diagram import Diagram
 
 
 def draw_graph(

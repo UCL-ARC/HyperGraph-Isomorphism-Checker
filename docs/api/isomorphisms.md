@@ -10,7 +10,7 @@ Graph isomorphism checking determines whether two graphs are structurally identi
 
 ### Isomorphism
 
-::: proofChecker_python_serial.isomorphisms.Isomorphism
+::: IsomorphismChecker_python_serial.isomorphisms.Isomorphism
     options:
       show_source: true
       members:
@@ -27,7 +27,7 @@ Graph isomorphism checking determines whether two graphs are structurally identi
 
 ### MappingMode
 
-::: proofChecker_python_serial.isomorphisms.MappingMode
+::: IsomorphismChecker_python_serial.isomorphisms.MappingMode
     options:
       show_source: true
 
@@ -38,8 +38,8 @@ Graph isomorphism checking determines whether two graphs are structurally identi
 Main function for checking monogamous, cartesian hypergraph isomorphism.
 
 ```python
-from proofChecker_python_serial.isomorphisms import MC_isomorphism
-from proofChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.isomorphisms import MC_isomorphism
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 
 # Check if two hypergraphs are isomorphic
 is_iso, node_mapping, edge_mapping = MC_isomorphism(graph1, graph2)
@@ -67,7 +67,7 @@ else:
 Creates a randomly permuted version of a hypergraph for testing isomorphism algorithms.
 
 ```python
-from proofChecker_python_serial.isomorphisms import permute_graph
+from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 
 # Create a permuted version of a graph
 permutation, permuted_graph = permute_graph(original_graph)

@@ -1,14 +1,14 @@
 # Contributing
 
-We welcome contributions to the Data Parallel Proof Checker project!
+We welcome contributions to the HyperGraph Isomorphism Checker project!
 
 ## Getting Started
 
 1. Fork the repository
 2. Clone your fork:
 ```bash
-git clone https://github.com/yourusername/Data-Parallel-Proof-Checker-1368.git
-cd Data-Parallel-Proof-Checker-1368
+git clone https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker
+cd HyperGraph-Isomorphism-Checker
 ```
 
 3. Set up development environment:
@@ -38,7 +38,7 @@ All new features should include tests:
 ```python
 # tests/test_your_feature.py
 import pytest
-from proofChecker_python_serial.your_module import YourClass
+from IsomorphismChecker_python_serial.your_module import YourClass
 
 def test_your_feature():
     obj = YourClass(param=value)

@@ -1,6 +1,6 @@
-from proofChecker_python_serial.graph_utils import create_hypergraph
-from proofChecker_python_serial.isomorphisms import MC_isomorphism, permute_graph
-from proofChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
+from IsomorphismChecker_python_serial.isomorphisms import MC_isomorphism, permute_graph
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 import pytest
 
 

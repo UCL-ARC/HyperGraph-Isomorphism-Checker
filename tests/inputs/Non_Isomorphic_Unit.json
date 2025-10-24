@@ -1,0 +1,16 @@
+{
+
+    "graph_name": "UnitGr",
+    "comment": [
+      "Naming convention: type_label is a string,",
+      "lowercase strings for nodes,",
+      "uppercase strings for edges"
+    ],
+    "nodes":
+    [
+      {"type_label": "b"}
+    ],
+    "hyperedges": [],
+    "Inputs": [0],
+    "Outputs": [0]
+  }

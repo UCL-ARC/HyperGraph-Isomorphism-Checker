@@ -58,3 +58,25 @@ src/IsomorphismChecker_python_serial/
 ## Contributing
 
 We welcome contributions! See our [Contributing Guide](contributing.md) for details.
+
+
+## Table of Contents
+
+- **Introduction**
+    - [Overview](#overview)
+    - [Key Features](#key-features)
+    - [Use Case](#use-case)
+- **Getting Started**
+    - [Installation](getting-started/installation.md)
+    - [Quick Start](getting-started/quickstart.md)
+    - [Algorithm](getting-started/algorithm.md)
+- **API Reference**
+    - [Node](api/node.md)
+    - [Hyperedge](api/hyperedge.md)
+    - [Hypergraph](api/hypergraph.md)
+    - [Diagram](api/diagram.md)
+    - [Drawing](api/draw.md)
+    - [Graph Utilities](api/graph_utils.md)
+    - [Isomorphism](api/isomorphisms.md)
+    - [Validation](api/validation.md)
+- [Contributing](contributing.md)

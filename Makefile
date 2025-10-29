@@ -1,7 +1,7 @@
 # =============================================================================
 # Configuration
 # =============================================================================
-PROJECT_NAME := proofChecker_python_serial
+PROJECT_NAME := IsomorphismChecker_python_serial
 VENV_DIR := .venv
 UV_INSTALL_URL := https://astral.sh/uv/install.sh
 
@@ -17,6 +17,7 @@ DEV_DEPS := pytest pytest-cov pre-commit black ruff mypy
 # =============================================================================
 .PHONY: help setup install test lint format pre-commit clean
 .PHONY: check-uv install-uv install-pip test-ci pre-commit-install
+.PHONY: docs docs-serve docs-build docs-deploy
 
 # =============================================================================
 # Help and Setup
@@ -141,6 +142,38 @@ pre-commit-install: ## Install pre-commit hooks
 	@$(UV_RUN) pre-commit install
 	@$(UV_RUN) pre-commit install --hook-type pre-push
 	@echo "✅ Pre-commit hooks installed!"
+
+# =============================================================================
+# Documentation
+# =============================================================================
+docs-serve: ## 📚 Serve documentation locally with live reload
+	@echo "📚 Starting documentation server..."
+	@if command -v uv >/dev/null 2>&1; then \
+		uv run --group docs mkdocs serve; \
+	else \
+		echo "⚠️  uv not found. Using system mkdocs..."; \
+		mkdocs serve; \
+	fi
+
+docs-build: ## 📚 Build documentation
+	@echo "📚 Building documentation..."
+	@if command -v uv >/dev/null 2>&1; then \
+		uv run --group docs mkdocs build; \
+	else \
+		echo "⚠️  uv not found. Using system mkdocs..."; \
+		mkdocs build; \
+	fi
+
+docs-deploy: ## 📚 Deploy documentation to GitHub Pages
+	@echo "📚 Deploying documentation to GitHub Pages..."
+	@if command -v uv >/dev/null 2>&1; then \
+		uv run --group docs mkdocs gh-deploy; \
+	else \
+		echo "⚠️  uv not found. Using system mkdocs..."; \
+		mkdocs gh-deploy; \
+	fi
+
+docs: docs-serve ## 📚 Alias for docs-serve
 
 # =============================================================================
 # Cleanup

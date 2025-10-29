@@ -1,6 +1,6 @@
 """Tests for HyperEdge class in hypergraph module."""
 
-from proofChecker_python_serial.hypergraph import HyperEdge, Node
+from IsomorphismChecker_python_serial.hypergraph import HyperEdge, Node
 
 
 def test_hyperedge_creation():

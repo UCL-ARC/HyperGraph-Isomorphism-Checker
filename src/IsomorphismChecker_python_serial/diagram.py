@@ -5,9 +5,9 @@ from enum import Enum
 
 from graphviz import Digraph
 
-from proofChecker_python_serial.hypergraph import OpenHypergraph
-from proofChecker_python_serial.hyperedge import HyperEdge
-from proofChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.hyperedge import HyperEdge
+from IsomorphismChecker_python_serial.node import Node
 
 
 class ElementType(Enum):

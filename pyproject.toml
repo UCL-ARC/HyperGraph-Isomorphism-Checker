@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "data-parallel-proof-checker-1368"
 version = "0.1.0"
-description = "Data Parallel Proof Checker"
+description = "HyperGraph Isomorphism Checker"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -13,13 +13,20 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/proofChecker_python_serial"]
+packages = ["src/IsomorphismChecker_python_serial"]
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.3.0",
     "pytest>=8.4.2",
     "pytest-cov>=6.3.0",
+]
+
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.26.0",
+    "mkdocs-autorefs>=1.2.0",
 ]
 
 [tool.pytest.ini_options]

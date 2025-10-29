@@ -139,8 +139,12 @@ def test_mono_disconnected_subgraph_noniso():
     assert not isomorphism.isomorphic
 
 
-def test_two_subgraph():
-    g1 = create_hypergraph(test_graph_dir + "Two_Subgraphs.json")
+disconnected_graphs = ["Two_Subgraphs.json", "Three_Subgraphs.json"]
+
+
+@pytest.mark.parametrize("graph_file", disconnected_graphs)
+def test_disconnected_graph_isomorphism(graph_file):
+    g1 = create_hypergraph(test_graph_dir + graph_file)
     pi_n, pi_e, g2 = permute_graph(g1)
     print(pi_n, pi_e)
     isomorphism = disconnected_subgraph_isomorphism(g1, g2)

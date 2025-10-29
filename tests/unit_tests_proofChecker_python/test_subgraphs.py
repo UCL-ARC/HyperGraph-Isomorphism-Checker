@@ -20,10 +20,10 @@ def test_connected_graph(graph_file):
     assert sorted(edges) == list(range(0, len(g.edges)))
 
 
-connected_graphs = ["Two_Subgraphs.json"]
+disjoint_graphs = ["Two_Subgraphs.json"]
 
 
-@pytest.mark.parametrize("graph_file", connected_graphs)
+@pytest.mark.parametrize("graph_file", disjoint_graphs)
 def test_disconnected_graph(graph_file):
     g = create_hypergraph(test_graph_dir + graph_file)
     subgraphs, _ = get_connected_subgraphs(g)

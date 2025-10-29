@@ -149,3 +149,15 @@ def test_disconnected_graph_isomorphism(graph_file):
     print(pi_n, pi_e)
     isomorphism = disconnected_subgraph_isomorphism(g1, g2)
     assert isomorphism.isomorphic
+
+
+disconnected_non_isomorphisms = ["Three_Subgraphs_NonIso.json", "Two_Subgraphs.json"]
+
+
+@pytest.mark.parametrize("graph_file", disconnected_non_isomorphisms)
+def test_disconnected_graph_non_iso(graph_file):
+    g1 = create_hypergraph(test_graph_dir + "Three_Subgraphs.json")
+    g2 = create_hypergraph(test_graph_dir + graph_file)
+
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert not isomorphism.isomorphic

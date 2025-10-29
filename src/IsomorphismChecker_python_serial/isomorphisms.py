@@ -455,6 +455,7 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
                     return NonIso
                 else:
                     return sub_isomorphic
+        return NonIso
 
     for i, sg1 in enumerate(g1_subgraphs):
         if i not in paired_subgraphs.map:

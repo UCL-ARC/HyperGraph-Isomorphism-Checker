@@ -9,6 +9,16 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class IsomorphismData:
+    isomorphic: bool
+    p_nodes: list[int]
+    p_edges: list[int]
+
+
+NonIso = IsomorphismData(False, [], [])
+
+
 def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergraph]:
     """Return a permuted version of the input graph and the permutation used"""
 
@@ -44,6 +54,22 @@ def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergra
 class MappingMode(Enum):
     NODE = "node"
     EDGE = "edge"
+
+
+class BiMap:
+    def __init__(self):
+        self.map = {}
+        self.inverse = {}
+
+    def insert(self, i, j):
+        if (i in self.map and self.map[i] != j) or (
+            j in self.inverse and self.inverse[j] != i
+        ):
+            return False
+        else:
+            self.map[i] = j
+            self.inverse[j] = i
+            return True
 
 
 @dataclass(slots=True)
@@ -238,14 +264,14 @@ class Isomorphism:
         self.explore_edges(v1.prev, v2.prev)
 
     def check_subgraph_isomorphism(
-        self, v1: int, v2: int
-    ) -> tuple[bool, list[int], list[int]]:
+        self, v1: int, v2: int, subgraph1, subgraph2
+    ) -> IsomorphismData:
         """Check for disconnected subgraph isomorphism where no nodes connect
         to global inputs or outputs"""
 
         g1, g2 = self.graphs
 
-        if (v1 < 0 or v1 > len(g1.nodes)) or (v2 < 0 or v2 > len(g2.nodes)):
+        if (v1 < 0 or v1 > max(subgraph1[0])) or (v2 < 0 or v2 > max(subgraph2[0])):
             raise ValueError(
                 f"Node pair {(v1, v2)} not in the node sets for graph pair."
             )
@@ -256,10 +282,10 @@ class Isomorphism:
         self.traverse_from_nodes(g1.nodes[v1], g2.nodes[v2])
 
         if self.mapping_valid:
-            if any([i == -1 for i in self.node_mapping]):
+            if any([self.node_mapping[i] == -1 for i in subgraph1[0]]):
                 raise ValueError(f"Permutation incomplete: {self.node_mapping}")
 
-        return (self.mapping_valid, self.node_mapping, self.edge_mapping)
+        return IsomorphismData(self.mapping_valid, self.node_mapping, self.edge_mapping)
 
     def check_MC_isomorphism(self) -> tuple[bool, list[int], list[int]]:
         """Check for graph isomorphism in monogamous, cartesian case"""
@@ -299,21 +325,179 @@ class Isomorphism:
         return (self.mapping_valid, self.node_mapping, self.edge_mapping)
 
 
-def Disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
+def get_connected_subgraphs(
+    g: OpenHypergraph,
+) -> tuple[list[tuple[list[int], list[int]]], dict]:
+    num_nodes = len(g.nodes)
+    num_edges = len(g.edges)
+
+    node_subgraph_map = {}
+    current_sub_graph = 0
+
+    added_nodes = [False] * num_nodes
+    added_edges = [False] * num_edges
+
+    def traverse_connected_graph(
+        node_idx: int, node_list: list[int], edge_list: list[int]
+    ):
+        if added_nodes[node_idx]:
+            return
+
+        node_list.append(node_idx)
+        node_subgraph_map[node_idx] = current_sub_graph
+        added_nodes[node_idx] = True
+        next_edge = g.nodes[node_idx].next
+        if next_edge is not None:
+            traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
+
+        prev_edge = g.nodes[node_idx].prev
+        if prev_edge is not None:
+            traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
+
+    def traverse_connected_graph_from_edge(edge_idx, node_list, edge_list):
+        if added_edges[edge_idx]:
+            return
+
+        edge_list.append(edge_idx)
+        added_edges[edge_idx] = True
+        edge = g.edges[edge_idx]
+        for s in edge.sources:
+            traverse_connected_graph(s, node_list, edge_list)
+        for t in edge.targets:
+            traverse_connected_graph(t, node_list, edge_list)
+
+    subgraphs = []
+
+    for i in range(num_nodes):
+        if not added_nodes[i]:
+            print(f"Traverse from node {i}")
+            node_list: list[int] = []
+            edge_list: list[int] = []
+            traverse_connected_graph(i, node_list, edge_list)
+            subgraphs.append((node_list, edge_list))
+            current_sub_graph += 1
+
+    # also explore edges in case any subgraph is a disconnected edge w/no inputs or outputs
+    for i in range(num_edges):
+        if not added_edges[i]:
+            print(f"Traverse from edge {i}")
+            node_list = []
+            edge_list = []
+            traverse_connected_graph_from_edge(i, node_list, edge_list)
+            subgraphs.append((node_list, edge_list))
+            current_sub_graph += 1
+
+    return subgraphs, node_subgraph_map
+
+
+def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
     """Compares two monogamous subgraph isomorphism candidates (g1, g2) which
     have no paths to global inputs and outputs, and checks for ismorphism."""
 
-    ## Check basic sizes to begin with
-    if len(g1.nodes) != len(g2.nodes) or len(g1.edges) != len(g2.edges):
-        return False
+    g1_subgraphs, subgraph_map_1 = get_connected_subgraphs(g1)
+    g2_subgraphs, subgraph_map_2 = get_connected_subgraphs(g2)
 
-    v1 = 0
-    for v2 in range(len(g2.nodes)):
-        iso = Isomorphism((g1, g2))
-        isomorphic, p_nodes, p_edges = iso.check_subgraph_isomorphism(v1, v2)
-        if isomorphic:
-            return isomorphic, p_nodes, p_edges
-    return False, [], []
+    print(g1_subgraphs, g2_subgraphs)
+    ## Check basic sizes to begin with
+    num_nodes = len(g1.nodes)
+    num_edges = len(g1.edges)
+    if (num_nodes != len(g2.nodes)) or (num_edges != len(g2.edges)):
+        return NonIso
+
+    # Check number of subgraphs and sizes of subgraphs.
+    g1_sizes = [(len(l1), len(l2)) for (l1, l2) in g1_subgraphs]
+    g2_sizes = [(len(l1), len(l2)) for (l1, l2) in g2_subgraphs]
+    if sorted(g1_sizes) != sorted(g2_sizes):
+        return NonIso
+
+    ## Start by eliminating all graphs that are connected to global interface
+    if (len(g1.input_nodes) != len(g2.input_nodes)) | (
+        len(g1.output_nodes) != len(g2.output_nodes)
+    ):
+        return NonIso
+
+    paired_subgraphs = BiMap()
+    subgraph_start_point = {}
+
+    def update_mapping_from_interface(nodes1, nodes2):
+        for i in range(len(nodes1)):
+            sg1 = subgraph_map_1[nodes1[i]]
+            sg2 = subgraph_map_2[nodes2[i]]
+            if not paired_subgraphs.insert(sg1, sg2):
+                return NonIso
+            else:
+                subgraph_start_point[i] = (nodes1[i], nodes2[i])
+
+    update_mapping_from_interface(g1.input_nodes, g2.input_nodes)
+    update_mapping_from_interface(g1.output_nodes, g2.output_nodes)
+
+    print(paired_subgraphs.map)
+
+    iso = Isomorphism((g1, g2))
+
+    isomorphic = IsomorphismData(True, [-1] * num_nodes, [-1] * num_edges)
+
+    for sg1, sg2 in paired_subgraphs.map.items():
+        v1, v2 = subgraph_start_point[sg1]
+        print(f"Interface {v1, v2}")
+        sub_isomorphic = iso.check_subgraph_isomorphism(
+            v1, v2, g1_subgraphs[sg1], g2_subgraphs[sg2]
+        )
+        if not sub_isomorphic:
+            return NonIso
+        else:
+            merge_isomorphism(isomorphic, sub_isomorphic)
+
+    print(isomorphic)
+
+    def check_subgraph_pair(sg1, sg2):
+        # another disconnected subgraph; check for isomorphism by depth first search
+        if len(sg1[0]) != len(sg2[0]) or len(sg1[1]) != len(sg2[1]):
+            return False, [], []  # these can't be isomorphic if sizes don't match
+        v1 = sg1[0][0]
+        for v2 in sg2[0]:
+            print(f"Explore from {(v1, v2)}")
+            iso = Isomorphism((g1, g2))
+            sub_isomorphic = iso.check_subgraph_isomorphism(v1, v2, sg1, sg2)
+            print(sub_isomorphic)
+            if sub_isomorphic.isomorphic:
+                if not paired_subgraphs.insert(i, j):
+                    return NonIso
+                else:
+                    return sub_isomorphic
+
+    for i, sg1 in enumerate(g1_subgraphs):
+        if i not in paired_subgraphs.map:
+            # disconnected subgraph
+            for j, sg2 in enumerate(g2_subgraphs):
+                if j not in paired_subgraphs.inverse:
+                    sub_isomorphic = check_subgraph_pair(sg1, sg2)
+                    if sub_isomorphic:
+                        merge_isomorphism(isomorphic, sub_isomorphic)
+                        break
+
+    print(paired_subgraphs.map, isomorphic)
+    if len(paired_subgraphs.map) != len(g1_subgraphs):
+        return NonIso
+    else:
+        return isomorphic
+
+
+def merge_isomorphism(iso_main: IsomorphismData, iso_contribution: IsomorphismData):
+    if not iso_contribution.isomorphic:
+        iso_main = NonIso
+        return
+
+    if len(iso_main.p_nodes) != len(iso_contribution.p_nodes) or len(
+        iso_main.p_edges
+    ) != len(iso_contribution.p_edges):
+        raise ValueError("Mismatched isomorphism mapping sizes")
+
+    for i, (x, y) in enumerate(zip(iso_main.p_nodes, iso_contribution.p_nodes)):
+        iso_main.p_nodes[i] = y if x == -1 else x
+
+    for i, (x, y) in enumerate(zip(iso_main.p_edges, iso_contribution.p_edges)):
+        iso_main.p_edges[i] = y if x == -1 else x
 
 
 def MC_isomorphism(

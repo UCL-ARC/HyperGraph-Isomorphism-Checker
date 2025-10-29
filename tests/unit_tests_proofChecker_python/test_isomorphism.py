@@ -2,7 +2,7 @@ from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
 from IsomorphismChecker_python_serial.isomorphisms import (
     MC_isomorphism,
     permute_graph,
-    Disconnected_subgraph_isomorphism,
+    disconnected_subgraph_isomorphism,
 )
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 import pytest
@@ -52,23 +52,6 @@ def check_non_isomorphic(graph_file_1, graph_file_2):
     g1 = create_hypergraph(test_graph_dir + graph_file_1)
     g2 = create_hypergraph(test_graph_dir + graph_file_2)
     (isomorphic, _, _) = MC_isomorphism(g1, g2)
-    assert not isomorphic
-
-
-def test_mono_disconnected_subgraph():
-    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
-    g2 = create_hypergraph(test_graph_dir + "Disconnected2.json")
-
-    (isomorphic, p_nodes, p_edges) = Disconnected_subgraph_isomorphism(g1, g2)
-    assert isomorphic
-    print(p_nodes)
-
-
-def test_mono_disconnected_subgraph_noniso():
-    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
-    g2 = create_hypergraph(test_graph_dir + "Disconnected3.json")
-
-    (isomorphic, p_nodes, p_edges) = Disconnected_subgraph_isomorphism(g1, g2)
     assert not isomorphic
 
 
@@ -140,9 +123,25 @@ def test_empty_graph(graph_file):
     assert not isomorphic
 
 
-def test_all_features_isomorphic():
-    pass
+def test_mono_disconnected_subgraph():
+    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
+    g2 = create_hypergraph(test_graph_dir + "Disconnected2.json")
+
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert isomorphism.isomorphic
 
 
-def test_all_features_non_isomorphic():
-    pass
+def test_mono_disconnected_subgraph_noniso():
+    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
+    g2 = create_hypergraph(test_graph_dir + "Disconnected3.json")
+
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert not isomorphism.isomorphic
+
+
+def test_two_subgraph():
+    g1 = create_hypergraph(test_graph_dir + "Two_Subgraphs.json")
+    pi_n, pi_e, g2 = permute_graph(g1)
+    print(pi_n, pi_e)
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert isomorphism.isomorphic

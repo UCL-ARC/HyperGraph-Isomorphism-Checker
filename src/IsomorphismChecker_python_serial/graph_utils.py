@@ -1,8 +1,9 @@
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph, HyperEdge, Node
 import json
+from pathlib import Path
 
 
-def create_hypergraph(filepath: str) -> OpenHypergraph:
+def create_hypergraph(filepath: str | Path) -> OpenHypergraph:
     """Create a hypergraph from a JSON file."""
     with open(filepath, "r") as f:
         data = json.load(f)

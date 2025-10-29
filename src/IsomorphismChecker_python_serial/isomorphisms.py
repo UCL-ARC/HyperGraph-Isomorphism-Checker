@@ -370,7 +370,6 @@ def get_connected_subgraphs(
 
     for i in range(num_nodes):
         if not added_nodes[i]:
-            print(f"Traverse from node {i}")
             node_list: list[int] = []
             edge_list: list[int] = []
             traverse_connected_graph(i, node_list, edge_list)
@@ -380,7 +379,6 @@ def get_connected_subgraphs(
     # also explore edges in case any subgraph is a disconnected edge w/no inputs or outputs
     for i in range(num_edges):
         if not added_edges[i]:
-            print(f"Traverse from edge {i}")
             node_list = []
             edge_list = []
             traverse_connected_graph_from_edge(i, node_list, edge_list)
@@ -397,7 +395,6 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
     g1_subgraphs, subgraph_map_1 = get_connected_subgraphs(g1)
     g2_subgraphs, subgraph_map_2 = get_connected_subgraphs(g2)
 
-    print(g1_subgraphs, g2_subgraphs)
     ## Check basic sizes to begin with
     num_nodes = len(g1.nodes)
     num_edges = len(g1.edges)
@@ -431,15 +428,12 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
     update_mapping_from_interface(g1.input_nodes, g2.input_nodes)
     update_mapping_from_interface(g1.output_nodes, g2.output_nodes)
 
-    print(paired_subgraphs.map)
-
     iso = Isomorphism((g1, g2))
 
     isomorphic = IsomorphismData(True, [-1] * num_nodes, [-1] * num_edges)
 
     for sg1, sg2 in paired_subgraphs.map.items():
         v1, v2 = subgraph_start_point[sg1]
-        print(f"Interface {v1, v2}")
         sub_isomorphic = iso.check_subgraph_isomorphism(
             v1, v2, g1_subgraphs[sg1], g2_subgraphs[sg2]
         )
@@ -448,18 +442,14 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         else:
             merge_isomorphism(isomorphic, sub_isomorphic)
 
-    print(isomorphic)
-
     def check_subgraph_pair(sg1, sg2):
         # another disconnected subgraph; check for isomorphism by depth first search
         if len(sg1[0]) != len(sg2[0]) or len(sg1[1]) != len(sg2[1]):
-            return False, [], []  # these can't be isomorphic if sizes don't match
+            return NonIso  # these can't be isomorphic if sizes don't match
         v1 = sg1[0][0]
         for v2 in sg2[0]:
-            print(f"Explore from {(v1, v2)}")
             iso = Isomorphism((g1, g2))
             sub_isomorphic = iso.check_subgraph_isomorphism(v1, v2, sg1, sg2)
-            print(sub_isomorphic)
             if sub_isomorphic.isomorphic:
                 if not paired_subgraphs.insert(i, j):
                     return NonIso
@@ -472,11 +462,10 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             for j, sg2 in enumerate(g2_subgraphs):
                 if j not in paired_subgraphs.inverse:
                     sub_isomorphic = check_subgraph_pair(sg1, sg2)
-                    if sub_isomorphic:
+                    if sub_isomorphic.isomorphic:
                         merge_isomorphism(isomorphic, sub_isomorphic)
                         break
 
-    print(paired_subgraphs.map, isomorphic)
     if len(paired_subgraphs.map) != len(g1_subgraphs):
         return NonIso
     else:

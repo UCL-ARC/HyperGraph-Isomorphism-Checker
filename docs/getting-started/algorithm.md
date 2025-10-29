@@ -86,6 +86,7 @@ Traversal from a node pair $(n1, n2)$:
 
 - If a node $n_1$ has already been visited, check that the permutation $\pi(n_1) = n_2$ is present and consistent. If there is a contradiction, return non-isomorphic. Otherwise, you may stop this branch of the traversal here.
 - If $n_1$ has not been visited before then check that $n_2$ is not already mapped in the permutation; if $n_2$ already exists in the permutation then return non-isomorphic. Otherwise update the permutation $\pi(n_1) = n_2$, add $n_1$ to the list of visited nodes, and proceed.
+- Check that $n_1$ and $n_2$ have the same type; if not return non isomorphic.
 - Identify the preceding and following edges where they exist. For each of these pairs compare:
     - If $e_1$ exists, then $e_2$ must exist. Otherwise return non-isomorphic.
     - $e_1$ and $e_2$ exist, then they must match in label, size of inputs, and size of outputs.
@@ -102,7 +103,7 @@ Traversal from an edge pair $(e_1, e_2)$:
 ### Correctness
 
 - An open hypergraph is a list of $N$ nodes and $E$ edges.
-- Nodes can be simply numbered $\{0, ..., N-1\}$.
+- Nodes are stored in a list and so can be numebered $\{0, ..., N-1\}$. Each node also has a type label, $n.L$.
 - An edge $e$ contains an ordered list of inputs $e.I$, an ordered list of outputs $e.O$, and a label $e.L$ which determines what morphism it represents.
 
 If two graphs $g_1$ and $g_2$ are isomorphic, then there is a permutation (one to one mapping) of node list $\pi^n$, and a permutation of the edge list $\pi^e$, such that if $e_2 = \pi^e(e_1)$ then:
@@ -111,10 +112,14 @@ If two graphs $g_1$ and $g_2$ are isomorphic, then there is a permutation (one t
 2. $\forall i. \pi^n(e_1.I[i]) = e_2.I[i]$
 3. $\forall i. \pi^n(e_1.O[j]) = e_2.O[i]$
 
-For open hypergraphs we furthermore have _global_ inputs ($I$) and outputs ($O$) and the node permutation satisfies
+For open hypergraphs we furthermore have _global_ inputs ($I$) and outputs ($O$) and the node permutation satisfies:
 
-4. $\forall i. pi^n(I_1[i]) = I_2[i]$
-5. $\forall i. pi^n(O_1[i]) = O_2[i]$
+4. $\forall i. \pi^n(I_1[i]) = I_2[i]$
+5. $\forall i. \pi^n(O_1[i]) = O_2[i]$
+
+Where wires in the string diagram (i.e. nodes) those types must match when nodes in the two graphs are identified:
+
+6. $\forall i. \pi^n(n_1.L) = n_2.L$
 
 The graph traversal algorithm will visit all nodes and edges which are accessible by any path from the input and output set, and directly compare the two graphs to check for any contradictions (non-isomorphism).
 
@@ -132,6 +137,7 @@ In the Cartesian case, all the nodes and edges are connected to at least one inp
 
 - Since the permutations are updated every time a new node or edge is visited, and every node and edge is visited, this means that the permutations must be complete and satisfy a one-to-one mapping if the algorithm completes without returning non-isomorphism early.
 - Since the labels of the edges are checked when edges are visited and added to the permutation, and inputs and outputs of every edge are checked in the permutation as we traverse the graph, we also satisfy properties 1-3.
+- Likewise since the labels of nodes are checked when nodes are visited and added to the permutation, we must satisfy property 6.
 
 ## Disconnected sub-graphs
 

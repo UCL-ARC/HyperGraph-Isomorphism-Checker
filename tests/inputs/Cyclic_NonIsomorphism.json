@@ -15,7 +15,7 @@
     [
       {"type_label": "F", "source_nodes": [0, 1, 6], "target_nodes": [3]},
       {"type_label": "G", "source_nodes": [3, 2], "target_nodes": [4, 5, 7]},
-      {"type_label": "H", "source_nodes": [7], "target_nodes": [6]}
+      {"type_label": "K", "source_nodes": [7], "target_nodes": [6]}
     ],
     "Inputs":
     [

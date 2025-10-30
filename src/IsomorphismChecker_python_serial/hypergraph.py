@@ -1,5 +1,7 @@
 """Module to define hypergraphs and related structures."""
 
+import warnings
+
 from dataclasses import dataclass, field
 
 from IsomorphismChecker_python_serial.hyperedge import HyperEdge
@@ -72,8 +74,9 @@ class OpenHypergraph:
             if node.next is None:
                 node.next = edge.index
             else:
-                raise ValueError(
-                    f"Source node {node.label} of edge {edge.label} already has a next edge. This is not currently supported."
+                warnings.warn(
+                    "Nodes with multiple outgoing edges are not currently fully supported. Use with caution.",
+                    UserWarning,
                 )
 
         for v in edge.targets:
@@ -81,8 +84,9 @@ class OpenHypergraph:
             if node.prev is None:
                 node.prev = edge.index
             else:
-                raise ValueError(
-                    f"Target node {node.label} of edge {edge.label} already has a previous edge. This is not currently supported."
+                warnings.warn(
+                    "Nodes with multiple incoming edges are not currently fully supported. Use with caution.",
+                    UserWarning,
                 )
 
     def __post_init__(self):

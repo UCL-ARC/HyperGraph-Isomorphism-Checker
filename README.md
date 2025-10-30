@@ -1,8 +1,12 @@
-
 # HyperGraph Isomorphism Checker
 
 [![CI](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/actions/workflows/ci.yml/badge.svg)](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/UCL-ARC/HyperGraph-Isomorphism-Checker/branch/main/graph/badge.svg)](https://codecov.io/gh/UCL-ARC/HyperGraph-Isomorphism-Checker)
+[![Docs Deploy](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/actions/workflows/deploy.yml/badge.svg)](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/actions/workflows/deploy.yml)
+<!-- [![License](https://img.shields.io/github/license/UCL-ARC/HyperGraph-Isomorphism-Checker)](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/blob/main/LICENSE) -->
+[![Python](https://img.shields.io/badge/python-%3E%3D3.12-blue.svg?logo=python)](#)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
+[![Issues](https://img.shields.io/github/issues/UCL-ARC/HyperGraph-Isomorphism-Checker)](https://github.com/UCL-ARC/HyperGraph-Isomorphism-Checker/issues)
 
 The project description:
 

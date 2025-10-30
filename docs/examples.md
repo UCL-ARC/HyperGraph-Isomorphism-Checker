@@ -96,10 +96,7 @@ for filename, data in json_files.items():
             print(f"  Nodes: {len(hypergraph.nodes)}")
             print(f"  Edges: {len(hypergraph.edges)}")
         else:
-            errors = hypergraph.validate()
             print(f"✗ {filename}: Invalid")
-            for error in errors:
-                print(f"  - {error}")
     except Exception as e:
         print(f"✗ {filename}: Error - {e}")
 ```
@@ -145,9 +142,6 @@ def create_validated_graph(nodes_data, edges_data):
     graph = Graph(nodes=nodes, edges=edges)
 
     # Get detailed validation results
-    errors = graph.validate()
-    if errors:
-        raise ValueError(f"Graph validation failed: {errors}")
 
     return graph
 ```

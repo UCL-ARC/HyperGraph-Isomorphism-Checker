@@ -39,9 +39,7 @@ graph = Graph(
 if graph.is_valid():
     print("✓ Graph is valid!")
 else:
-    errors = graph.validate()
-    for error in errors:
-        print(f"✗ {error}")
+        print(f"✗ Graph is invalid!")
 ```
 
 ## Working with Hypergraphs
@@ -107,13 +105,6 @@ diagram.render("output_graph")  # Creates output_graph.pdf
 ```python
 # Quick validation
 is_valid = graph.is_valid()
-
-# Detailed validation with error messages
-errors = graph.validate()
-if errors:
-    print("Validation errors:")
-    for error in errors:
-        print(f"  - {error}")
 ```
 
 ### Signature Validation

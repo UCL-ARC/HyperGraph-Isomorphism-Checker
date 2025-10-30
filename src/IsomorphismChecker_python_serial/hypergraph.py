@@ -18,47 +18,14 @@ class OpenHypergraph:
 
     # TODO: Improve efficiency by caching results and invalidating on changes
     def is_valid(self) -> bool:
-        """Check if the hypergraph is valid. For detailed error messages, use validate()."""
+        """Check if the hypergraph is valid."""
         if not self.nodes:
             return False
 
         if not self.edges:
             return False
-
-        for edge in self.edges:
-            for node in edge.sources + edge.targets:
-                if node >= len(self.nodes):
-                    return False
 
         return True
-
-    def validate(self) -> list[str]:
-        """Return list of validation error messages. Empty list means valid."""
-        errors: list[str] = []
-
-        if not self.nodes:
-            errors.append("Hypergraph must contain at least one node")
-
-        if not self.edges:
-            errors.append("Hypergraph must contain at least one edge")
-
-        return errors
-
-    def add_node(self, node: Node):
-        """Add a node to the hypergraph."""
-        self.nodes.append(node)
-
-    def add_edge(self, edge: HyperEdge):
-        """Add a hyperedge to the hypergraph."""
-        self.edges.append(edge)
-
-    def add_nodes(self, nodes: list[Node]):
-        """Add multiple nodes to the hypergraph."""
-        self.nodes.extend(nodes)
-
-    def add_edges(self, edges: list[HyperEdge]):
-        """Add multiple edges to the hypergraph."""
-        self.edges.extend(edges)
 
     def check_nodes_in_graph(self, nodes) -> bool:
         """Check if all nodes are in the hypergraph."""

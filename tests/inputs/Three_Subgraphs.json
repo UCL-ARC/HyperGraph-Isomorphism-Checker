@@ -1,0 +1,31 @@
+{
+    "graph_name": "TestInputGraph",
+    "comment": [
+      "Naming convention: type_label is a string,",
+      "lowercase strings for nodes,",
+      "uppercase strings for edges"
+    ],
+    "nodes":
+    [
+      {"type_label": "a"}, {"type_label": "b"}, {"type_label": "c"}, {"type_label": "d"},
+      {"type_label": "e"}, {"type_label": "f"},
+      {"type_label": "a"}, {"type_label": "b"}, {"type_label": "c"}, {"type_label": "d"},
+      {"type_label": "e"}, {"type_label": "f"},
+      {"type_label": "a"}, {"type_label": "b"}, {"type_label": "c"}, {"type_label": "d"}
+    ],
+    "hyperedges":
+    [
+      {"type_label": "F", "source_nodes": [0, 1], "target_nodes": [3]},
+      {"type_label": "G", "source_nodes": [3, 2], "target_nodes": [4, 5]},
+      {"type_label": "H", "source_nodes": [6, 7], "target_nodes": [9]},
+      {"type_label": "K", "source_nodes": [9, 8], "target_nodes": [10, 11]},
+      {"type_label": "M", "source_nodes": [], "target_nodes": [12, 13]},
+      {"type_label": "N", "source_nodes": [13, 12, 14, 15], "target_nodes": [14, 15]}
+    ],
+    "Inputs":
+    [
+      0, 1, 2
+    ],
+    "Outputs":
+    [4, 5]
+  }

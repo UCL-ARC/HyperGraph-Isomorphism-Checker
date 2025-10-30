@@ -1,5 +1,9 @@
 from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
-from IsomorphismChecker_python_serial.isomorphisms import MC_isomorphism, permute_graph
+from IsomorphismChecker_python_serial.isomorphisms import (
+    MC_isomorphism,
+    permute_graph,
+    disconnected_subgraph_isomorphism,
+)
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 import pytest
 
@@ -119,9 +123,41 @@ def test_empty_graph(graph_file):
     assert not isomorphic
 
 
-def test_all_features_isomorphic():
-    pass
+def test_mono_disconnected_subgraph():
+    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
+    g2 = create_hypergraph(test_graph_dir + "Disconnected2.json")
+
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert isomorphism.isomorphic
 
 
-def test_all_features_non_isomorphic():
-    pass
+def test_mono_disconnected_subgraph_noniso():
+    g1 = create_hypergraph(test_graph_dir + "Disconnected.json")
+    g2 = create_hypergraph(test_graph_dir + "Disconnected3.json")
+
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert not isomorphism.isomorphic
+
+
+disconnected_graphs = ["Two_Subgraphs.json", "Three_Subgraphs.json"]
+
+
+@pytest.mark.parametrize("graph_file", disconnected_graphs)
+def test_disconnected_graph_isomorphism(graph_file):
+    g1 = create_hypergraph(test_graph_dir + graph_file)
+    pi_n, pi_e, g2 = permute_graph(g1)
+    print(pi_n, pi_e)
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert isomorphism.isomorphic
+
+
+disconnected_non_isomorphisms = ["Three_Subgraphs_NonIso.json", "Two_Subgraphs.json"]
+
+
+@pytest.mark.parametrize("graph_file", disconnected_non_isomorphisms)
+def test_disconnected_graph_non_iso(graph_file):
+    g1 = create_hypergraph(test_graph_dir + "Three_Subgraphs.json")
+    g2 = create_hypergraph(test_graph_dir + graph_file)
+
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    assert not isomorphism.isomorphic

@@ -69,21 +69,19 @@ class OpenHypergraph:
 
         for v in edge.sources:
             node = self.nodes[v]
-            if node.next is None:
-                node.next = edge.index
-            else:
-                raise ValueError(
-                    f"Source node {node.label} of edge {edge.label} already has a next edge. This is not currently supported."
-                )
+            node.next.append(edge.index)
+        #    else:
+        #        raise ValueError(
+        #            f"Source node {node.label} of edge {edge.label} already has a next edge. This is not currently supported."
+        #        )
 
         for v in edge.targets:
             node = self.nodes[v]
-            if node.prev is None:
-                node.prev = edge.index
-            else:
-                raise ValueError(
-                    f"Target node {node.label} of edge {edge.label} already has a previous edge. This is not currently supported."
-                )
+            node.prev.append(edge.index)
+        #    else:
+        #        raise ValueError(
+        #            f"Target node {node.label} of edge {edge.label} already has a previous edge. This is not currently supported."
+        #        )
 
     def __post_init__(self):
 

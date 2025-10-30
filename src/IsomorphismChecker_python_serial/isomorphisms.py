@@ -19,6 +19,10 @@ class IsomorphismData:
 NonIso = IsomorphismData(False, [], [])
 
 
+def head(some_list: list):
+    return None if not some_list else some_list[0]
+
+
 def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergraph]:
     """Return a permuted version of the input graph and the permutation used"""
 
@@ -260,8 +264,8 @@ class Isomorphism:
             return
 
         self.visited_nodes.append(v1.index)
-        self.explore_edges(v1.next, v2.next)
-        self.explore_edges(v1.prev, v2.prev)
+        self.explore_edges(head(v1.next), head(v2.next))
+        self.explore_edges(head(v1.prev), head(v2.prev))
 
     def check_subgraph_isomorphism(
         self, v1: int, v2: int, subgraph1, subgraph2
@@ -346,11 +350,11 @@ def get_connected_subgraphs(
         node_list.append(node_idx)
         node_subgraph_map[node_idx] = current_sub_graph
         added_nodes[node_idx] = True
-        next_edge = g.nodes[node_idx].next
+        next_edge = head(g.nodes[node_idx].next)
         if next_edge is not None:
             traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
 
-        prev_edge = g.nodes[node_idx].prev
+        prev_edge = head(g.nodes[node_idx].prev)
         if prev_edge is not None:
             traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
 

@@ -39,12 +39,6 @@ def test_diagram_creation(sample_hypergraph: OpenHypergraph):
     assert len(diagram.hyperEdges) == 1
 
 
-# def test_diagram_creation_invalid_hypergraph(invalid_hypergraph: OpenHypergraph):
-#     """Test creating a Diagram from an invalid hypergraph raises an error."""
-#     with pytest.raises(ValueError, match=" Edge f has nodes not in hypergraph nodes."):
-#         Diagram(openHyperGraph=invalid_hypergraph)
-
-
 def test_diagram_render(sample_hypergraph: OpenHypergraph, tmp_path: Path):
     """Test rendering the diagram and getting its source."""
     diagram = Diagram(openHyperGraph=sample_hypergraph)

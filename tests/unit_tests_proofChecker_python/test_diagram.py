@@ -74,3 +74,11 @@ def test_diagram_label():
         ValueError, match="Type must be ElementType.NODE or ElementType.EDGE."
     ):
         Diagram.diagram_label("f", 0, "non-sensical")  # type: ignore
+
+
+def test_draw_invalid_hypergraph():
+    """Test that drawing an invalid hypergraph raises an error."""
+
+    invalid_hypergraph = OpenHypergraph()
+    with pytest.raises(ValueError, match="The provided OpenHypergraph is not valid."):
+        Diagram(openHyperGraph=invalid_hypergraph)

@@ -164,7 +164,9 @@ def test_disconnected_graph_non_iso(graph_file):
     assert not isomorphism.isomorphic
 
 
-non_monogamous_graphs = ["NonMonogamousGraph.json"]
+non_monogamous_graphs = [
+    "NonMonogamousGraph.json"
+]  # , "NonMonogamous_Ambiguous_Branching.json"]
 
 
 @pytest.mark.parametrize("graph_file", non_monogamous_graphs)
@@ -172,4 +174,8 @@ def test_nonmonogamous_graphs(graph_file):
     g1 = create_hypergraph(test_graph_dir + graph_file)
     pi_n, pi_e, g2 = permute_graph(g1)
     print(pi_n, pi_e)
+    print_graph(g1)
     print_graph(g2)
+    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+    print(isomorphism)
+    assert isomorphism.isomorphic

@@ -189,7 +189,7 @@ class Isomorphism:
 
     def explore_edges(self, e1: int | None, e2: int | None):
         """Explore edges e1 and e2, updating mappings and traversing connected nodes."""
-
+        print(f"Traverse from edges {e1, e2}")
         logger.debug(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
             self.mapping_valid = (
@@ -253,6 +253,7 @@ class Isomorphism:
     def traverse_from_nodes(self, v1: Node, v2: Node):
         """Traverse the graph from nodes v1 and v2, exploring connected edges and nodes."""
 
+        print(f"Traverse from nodes {v1, v2}")
         logger.debug(f"Traversing {v1, v2}")
         if v1.index in self.visited_nodes:
             if v2.index != self.node_mapping[v1.index]:
@@ -264,15 +265,82 @@ class Isomorphism:
             return
 
         self.visited_nodes.append(v1.index)
-        self.explore_edges(head(v1.next), head(v2.next))
-        self.explore_edges(head(v1.prev), head(v2.prev))
+
+        print("chekc splitting")
+        # nodes require the same amount of splitting in each directoin
+        if len(v1.next) != len(v2.next) or (len(v1.prev) != len(v2.prev)):
+            self.mapping_valid = False
+            return
+
+        num_nexts = len(v1.next)
+        matching_paths: list[list[int]] = [
+            [] for i in range(num_nexts)
+        ]  # Python is hideous
+        print(f"Nexts = {v1.next, v2.next}")
+        # eliminated_paths = {i: False for i in range(num_nexts)}
+        if len(v1.next) > 1:
+            for i, next1 in enumerate(v1.next):
+                # attempt to find a matching path in g2
+                for j, next2 in enumerate(v2.next):
+                    valid_pair = self.check_edges_for_continuation(next1, next2)
+                    print(f"Validity: {i, j, valid_pair}")
+                    if valid_pair:
+                        print(f"Update matching paths {i, j, matching_paths}")
+                        matching_paths[i].append(j)
+                        print(f"New matchin paths {matching_paths}")
+            # sort the potential paths to eliminate the simplest decisions first
+            matching_paths.sort(key=lambda x: len(x))
+            print(matching_paths)
+            for i, js in enumerate(matching_paths):
+                if len(js) == 0:
+                    self.mapping_valid = False
+                    return
+                elif len(js) == 1:
+                    j = js[0]
+                    self.explore_edges(v1.next[i].index, v2.next[j].index)
+                else:  # explore possible paths
+                    # placeholder to allow for rollback: we don't want to do a huge copy every branch!
+                    print("ended up here")
+                    # node_map_copy = self.node_mapping.copy()
+                    # edge_map_copy = self.edge_mapping.copy()
+                    assert self.mapping_valid
+
+            # explore paths starting with the minimal branching
+        else:
+            next1, next2 = head(v1.next), head(v2.next)
+            if self.check_edges_for_continuation(next1, next2):
+                self.explore_edges(next1.index, next2.index)
+
+            prev1, prev2 = head(v1.prev), head(v2.prev)
+            if self.check_edges_for_continuation(prev1, prev2):
+                self.explore_edges(prev1.index, prev2.index)
+
+    def check_edges_for_continuation(self, next1, next2):
+        if next1 is None or next2 is None:
+            print(f"ONe of them is none: {next1, next2}")
+            if next1 != next2:
+                print(f"Only one of them was none: {next1, next2}")
+                self.mapping_valid = False
+            return False  # no need to continue path if edges are None or don't match
+
+        if next1.label != next2.label:
+            print(f"Label mismatch {next1, next2}")
+            self.mapping_valid = False
+            return False
+
+        if next1.port != next2.port:
+            print(f"Port mismatch {next1, next2}")
+            self.mapping_valid = False
+            return False  # no need to continue path if ports don't match
+
+        return True
 
     def check_subgraph_isomorphism(
         self, v1: int, v2: int, subgraph1, subgraph2
     ) -> IsomorphismData:
         """Check for disconnected subgraph isomorphism where no nodes connect
         to global inputs or outputs"""
-
+        print("Check subgraph isomorphism")
         g1, g2 = self.graphs
 
         if (v1 < 0 or v1 > max(subgraph1[0])) or (v2 < 0 or v2 > max(subgraph2[0])):
@@ -350,11 +418,19 @@ def get_connected_subgraphs(
         node_list.append(node_idx)
         node_subgraph_map[node_idx] = current_sub_graph
         added_nodes[node_idx] = True
-        next_edge = head(g.nodes[node_idx].next)
+        next_edge = (
+            None
+            if head(g.nodes[node_idx].next) is None
+            else head(g.nodes[node_idx].next).index
+        )
         if next_edge is not None:
             traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
 
-        prev_edge = head(g.nodes[node_idx].prev)
+        prev_edge = (
+            None
+            if head(g.nodes[node_idx].prev) is None
+            else head(g.nodes[node_idx].prev).index
+        )
         if prev_edge is not None:
             traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
 
@@ -395,23 +471,27 @@ def get_connected_subgraphs(
 def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
     """Compares two monogamous subgraph isomorphism candidates (g1, g2) which
     have no paths to global inputs and outputs, and checks for ismorphism."""
+    print("disconnected graph isomorphism")
 
     g1_subgraphs, subgraph_map_1 = get_connected_subgraphs(g1)
     g2_subgraphs, subgraph_map_2 = get_connected_subgraphs(g2)
 
     ## Check basic sizes to begin with
+    print("size check")
     num_nodes = len(g1.nodes)
     num_edges = len(g1.edges)
     if (num_nodes != len(g2.nodes)) or (num_edges != len(g2.edges)):
         return NonIso
 
     # Check number of subgraphs and sizes of subgraphs.
+    print("subgraph check")
     g1_sizes = [(len(l1), len(l2)) for (l1, l2) in g1_subgraphs]
     g2_sizes = [(len(l1), len(l2)) for (l1, l2) in g2_subgraphs]
     if sorted(g1_sizes) != sorted(g2_sizes):
         return NonIso
 
     ## Start by eliminating all graphs that are connected to global interface
+    print("interface check")
     if (len(g1.input_nodes) != len(g2.input_nodes)) | (
         len(g1.output_nodes) != len(g2.output_nodes)
     ):
@@ -429,6 +509,7 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             else:
                 subgraph_start_point[i] = (nodes1[i], nodes2[i])
 
+    print("interface mapping")
     update_mapping_from_interface(g1.input_nodes, g2.input_nodes)
     update_mapping_from_interface(g1.output_nodes, g2.output_nodes)
 

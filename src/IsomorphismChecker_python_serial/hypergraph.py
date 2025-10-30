@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 from IsomorphismChecker_python_serial.hyperedge import HyperEdge
-from IsomorphismChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.node import Node, EdgeInfo
 
 
 @dataclass(slots=True)
@@ -34,17 +34,17 @@ class OpenHypergraph:
     def set_next_prev(self, edge: HyperEdge):
         """Set the next and previous edges for nodes based on edges in the hypergraph."""
 
-        for v in edge.sources:
+        for i, v in enumerate(edge.sources):
             node = self.nodes[v]
-            node.next.append(edge.index)
+            node.next.append(EdgeInfo(edge.index, i, edge.label))
         #    else:
         #        raise ValueError(
         #            f"Source node {node.label} of edge {edge.label} already has a next edge. This is not currently supported."
         #        )
 
-        for v in edge.targets:
+        for i, v in enumerate(edge.targets):
             node = self.nodes[v]
-            node.prev.append(edge.index)
+            node.prev.append(EdgeInfo(edge.index, i, edge.label))
         #    else:
         #        raise ValueError(
         #            f"Target node {node.label} of edge {edge.label} already has a previous edge. This is not currently supported."

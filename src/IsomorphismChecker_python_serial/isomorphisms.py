@@ -421,12 +421,15 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             sg1 = subgraph_map_1[nodes1[i]]
             sg2 = subgraph_map_2[nodes2[i]]
             if not paired_subgraphs.insert(sg1, sg2):
-                return NonIso
+                return False
             else:
                 subgraph_start_point[i] = (nodes1[i], nodes2[i])
+        return True
 
-    update_mapping_from_interface(g1.input_nodes, g2.input_nodes)
-    update_mapping_from_interface(g1.output_nodes, g2.output_nodes)
+    if not update_mapping_from_interface(g1.input_nodes, g2.input_nodes):
+        return NonIso
+    if not update_mapping_from_interface(g1.output_nodes, g2.output_nodes):
+        return NonIso
 
     iso = Isomorphism((g1, g2))
 

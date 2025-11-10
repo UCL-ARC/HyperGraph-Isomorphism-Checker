@@ -15,6 +15,11 @@ class ElementType(Enum):
     EDGE = "edge"
 
 
+class Orientation(Enum):
+    LEFT_TO_RIGHT = "LR"
+    TOP_TO_BOTTOM = "TB"
+
+
 @dataclass(slots=True)
 class Diagram:
     """A diagram representation of a hypergraph."""
@@ -24,6 +29,7 @@ class Diagram:
     nodes: list[Node] = field(init=False)
     hyperEdges: list[HyperEdge] = field(init=False)
     graphRep: Digraph = field(init=False)
+    orientation: Orientation = field(default=Orientation.TOP_TO_BOTTOM)
 
     @staticmethod
     def diagram_label(label: str, index: int, type: ElementType, hash: int = -1) -> str:
@@ -84,10 +90,16 @@ class Diagram:
         if not self.openHyperGraph.is_valid():
             raise ValueError("The provided OpenHypergraph is not valid.")
 
+        if self.orientation not in Orientation and self.orientation not in [
+            c.value for c in Orientation
+        ]:
+            raise ValueError("Invalid orientation value.")
+
         self.nodes = self.openHyperGraph.nodes
         self.hyperEdges = self.openHyperGraph.edges
 
         self.graphRep = Digraph(format="png")
+        self.graphRep.attr(rankdir=self.orientation.value)
         self.drawGraph()
 
     def render(self, filename: str = "hypergraph_diagram") -> None:

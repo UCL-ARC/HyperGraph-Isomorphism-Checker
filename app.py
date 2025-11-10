@@ -11,9 +11,7 @@ from IsomorphismChecker_python_serial.graph_utils import create_hypergraph_from_
 
 
 def main():
-    st.set_page_config(
-        page_title="Hypergraph Visualizer", page_icon="🔗", layout="wide"
-    )
+    st.set_page_config(page_title="Hypergraph Visualizer", page_icon="🔗", layout="wide")
 
     st.title("🔗 Hypergraph Isomorphism Checker")
     st.markdown("Upload a JSON file to visualize your hypergraph")

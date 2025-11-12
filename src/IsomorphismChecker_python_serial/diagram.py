@@ -15,6 +15,11 @@ class ElementType(Enum):
     EDGE = "edge"
 
 
+class Orientation(Enum):
+    TOP_TO_BOTTOM = "TB"
+    LEFT_TO_RIGHT = "LR"
+
+
 @dataclass(slots=True)
 class Diagram:
     """A diagram representation of a hypergraph."""

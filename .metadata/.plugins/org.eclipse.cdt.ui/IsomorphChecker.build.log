@@ -1,0 +1,33 @@
+20:38:14 **** Incremental Build of configuration Release for project IsomorphChecker ****
+make all 
+Building file: ../src/IsomorphChecker.cpp
+Invoking: NVCC Compiler
+/usr/local/cuda-12.4/bin/nvcc --ptxas-options=-v -O3 --use_fast_math -ftz true --debug -gencode arch=compute_80,code=sm_80 -gencode arch=compute_90,code=sm_90 -gencode arch=compute_80,code=compute_80 -gencode arch=compute_90,code=compute_90 --verbose -Xcompiler -fPIC -ccbin g++ -c -o "src/IsomorphChecker.o" "../src/IsomorphChecker.cpp"
+#$ _NVVM_BRANCH_=nvvm
+#$ _NVVM_BRANCH_SUFFIX_=
+#$ _SPACE_= 
+#$ _CUDART_=cudart
+#$ _HERE_=/usr/local/cuda-12.4/bin
+#$ _THERE_=/usr/local/cuda-12.4/bin
+#$ _TARGET_SIZE_=
+#$ _TARGET_DIR_=
+#$ _TARGET_DIR_=targets/x86_64-linux
+#$ TOP=/usr/local/cuda-12.4/bin/..
+#$ NVVMIR_LIBRARY_DIR=/usr/local/cuda-12.4/bin/../nvvm/libdevice
+#$ LD_LIBRARY_PATH=/usr/local/cuda-12.4/bin/../lib:/usr/lib64/mpi/gcc/openmpi4/lib64:/usr/local/cuda-12.4/lib:/usr/local/cuda-12.4/lib64:/usr/lib64/mpi/gcc/openmpi4/lib64:/usr/lib64/mpi/gcc/openmpi4/lib:/home/blaze/bin/Kratos/bin/Release/libs
+#$ PATH=/usr/local/cuda-12.4/bin/../nvvm/bin:/usr/local/cuda-12.4/bin:/usr/lib64/mpi/gcc/openmpi4/bin:/home/blaze/.local/bin:/home/blaze/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/cuda-12.4/bin:/usr/local/cuda-12.4/include/nvtx3:/usr/lib64/mpi/gcc/openmpi4/bin
+#$ INCLUDES="-I/usr/local/cuda-12.4/bin/../targets/x86_64-linux/include"  
+#$ LIBRARIES=  "-L/usr/local/cuda-12.4/bin/../targets/x86_64-linux/lib/stubs" "-L/usr/local/cuda-12.4/bin/../targets/x86_64-linux/lib"
+#$ CUDAFE_FLAGS=
+#$ PTXAS_FLAGS=
+#$ g++ -D__CUDA_ARCH_LIST__=800,900 -D__NV_LEGACY_LAUNCH -c -x c++ -D__NVCC__  -fPIC -O3 -Wno-psabi "-I/usr/local/cuda-12.4/bin/../targets/x86_64-linux/include"    -D__CUDACC_VER_MAJOR__=12 -D__CUDACC_VER_MINOR__=4 -D__CUDACC_VER_BUILD__=131 -D__CUDA_API_VER_MAJOR__=12 -D__CUDA_API_VER_MINOR__=4 -D__NVCC_DIAG_PRAGMA_SUPPORT__=1 -m64 -g "../src/IsomorphChecker.cpp" -o "src/IsomorphChecker.o" 
+Finished building: ../src/IsomorphChecker.cpp
+ 
+Building target: IsomorphChecker
+Invoking: NVCC linker
+/usr/local/cuda-12.4/bin/nvcc --cudart=static -ccbin g++ -gencode arch=compute_80,code=sm_80 -gencode arch=compute_90,code=sm_90 -gencode arch=compute_80,code=compute_80 -gencode arch=compute_90,code=compute_90 -o "IsomorphChecker" ./src/GPU_Solver/CUDA_Functions.o  ./src/IsomorphChecker.o   
+Finished building target: IsomorphChecker
+ 
+
+20:38:17 Build Finished. 0 errors, 0 warnings. (took 3s.38ms)
+

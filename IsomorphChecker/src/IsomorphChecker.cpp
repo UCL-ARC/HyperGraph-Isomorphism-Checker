@@ -511,8 +511,8 @@ int main()
 	                                   /* _Mimic Input_ */
 	/*===========================================================================================*/
 	string filenames[2];
-	filenames[0] = "../../Input/DrugALarge.json";
-	filenames[1] = "../../Input/DrugBLarge.json";
+	filenames[0] = "../Input/DrugALarge.json";
+	filenames[1] = "../Input/DrugBLarge.json";
 
     for (int gInd = 0;gInd<2;gInd++ )
 	{

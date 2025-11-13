@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete resource &apos;IsomorphChecker/src/GPU_Solver/CUDA_Kernels.cuh&apos;" deleteContents="false" description="Delete resource &apos;IsomorphChecker/src/GPU_Solver/CUDA_Kernels.cuh&apos;" element1="/IsomorphChecker/src/GPU_Solver/CUDA_Kernels.cuh" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1762255519819"/>
-</session>

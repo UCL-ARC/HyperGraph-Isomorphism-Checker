@@ -53,6 +53,7 @@ static inline bool HyperEdgeLess(const IO_hyperEdge& a, const IO_hyperEdge& b)
 
 
 
+
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* _Data Input Mimic_ */
 /* Graph Details [2] means we will store 2 graphs can be made to as many as needed */
@@ -143,6 +144,39 @@ uint MaxNodesPerEdge = 0;
 uint  *m_Edge_LabelDBIndexOrg         [2]; /* unsorted */
 
 /*-------------------------------------------------------------------------------------------------------------------*/
+
+/* Debug helper: builds a permutation index for edges and prints the mapping.
+ * NOTE: If called after IO_edges[gInd] is sorted, permutation will be identity.
+ * To get original->sorted positions, invoke before sorting or capture the original order. */
+static void DebugEdgeIndexMapping(int gInd)
+{
+	uint numEdgesS = IO_edges[gInd].size();
+	printf(" EdgeSortIndex %u \n", numEdgesS);
+
+	// Allocate index array (identity permutation)
+	m_Edge_LabelDBIndexOrg[gInd] = new uint[numEdgesS]();
+	for (uint i = 0; i < numEdgesS; ++i)
+	{
+		m_Edge_LabelDBIndexOrg[gInd][i] = i;
+	}
+
+	// Sort the index array using the same comparator (redundant post edge sort)
+	const auto& edges_to_compare = IO_edges[gInd];
+	std::sort(
+		m_Edge_LabelDBIndexOrg[gInd],
+		m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
+		[&edges_to_compare](uint ia, uint ib)
+		{
+			return HyperEdgeLess(edges_to_compare[ia], edges_to_compare[ib]);
+		}
+	);
+
+	// Print mapping
+	for (uint i = 0; i < numEdgesS; ++i)
+	{
+		printf(" %u EdgeLabMap %u \n", i, m_Edge_LabelDBIndexOrg[gInd][i]);
+	}
+}
 
 
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -585,36 +619,8 @@ int main()
 		std::cout<<std::endl;
 		/*-------------------------------------------------------------------------------------------*/
 
-	    /*DD-----------------------------------------------------------------------------------------*/
-	    /* Debug Sort the Edge Index TODO AS write the graph back to json with the sorted  edges */
-	    uint numEdgesS = IO_edges[gInd].size();
-		printf(" EdgeSortIndex %d \n", numEdgesS);
-		m_Edge_LabelDBIndexOrg       [gInd] = new uint [numEdgesS]();
-
-	    for (uint i = 0;i<numEdgesS;i++ )
-		{
-	    	m_Edge_LabelDBIndexOrg       [gInd][i] =  i;
-		}
-
-	    // Capture the edge vector by reference so the lambda can access it
-	    const auto& edges_to_compare = IO_edges[gInd];
-
-	     //Sort the index array, m_Edge_LabelDBIndexOrg
-	    std::sort(
-	        m_Edge_LabelDBIndexOrg[gInd],
-	        m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
-	        [&edges_to_compare](const uint index_a, const uint index_b) {
-	            const IO_hyperEdge& a = edges_to_compare[index_a];
-	            const IO_hyperEdge& b = edges_to_compare[index_b];
-	            return HyperEdgeLess(a, b);
-	        }
-	    );
-
-	    for (uint i = 0;i<numEdgesS;i++ )
-		{
-	    	printf(" %d EdgeLabMap %d \n",i, m_Edge_LabelDBIndexOrg[gInd][i]);
-		}
-	    /*DD-----------------------------------------------------------------------------------------*/
+	    /* Debug edge index mapping */
+	    // DebugEdgeIndexMapping(gInd);
 	}
 										  /* End Edge Sorting */
 	/*===========================================================================================*/

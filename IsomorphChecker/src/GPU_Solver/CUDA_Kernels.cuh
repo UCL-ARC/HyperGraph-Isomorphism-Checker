@@ -9,7 +9,7 @@
 #define GPU_SOLVER_CUDA_KERNELS_CUH_
 #include <thrust/tuple.h>
 
-const __device__ NodeKeyTuple MAX_TUPLE = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+__constant__ __device__ NodeKeyTuple MAX_TUPLE = thrust::make_tuple(UINT_MAX, 0, 0, 0);
 #define FNV_OFFSET_BASIS 0xcbf29ce484222325ULL
 #define FNV_PRIME 0x100000001b3ULL
 

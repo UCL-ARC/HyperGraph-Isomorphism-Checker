@@ -10,6 +10,13 @@
 
 using namespace std;
 
+
+/* Configuation */
+
+bool debugSort = false;
+
+/* End Configuration */
+
 /* XML Reader for C++ */
 using json = nlohmann::json;
 struct IO_hyperEdge
@@ -620,7 +627,7 @@ int main()
 		/*-------------------------------------------------------------------------------------------*/
 
 	    /* Debug edge index mapping */
-	    // DebugEdgeIndexMapping(gInd);
+		if (debugSort) DebugEdgeIndexMapping(gInd);
 	}
 										  /* End Edge Sorting */
 	/*===========================================================================================*/

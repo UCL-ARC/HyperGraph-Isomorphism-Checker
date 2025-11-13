@@ -529,20 +529,26 @@ int main()
 			std::cerr << "Error: Could not open file " << filenames[gInd] << std::endl;
 			return 1;
 		}
-		parseGraphJSON_global(file_stream, IO_nodeLabelsDB[gInd], IO_nodeLabelIndex[gInd],
-										   IO_globalInputs[gInd], IO_globalOutputs[gInd],
-										   IO_edgeLabelsDB[gInd], IO_edges[gInd]);
+		parseGraphJSON_global(
+			file_stream, 
+			IO_nodeLabelsDB[gInd], IO_nodeLabelIndex[gInd],
+			IO_globalInputs[gInd], IO_globalOutputs[gInd],
+			IO_edgeLabelsDB[gInd], IO_edges[gInd]
+		);
 		file_stream.close();
 
-		cout<<" IONodeLabels "<<IO_nodeLabelsDB[gInd].size()<<" IONodes "<<IO_nodeLabelIndex[gInd].size()
+		std::cout<<" IONodeLabels "<<IO_nodeLabelsDB[gInd].size()<<" IONodes "<<IO_nodeLabelIndex[gInd].size()
 			<<" IOInputNodes "<<IO_globalInputs[gInd].size()<<" IOOutputNodes "<<IO_globalOutputs[gInd].size()
-			<<" IOEdgeLabels "<<IO_edgeLabelsDB[gInd].size()<<" IOEdges "<<IO_edges[gInd].size()<<endl;
+			<<" IOEdgeLabels "<<IO_edgeLabelsDB[gInd].size()<<" IOEdges "<<IO_edges[gInd].size()<<std::endl;
 
-		cout<<endl;
-
+		std::cout<<std::endl;
+		
 		/*-------------------------------------------------------------------------------------------*/
 							/* Edge Sorting by key */
-		std::sort(  IO_edges[gInd].begin(), IO_edges[gInd].end(), [](const IO_hyperEdge& a, const IO_hyperEdge& b )
+		std::sort(  
+			IO_edges[gInd].begin(), 
+			IO_edges[gInd].end(), 
+			[](const IO_hyperEdge& a, const IO_hyperEdge& b )
 				 {
 					// Primary key: Total number of nodes
 					int total_a = a.sourceNodes.size() + a.targetNodes.size();
@@ -565,16 +571,16 @@ int main()
 
 				 }
 		);
-		cout<<endl;
+		std::cout<<std::endl;
 		/*-------------------------------------------------------------------------------------------*/
 
 	    /*DD-----------------------------------------------------------------------------------------*/
 	    /* Debug Sort the Edge Index TODO AS write the graph back to json with the sorted  edges */
-	    int numEdgesS = IO_edges[gInd].size();
+	    uint numEdgesS = IO_edges[gInd].size();
 		printf(" EdgeSortIndex %d \n", numEdgesS);
 		m_Edge_LabelDBIndexOrg       [gInd] = new uint [numEdgesS]();
 
-	    for (int i = 0;i<numEdgesS;i++ )
+	    for (uint i = 0;i<numEdgesS;i++ )
 		{
 	    	m_Edge_LabelDBIndexOrg       [gInd][i] =  i;
 		}
@@ -611,7 +617,7 @@ int main()
 	        }
 	    );
 
-	    for (int i = 0;i<numEdgesS;i++ )
+	    for (uint i = 0;i<numEdgesS;i++ )
 		{
 	    	printf(" %d EdgeLabMap %d \n",i, m_Edge_LabelDBIndexOrg[gInd][i]);
 		}

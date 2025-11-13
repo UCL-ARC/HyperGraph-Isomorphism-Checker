@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <sstream>
 #include "json.hpp"
 
 #include "GPU_Solver/CUDA_Functions.h" /* CUDA Solver */
@@ -148,7 +147,6 @@ void parseGraphJSON_global(std::istream& json_stream,
 
 		/*-----------------------------------------------------------------------------*/
 		/* 1. Read Node and extract unique labels */
-		int node_count = 0;
 		for (const auto& node_obj : j["nodes"])
 		{
 			std::string label = node_obj["type_label"];
@@ -166,7 +164,6 @@ void parseGraphJSON_global(std::istream& json_stream,
 				index = it->second;
 			}
 			IO_node_LabelsIndex.push_back(index);
-			node_count++;
 		}
 		/*-----------------------------------------------------------------------------*/
 
@@ -251,19 +248,21 @@ void printGraphStats(   // Node Info
 						unsigned int numNodesInput,
 						unsigned int numNodesOutput,
 
-						const uint*  node_LabelDBIndex,	unsigned int numNodeLabelsDB,
-						const uint* node_EdgeStartPrevsStart,
+						// const uint*  node_LabelDBIndex,	
+						unsigned int numNodeLabelsDB,
+						// const uint* node_EdgeStartPrevsStart,
 						const uint* node_EdgeStartPrevsNum,
-						const uint* node_EdgeStartNextsStart,
+						// const uint* node_EdgeStartNextsStart,
 						const uint* node_EdgeStartNextsNum,
 						const uint*  node_IOTag,
 
 						// Edge Info
 						unsigned int numEdges,
-						const uint* edge_LabelDBIndex, unsigned int numEdgeLabelsDB,
-						const uint* edge_NodeStartSourcesStart,
+						// const uint* edge_LabelDBIndex, 
+						unsigned int numEdgeLabelsDB,
+						// const uint* edge_NodeStartSourcesStart,
 						const uint* edge_NodeStartSourcesNum,
-						const uint* edge_NodeStartTargetsStart,
+						// const uint* edge_NodeStartTargetsStart,
 						const uint* edge_NodeStartTargetsNum,
 
 						/* Output */
@@ -416,18 +415,20 @@ void printGraphStatsConn()
 
 	    printGraphStats(    // Node Args
 								m_numNodes[gInd], IO_globalInputs[gInd].size(), IO_globalOutputs[gInd].size(),
-								m_Node_LabelDBIndex[gInd], m_numNodeLabelsDB[gInd],
-								m_Node_EdgeStartPrevsStart[gInd],
+								// m_Node_LabelDBIndex[gInd], 
+								m_numNodeLabelsDB[gInd],
+								// m_Node_EdgeStartPrevsStart[gInd],
 								m_Node_EdgeStartPrevsNum[gInd],
-								m_Node_EdgeStartNextsStart[gInd],
+								// m_Node_EdgeStartNextsStart[gInd],
 								m_Node_EdgeStartNextsNum[gInd],
 								m_Node_IOTag[gInd],
 								// Edge Args
 								m_numEdges[gInd],
-								m_Edge_LabelDBIndex[gInd],m_numEdgeLabelsDB[gInd],
-								m_Edge_NodeStartSourcesStart[gInd],
+								// m_Edge_LabelDBIndex[gInd],
+								m_numEdgeLabelsDB[gInd],
+								// m_Edge_NodeStartSourcesStart[gInd],
 								m_Edge_NodeStartSourcesNum[gInd],
-								m_Edge_NodeStartTargetsStart[gInd],
+								// m_Edge_NodeStartTargetsStart[gInd],
 								m_Edge_NodeStartTargetsNum[gInd],
 
 								m_HistEdgeMaxNodesSize[gInd],
@@ -484,6 +485,11 @@ void printGraphStatsConn()
 			isIso = false;
 		}
 		std::cout << " Basic Iso Tests Done \n";
+
+		if(isIso)
+		{
+			std::cout<<" Graphs Pass Basic Iso Tests "<<endl;
+		}
 		/*-------------------------------------------------------------------------------------------*/
 
 
@@ -521,7 +527,7 @@ int main()
 		if (!file_stream.is_open())
 		{
 			std::cerr << "Error: Could not open file " << filenames[gInd] << std::endl;
-			return false;
+			return 1;
 		}
 		parseGraphJSON_global(file_stream, IO_nodeLabelsDB[gInd], IO_nodeLabelIndex[gInd],
 										   IO_globalInputs[gInd], IO_globalOutputs[gInd],
@@ -655,10 +661,10 @@ int main()
 		std::fill_n(m_Node_NextsFirstEdge[gInd], m_numNodes[gInd], -1);
 
 		/* Loop over edges */
-		for (int e=0;e<m_numEdges[gInd];e++)
+		for (uint e=0;e<m_numEdges[gInd];e++)
 		{
 			/* Each edge will increment its source nodes as a Next */
-			for(int i=0; i<IO_edges[gInd].at(e).sourceNodes.size(); i++)
+			for(uint i=0; i<IO_edges[gInd].at(e).sourceNodes.size(); i++)
 			{
 				/* Primary: Number of source nodes  */
 				m_EdgeNodesSourceSize    [gInd] ++;
@@ -668,7 +674,7 @@ int main()
 			}
 
 			/* Each edge will increment its target nodes as a Prev */
-			for(int i=0;i<IO_edges[gInd].at(e).targetNodes.size();i++)
+			for(uint i=0;i<IO_edges[gInd].at(e).targetNodes.size();i++)
 			{
 				m_edgeNodesTargetSize [gInd] ++;
 
@@ -681,7 +687,7 @@ int main()
 
 		/*-------------------------------------------------------------------------------------------*/
 		/* A1] Loop over all nodes and complete the locations of where each needs to read its "next" and "prev" from using a running sum */
-		for (int n=0;n<m_numNodes[gInd];n++)
+		for (uint n=0;n<m_numNodes[gInd];n++)
 		{
 			m_Node_LabelDBIndex [gInd] [n] = IO_nodeLabelIndex[gInd].at(n);
 
@@ -708,13 +714,13 @@ int main()
 
 		/*-------------------------------------------------------------------------------------------*/
 		/* A2 IO Tag sent node status */
-		int isError = -1;
-		for (int n=0;n<IO_globalInputs[gInd].size();n++)
+		// int isError = -1;
+		for (uint n=0;n<IO_globalInputs[gInd].size();n++)
 		{
 			m_Node_IOTag[gInd][IO_globalInputs[gInd].at(n)] = 1;
 		}
 
-		for (int n=0;n<IO_globalOutputs[gInd].size();n++)
+		for (uint n=0;n<IO_globalOutputs[gInd].size();n++)
 	    {
 		  if(m_Node_IOTag[gInd][IO_globalOutputs[gInd].at(n)]==0)
 		  {
@@ -775,7 +781,7 @@ int main()
 
 		 m_HistEdgeMaxNodesSize[gInd] =0;
 		/* B1] Loop over sorted edges */
-		for (int e=0;e<m_numEdges[gInd];e++)
+		for (uint e=0;e<m_numEdges[gInd];e++)
 		{
 			m_Edge_LabelDBIndex [gInd] [e] = IO_edges[gInd].at(e).labelIndex;
 
@@ -784,7 +790,7 @@ int main()
 			m_Edge_NodeStartSourcesNum  [gInd][e]  = IO_edges[gInd].at(e).sourceNodes.size();
 
 			/* Loop over source nodes to fill the compact array */
-			for(int i=0;i<m_Edge_NodeStartSourcesNum[gInd][e];i++)
+			for(uint i=0;i<m_Edge_NodeStartSourcesNum[gInd][e];i++)
 			{
 				/* Write Edge Source Nodes into compact Array */
 				uint nID = IO_edges[gInd].at(e).sourceNodes.at(i);
@@ -811,7 +817,7 @@ int main()
 			m_Edge_NodeStartTargetsNum[gInd][e]  = IO_edges[gInd].at(e).targetNodes.size();
 
 			/* Loop over target nodes to fill the compact array */
-			for(int i=0;i<m_Edge_NodeStartTargetsNum[gInd][e];i++)
+			for(uint i=0;i<m_Edge_NodeStartTargetsNum[gInd][e];i++)
 			{
 				/* Write Edge Target Nodes into compact Array */
 				uint nID = IO_edges[gInd].at(e).targetNodes.at(i);
@@ -848,7 +854,7 @@ int main()
 
 		/*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 		                                  /* Error Checking  */
-		for (int n=0;n<m_numNodes[gInd];n++)
+		for (uint n=0;n<m_numNodes[gInd];n++)
 		{
 			if( m_Node_EdgeStartPrevsNum[gInd][n] != DEBUGnode_CountSources[n])
 			{

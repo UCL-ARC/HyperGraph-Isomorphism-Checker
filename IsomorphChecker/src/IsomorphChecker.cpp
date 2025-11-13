@@ -14,6 +14,8 @@ using namespace std;
 /* Configuation */
 
 bool debugSort = false;
+string defaultFile1 = "../Input/DrugALarge.json";
+string defaultFile2 = "../Input/DrugBLarge.json";
 
 /* End Configuration */
 
@@ -182,6 +184,29 @@ static void DebugEdgeIndexMapping(int gInd)
 	for (uint i = 0; i < numEdgesS; ++i)
 	{
 		printf(" %u EdgeLabMap %u \n", i, m_Edge_LabelDBIndexOrg[gInd][i]);
+	}
+}
+
+/* Parse command-line arguments for input filenames, with fallback to defaults */
+static void ParseInputFilenames(int argc, char* argv[], string filenames[2])
+{
+	// Parse command-line arguments or use defaults
+	if (argc >= 3)
+	{
+		filenames[0] = argv[1];
+		filenames[1] = argv[2];
+	}
+	else
+	{
+		// Default filenames if not provided
+		filenames[0] = defaultFile1;
+		filenames[1] = defaultFile2;
+
+		if (argc > 1)
+		{
+			std::cerr << "Usage: " << argv[0] << " <graph1.json> <graph2.json>" << std::endl;
+			std::cerr << "Using default input files." << std::endl;
+		}
 	}
 }
 
@@ -583,15 +608,14 @@ void printGraphStatsConn()
 
 
 /*-------------------------------------------------------------------------------------------------------------------*/
-int main()
+int main(int argc, char* argv[])
 {
 
 	/*===========================================================================================*/
 	                                   /* _Mimic Input_ */
 	/*===========================================================================================*/
 	string filenames[2];
-	filenames[0] = "../Input/DrugALarge.json";
-	filenames[1] = "../Input/DrugBLarge.json";
+	ParseInputFilenames(argc, argv, filenames);
 
     for (int gInd = 0;gInd<2;gInd++ )
 	{

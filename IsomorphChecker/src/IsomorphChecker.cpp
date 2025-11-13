@@ -20,6 +20,38 @@ struct IO_hyperEdge
 };
 
 
+/* Comparator for hyperedges used in multiple sorts */
+namespace {
+static inline bool HyperEdgeLess(const IO_hyperEdge& a, const IO_hyperEdge& b)
+{
+	// Compute totals once
+	int total_a = static_cast<int>(a.sourceNodes.size() + a.targetNodes.size());
+	int total_b = static_cast<int>(b.sourceNodes.size() + b.targetNodes.size());
+
+	// Sort by source nodes count first
+	if (a.sourceNodes.size() != b.sourceNodes.size())
+	{
+		return a.sourceNodes.size() < b.sourceNodes.size();
+	}
+
+	// Then by target nodes count
+	if (a.targetNodes.size() != b.targetNodes.size())
+	{
+		return a.targetNodes.size() < b.targetNodes.size();
+	}
+
+	// Then by total nodes
+	if (total_a != total_b)
+	{
+		return total_a < total_b;
+	}
+
+	// Finally by label index
+	return a.labelIndex < b.labelIndex;
+}
+} // anonymous namespace
+
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* _Data Input Mimic_ */
@@ -545,31 +577,10 @@ int main()
 		
 		/*-------------------------------------------------------------------------------------------*/
 							/* Edge Sorting by key */
-		std::sort(  
-			IO_edges[gInd].begin(), 
-			IO_edges[gInd].end(), 
-			[](const IO_hyperEdge& a, const IO_hyperEdge& b )
-				 {
-					// Primary key: Total number of nodes
-					int total_a = a.sourceNodes.size() + a.targetNodes.size();
-					int total_b = b.sourceNodes.size() + b.targetNodes.size();
-
-					if ( a.sourceNodes.size() !=  b.sourceNodes.size())
-					{
-						return  a.sourceNodes.size() <  b.sourceNodes.size(); // Sort by source nodes
-					}
-
-					if ( a.targetNodes.size() !=  b.targetNodes.size())
-					{
-						return  a.targetNodes.size() <  b.targetNodes.size(); // Sort by target nodes
-					}
-					if ( total_a !=  total_b)
-					{
-						return total_a < total_b;
-					}
-					return a.labelIndex < b.labelIndex;
-
-				 }
+		std::sort(
+			IO_edges[gInd].begin(),
+			IO_edges[gInd].end(),
+			HyperEdgeLess
 		);
 		std::cout<<std::endl;
 		/*-------------------------------------------------------------------------------------------*/
@@ -589,31 +600,13 @@ int main()
 	    const auto& edges_to_compare = IO_edges[gInd];
 
 	     //Sort the index array, m_Edge_LabelDBIndexOrg
-	    std::sort( m_Edge_LabelDBIndexOrg[gInd],
-	               m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
-
-	        [&edges_to_compare](const uint index_a, const uint index_b)
-	        {
+	    std::sort(
+	        m_Edge_LabelDBIndexOrg[gInd],
+	        m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
+	        [&edges_to_compare](const uint index_a, const uint index_b) {
 	            const IO_hyperEdge& a = edges_to_compare[index_a];
 	            const IO_hyperEdge& b = edges_to_compare[index_b];
-
-	            int total_a = a.sourceNodes.size() + a.targetNodes.size();
-	            int total_b = b.sourceNodes.size() + b.targetNodes.size();
-
-	            if (a.sourceNodes.size() != b.sourceNodes.size()) {
-	                return a.sourceNodes.size() < b.sourceNodes.size(); // Sort by source nodes
-	            }
-
-	            if (a.targetNodes.size() != b.targetNodes.size()) {
-	                return a.targetNodes.size() < b.targetNodes.size(); // Sort by target nodes
-	            }
-
-	            if (total_a != total_b)
-	            {
-	                return total_a < total_b;
-	            }
-
-	            return a.labelIndex < b.labelIndex;
+	            return HyperEdgeLess(a, b);
 	        }
 	    );
 

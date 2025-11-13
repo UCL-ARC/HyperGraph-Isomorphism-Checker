@@ -30,6 +30,9 @@
 /* Node signatures Label, IO, numNexts, numPrevs, OPT NextEdgeLab, PrevEdgeLab */
 typedef thrust::tuple<uint, uint, uint, uint> NodeKeyTuple;
 
+// __constant__ NodeKeyTuple MAX_TUPLE = { UINT_MAX, 0, 0, 0 };
+// __constant__  NodeKeyTuple MAX_TUPLE;
+
 #include "CUDA_Kernels.cuh"
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* A] Node Struct compact list that we will copy to GPU */
@@ -701,7 +704,11 @@ void CreateGraphBinsGPU()
 /*===================================================================================================================*/
 void CompareEdgesGPU()
 {
-  /* Hashes are stored here*/
+
+	// NodeKeyTuple MAX_TUPLEH	 = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+	// cudaMemcpyToSymbol( MAX_TUPLE, &MAX_TUPLEH,     sizeof( NodeKeyTuple ) );
+
+	/* Hashes are stored here*/
   uint64_t  *d_temp_EdgeHashSources[2];
   uint64_t  *d_temp_EdgeHashTargets[2];
 

@@ -210,6 +210,41 @@ static void ParseInputFilenames(int argc, char* argv[], string filenames[2])
 	}
 }
 
+/* Process edge nodes (source or target) and populate CSR arrays */
+static inline void ProcessEdgeNodes(
+	int gInd,
+	uint e,
+	const std::vector<uint>& nodeList,
+	uint* edgeNodeArray,
+	int& edgeCounter,
+	uint** nodeEdgeArray,
+	int** nodeEdgePortArray,
+	uint* debugNodeCount,
+	int** nodeFirstEdgeArray,
+	int edgeLabelIndex)
+{
+	for (uint i = 0; i < nodeList.size(); i++)
+	{
+		uint nID = nodeList[i];
+		
+		/* Write node into compact array */
+		edgeNodeArray[edgeCounter] = nID;
+		edgeCounter++;
+		
+		/* Fill the node edge list and port */
+		nodeEdgeArray[gInd][debugNodeCount[nID]] = e;
+		nodeEdgePortArray[gInd][debugNodeCount[nID]] = i;
+		
+		/* Store first port label */
+		if (debugNodeCount[nID] == 0)
+		{
+			nodeFirstEdgeArray[gInd][nID] = edgeLabelIndex;
+		}
+		
+		debugNodeCount[nID]++;
+	}
+}
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* IO Mimic by reading a JSON file and creating the compact lists for node and edges */
@@ -825,53 +860,35 @@ int main(int argc, char* argv[])
 			m_Edge_NodeStartSourcesStart[gInd][e]  = DEBUGedgeCounterSources;
 			m_Edge_NodeStartSourcesNum  [gInd][e]  = IO_edges[gInd].at(e).sourceNodes.size();
 
-			/* Loop over source nodes to fill the compact array */
-			for(uint i=0;i<m_Edge_NodeStartSourcesNum[gInd][e];i++)
-			{
-				/* Write Edge Source Nodes into compact Array */
-				uint nID = IO_edges[gInd].at(e).sourceNodes.at(i);
-
-				m_Edge_NodesSources[gInd][ DEBUGedgeCounterSources ] = nID;
-				DEBUGedgeCounterSources++;
-
-				/* [A] Fill The Node Next List and Inc Debug */
-				m_Node_EdgeNexts     [gInd][ DEBUGnode_CountTargets[ nID ] ]= e;
-				m_Node_EdgeNextsPort [gInd][ DEBUGnode_CountTargets[ nID ] ]= i;
-
-				/* Store first port */
-				if(DEBUGnode_CountTargets[ nID ]==0)
-				{
-					m_Node_NextsFirstEdge[gInd][nID ] = IO_edges[gInd].at(e).labelIndex;
-				}
-
-				DEBUGnode_CountTargets[ nID ]++;
-			}
-
+			/* Process source nodes */
+			ProcessEdgeNodes(
+				gInd, e,
+				IO_edges[gInd].at(e).sourceNodes,
+				m_Edge_NodesSources[gInd],
+				DEBUGedgeCounterSources,
+				m_Node_EdgeNexts,
+				m_Node_EdgeNextsPort,
+				DEBUGnode_CountTargets,
+				m_Node_NextsFirstEdge,
+				IO_edges[gInd].at(e).labelIndex
+			);
 
 			/* 2. Start and Num for Edge Target Nodes */
 			m_Edge_NodeStartTargetsStart[gInd][e] = DEBUGedgeCounterTargets;
 			m_Edge_NodeStartTargetsNum[gInd][e]  = IO_edges[gInd].at(e).targetNodes.size();
 
-			/* Loop over target nodes to fill the compact array */
-			for(uint i=0;i<m_Edge_NodeStartTargetsNum[gInd][e];i++)
-			{
-				/* Write Edge Target Nodes into compact Array */
-				uint nID = IO_edges[gInd].at(e).targetNodes.at(i);
-				m_Edge_NodesTargets[gInd][ DEBUGedgeCounterTargets ] = nID;
-				DEBUGedgeCounterTargets++;
-
-				/* [A] Fill The Node Prev List and Inc Debug */
-				m_Node_EdgePrevs    [gInd][ DEBUGnode_CountSources[ nID ] ]= e;
-				m_Node_EdgePrevsPort[gInd][ DEBUGnode_CountSources[ nID ] ]= i;
-
-				/* Store first port label  */
-				if(DEBUGnode_CountSources[ nID ]==0)
-				{
-					m_Node_PrevsFirstEdge[gInd][nID ] = IO_edges[gInd].at(e).labelIndex;
-				}
-
-				DEBUGnode_CountSources[ nID ]++;
-			}
+			/* Process target nodes */
+			ProcessEdgeNodes(
+				gInd, e,
+				IO_edges[gInd].at(e).targetNodes,
+				m_Edge_NodesTargets[gInd],
+				DEBUGedgeCounterTargets,
+				m_Node_EdgePrevs,
+				m_Node_EdgePrevsPort,
+				DEBUGnode_CountSources,
+				m_Node_PrevsFirstEdge,
+				IO_edges[gInd].at(e).labelIndex
+			);
 
 			m_Edge_TotNodes          [gInd][e] = m_Edge_NodeStartSourcesNum  [gInd][e] + m_Edge_NodeStartTargetsNum[gInd][e] ;
 

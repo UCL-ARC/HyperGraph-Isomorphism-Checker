@@ -105,7 +105,7 @@
         {"type_label": "ProcessX", "source_nodes": [44], "target_nodes": [48]},
         {"type_label": "ProcessZ", "source_nodes": [52, 56], "target_nodes": [60, 64, 68]},
         {"type_label": "ProcessY", "source_nodes": [72, 76, 80], "target_nodes": [84]},
-        {"type_label": "ProcessX", "source_nodes": [88], "target_nodes": [92, 84]}
+        {"type_label": "ProcessX", "source_nodes": [88], "target_nodes": [92, 95]}
     ],
     "Inputs": [
         0, 3, 7, 10, 14, 17, 19, 24, 28, 31, 34, 37, 41, 44, 48, 51,

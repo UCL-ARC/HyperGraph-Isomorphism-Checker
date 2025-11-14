@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <chrono>
+#include <iomanip>
 #include "json.hpp"
 
 #include "GPU_Solver/CUDA_Functions.h" /* CUDA Solver */
@@ -649,9 +651,12 @@ int main(int argc, char* argv[])
 	/*===========================================================================================*/
 	                                   /* _Mimic Input_ */
 	/*===========================================================================================*/
+	auto start_total = std::chrono::high_resolution_clock::now();
+	
 	string filenames[2];
 	ParseInputFilenames(argc, argv, filenames);
 
+	auto start_io = std::chrono::high_resolution_clock::now();
     for (int gInd = 0;gInd<2;gInd++ )
 	{
     	cout<< filenames[gInd]<<endl;
@@ -677,17 +682,25 @@ int main(int argc, char* argv[])
 		
 		/*-------------------------------------------------------------------------------------------*/
 							/* Edge Sorting by key */
+		auto start_sort = std::chrono::high_resolution_clock::now();
 		std::sort(
 			IO_edges[gInd].begin(),
 			IO_edges[gInd].end(),
 			HyperEdgeLess
 		);
+		auto end_sort = std::chrono::high_resolution_clock::now();
+		auto sort_time = std::chrono::duration_cast<std::chrono::microseconds>(end_sort - start_sort).count();
+		std::cout << "  Sorting time: " << std::fixed << std::setprecision(3) 
+		          << sort_time / 1000.0 << " ms" << std::endl;
 		std::cout<<std::endl;
 		/*-------------------------------------------------------------------------------------------*/
 
 	    /* Debug edge index mapping */
 		if (debugSort) DebugEdgeIndexMapping(gInd);
 	}
+	auto end_io = std::chrono::high_resolution_clock::now();
+	auto io_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_io - start_io).count();
+	std::cout << "Total I/O and parsing time: " << io_time << " ms" << std::endl;
 										  /* End Edge Sorting */
 	/*===========================================================================================*/
 									/* End _Mimic Input_ */
@@ -697,6 +710,7 @@ int main(int argc, char* argv[])
 	/*===========================================================================================*/
 				          /* Create compact arrays and pass to the GPU */
 	/*===========================================================================================*/
+	auto start_compact = std::chrono::high_resolution_clock::now();
      for (int gInd = 0;gInd<2;gInd++ )
 	 {
     	 cout<<" Create Compact Arrays " <<gInd<<endl;
@@ -927,6 +941,9 @@ int main(int argc, char* argv[])
 		delete [] DEBUGnode_CountSources;
 		delete [] DEBUGnode_CountTargets;
     }
+	auto end_compact = std::chrono::high_resolution_clock::now();
+	auto compact_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_compact - start_compact).count();
+	std::cout << "Compact array creation time: " << compact_time << " ms" << std::endl;
  	/*===========================================================================================*/
  				          /* End Create compact arrays and pass to the GPU */
  	/*===========================================================================================*/
@@ -934,6 +951,7 @@ int main(int argc, char* argv[])
 
     printGraphStatsConn();
 
+	auto start_gpu = std::chrono::high_resolution_clock::now();
     /* Free CPU Memory */
     for (int gInd = 0;gInd<2;gInd++ )
 	{
@@ -975,7 +993,11 @@ int main(int argc, char* argv[])
 					   0 );
 
     }
+	auto end_gpu_init = std::chrono::high_resolution_clock::now();
+	auto gpu_init_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_gpu_init - start_gpu).count();
+	std::cout << "GPU initialization time: " << gpu_init_time << " ms" << std::endl;
 
+	auto start_gpu_compute = std::chrono::high_resolution_clock::now();
     CreateGraphBinsGPU(); /* hist Binning on GPU */
 
     if(MaxNodesPerEdge<8)
@@ -987,6 +1009,9 @@ int main(int argc, char* argv[])
     {
     	printf(" Cannot use NetworkSort on GPU 8 Exceeded \n");
     }
+	auto end_gpu_compute = std::chrono::high_resolution_clock::now();
+	auto gpu_compute_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_gpu_compute - start_gpu_compute).count();
+	std::cout << "GPU computation time: " << gpu_compute_time << " ms" << std::endl;
 
     /* TODO WL-1 Test */
 
@@ -1022,6 +1047,12 @@ int main(int argc, char* argv[])
 		delete [] m_Node_EdgeStartPrevsStart[gInd];
 		delete [] m_Node_EdgeStartNextsStart[gInd];
 	}
+
+	auto end_total = std::chrono::high_resolution_clock::now();
+	auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_total - start_total).count();
+	std::cout << "\n==================================================" << std::endl;
+	std::cout << "Total execution time: " << total_time << " ms" << std::endl;
+	std::cout << "==================================================" << std::endl;
 
 	return 0;
 }

@@ -8,6 +8,12 @@ from IsomorphismChecker_python_serial.hyperedge import HyperEdge
 from IsomorphismChecker_python_serial.node import Node
 
 
+@dataclass
+class SubGraph:
+    nodes: list[int]
+    edges: list[int]
+
+
 @dataclass(slots=True)
 class OpenHypergraph:
     """An open hypergraph with input and output nodes."""

@@ -1,4 +1,9 @@
-from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph, Node, HyperEdge
+from IsomorphismChecker_python_serial.hypergraph import (
+    OpenHypergraph,
+    Node,
+    HyperEdge,
+    SubGraph,
+)
 import random
 import logging
 
@@ -271,7 +276,9 @@ class Isomorphism:
 
         g1, g2 = self.graphs
 
-        if (v1 < 0 or v1 > max(subgraph1[0])) or (v2 < 0 or v2 > max(subgraph2[0])):
+        if (v1 < 0 or v1 > max(subgraph1.nodes)) or (
+            v2 < 0 or v2 > max(subgraph2.nodes)
+        ):
             raise ValueError(
                 f"Node pair {(v1, v2)} not in the node sets for graph pair."
             )
@@ -282,7 +289,7 @@ class Isomorphism:
         self.traverse_from_nodes(g1.nodes[v1], g2.nodes[v2])
 
         if self.mapping_valid:
-            if any([self.node_mapping[i] == -1 for i in subgraph1[0]]):
+            if any([self.node_mapping[i] == -1 for i in subgraph1.nodes]):
                 raise ValueError(f"Permutation incomplete: {self.node_mapping}")
 
         return IsomorphismData(self.mapping_valid, self.node_mapping, self.edge_mapping)
@@ -327,7 +334,7 @@ class Isomorphism:
 
 def get_connected_subgraphs(
     g: OpenHypergraph,
-) -> tuple[list[tuple[list[int], list[int]]], dict]:
+) -> tuple[list[SubGraph], dict]:
     num_nodes = len(g.nodes)
     num_edges = len(g.edges)
 
@@ -373,7 +380,7 @@ def get_connected_subgraphs(
             node_list: list[int] = []
             edge_list: list[int] = []
             traverse_connected_graph(i, node_list, edge_list)
-            subgraphs.append((node_list, edge_list))
+            subgraphs.append(SubGraph(node_list, edge_list))
             current_sub_graph += 1
 
     # also explore edges in case any subgraph is a disconnected edge w/no inputs or outputs
@@ -382,7 +389,7 @@ def get_connected_subgraphs(
             node_list = []
             edge_list = []
             traverse_connected_graph_from_edge(i, node_list, edge_list)
-            subgraphs.append((node_list, edge_list))
+            subgraphs.append(SubGraph(node_list, edge_list))
             current_sub_graph += 1
 
     return subgraphs, node_subgraph_map
@@ -402,8 +409,8 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         return NonIso
 
     # Check number of subgraphs and sizes of subgraphs.
-    g1_sizes = [(len(l1), len(l2)) for (l1, l2) in g1_subgraphs]
-    g2_sizes = [(len(l1), len(l2)) for (l1, l2) in g2_subgraphs]
+    g1_sizes = [(len(sg.nodes), len(sg.edges)) for sg in g1_subgraphs]
+    g2_sizes = [(len(sg.nodes), len(sg.edges)) for sg in g2_subgraphs]
     if sorted(g1_sizes) != sorted(g2_sizes):
         return NonIso
 
@@ -445,12 +452,19 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         else:
             merge_isomorphism(isomorphic, sub_isomorphic)
 
-    def check_subgraph_pair(sg1, sg2):
+    def check_subgraph_pair(sg1: SubGraph, sg2: SubGraph):
         # another disconnected subgraph; check for isomorphism by depth first search
-        if len(sg1[0]) != len(sg2[0]) or len(sg1[1]) != len(sg2[1]):
+        if len(sg1.nodes) != len(sg2.nodes) or len(sg1.edges) != len(sg2.edges):
             return NonIso  # these can't be isomorphic if sizes don't match
-        v1 = sg1[0][0]
-        for v2 in sg2[0]:
+
+        # # Find most unique nodes by local neighbourhood (next/previous)
+        # neighbour_map1 = {}
+        # neighbour_map2 = {}
+        # for v in sg1.nodes:
+        #     key = g1.nodes[v].next
+
+        v1 = sg1.nodes[0]
+        for v2 in sg2.nodes:
             iso = Isomorphism((g1, g2))
             sub_isomorphic = iso.check_subgraph_isomorphism(v1, v2, sg1, sg2)
             if sub_isomorphic.isomorphic:

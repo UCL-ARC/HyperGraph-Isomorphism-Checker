@@ -188,7 +188,7 @@ class Isomorphism:
             and (len(edge1.targets) == len(edge2.targets))
         )
 
-    def explore_edges(self, e1: int | None, e2: int | None):
+    def explore_edges(self, e1: int, e2: int):
         """Explore edges e1 and e2, updating mappings and traversing connected nodes."""
 
         logger.debug(f"Exploring edges {e1, e2}")
@@ -202,54 +202,46 @@ class Isomorphism:
             self.mapping_valid = False
             return
 
-        if (e1 is None) or (e2 is None):
-            if e1 != e2:
-                self.mapping_valid = False
-            return
+        self.visited_edges.append(e1)
+        logger.debug(f"Mapping edge {e1} -> {e2}")
+        logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
+        self.update_mapping(e1, e2, MappingMode.EDGE)
+        logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
+        logger.debug("Checkpoint 1")
+        if not self.mapping_valid:
+            return False
+        logger.debug("Checkpoint 2")
 
-        else:
-            self.visited_edges.append(e1)
-            logger.debug(f"Mapping edge {e1} -> {e2}")
-            logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
-            self.update_mapping(e1, e2, MappingMode.EDGE)
-            logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
-            logger.debug("Checkpoint 1")
-            if not self.mapping_valid:
-                return False
-            logger.debug("Checkpoint 2")
+        # Commented out: logger.debug(g1.edges[e1], g2.edges[e2])
+        logger.debug(f"Edges: {self.graphs[0].edges[e1]}, {self.graphs[1].edges[e2]}")
+        n_sources = len(self.graphs[0].edges[e1].sources)
+        n_targets = len(self.graphs[0].edges[e1].targets)
 
-            # Commented out: logger.debug(g1.edges[e1], g2.edges[e2])
-            logger.debug(
-                f"Edges: {self.graphs[0].edges[e1]}, {self.graphs[1].edges[e2]}"
-            )
-            n_sources = len(self.graphs[0].edges[e1].sources)
-            n_targets = len(self.graphs[0].edges[e1].targets)
+        logger.debug(f"n_sources, n_targets = {n_sources, n_targets}")
 
-            logger.debug(f"n_sources, n_targets = {n_sources, n_targets}")
+        # check sources
+        for s in range(n_sources):
+            s1 = self.graphs[0].edges[e1].sources[s]
+            s2 = self.graphs[1].edges[e2].sources[s]
+            v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
+            logger.debug(f"Prev nodes = {v1, v2}")
+            self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
+            if self.mapping_valid:
+                self.traverse_from_nodes(v1, v2)
+            else:
+                return
 
-            # check sources
-            for s in range(n_sources):
-                s1 = self.graphs[0].edges[e1].sources[s]
-                s2 = self.graphs[1].edges[e2].sources[s]
-                v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
-                logger.debug(f"Prev nodes = {v1, v2}")
-                self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
-                if self.mapping_valid:
-                    self.traverse_from_nodes(v1, v2)
-                else:
-                    return
-
-            # check targets
-            for t in range(n_targets):
-                t1 = self.graphs[0].edges[e1].targets[t]
-                t2 = self.graphs[1].edges[e2].targets[t]
-                v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
-                logger.debug(f"Prev nodes = {v1, v2}")
-                self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
-                if self.mapping_valid:
-                    self.traverse_from_nodes(v1, v2)
-                else:
-                    return
+        # check targets
+        for t in range(n_targets):
+            t1 = self.graphs[0].edges[e1].targets[t]
+            t2 = self.graphs[1].edges[e2].targets[t]
+            v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
+            logger.debug(f"Prev nodes = {v1, v2}")
+            self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
+            if self.mapping_valid:
+                self.traverse_from_nodes(v1, v2)
+            else:
+                return
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
         """Traverse the graph from nodes v1 and v2, exploring connected edges and nodes."""
@@ -265,8 +257,20 @@ class Isomorphism:
             return
 
         self.visited_nodes.append(v1.index)
-        self.explore_edges(v1.next, v2.next)
-        self.explore_edges(v1.prev, v2.prev)
+
+        if (v1.next is None) or (v2.next is None):
+            if v1.next != v2.next:
+                self.mapping_valid = False
+                return
+        else:
+            self.explore_edges(v1.next.index, v2.next.index)
+
+        if (v1.prev is None) or (v2.prev is None):
+            if v1.prev != v2.prev:
+                self.mapping_valid = False
+                return
+        else:
+            self.explore_edges(v1.prev.index, v2.prev.index)
 
     def check_subgraph_isomorphism(
         self, v1: int, v2: int, subgraph1, subgraph2
@@ -355,11 +359,11 @@ def get_connected_subgraphs(
         added_nodes[node_idx] = True
         next_edge = g.nodes[node_idx].next
         if next_edge is not None:
-            traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
+            traverse_connected_graph_from_edge(next_edge.index, node_list, edge_list)
 
         prev_edge = g.nodes[node_idx].prev
         if prev_edge is not None:
-            traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
+            traverse_connected_graph_from_edge(prev_edge.index, node_list, edge_list)
 
     def traverse_connected_graph_from_edge(edge_idx, node_list, edge_list):
         if added_edges[edge_idx]:

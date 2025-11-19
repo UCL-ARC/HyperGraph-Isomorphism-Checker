@@ -5,7 +5,7 @@ import warnings
 from dataclasses import dataclass, field
 
 from IsomorphismChecker_python_serial.hyperedge import HyperEdge
-from IsomorphismChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.node import Node, EdgeInfo
 
 
 @dataclass
@@ -42,20 +42,20 @@ class OpenHypergraph:
     def set_next_prev(self, edge: HyperEdge):
         """Set the next and previous edges for nodes based on edges in the hypergraph."""
 
-        for v in edge.sources:
+        for (i, v) in enumerate(edge.sources):
             node = self.nodes[v]
             if node.next is None:
-                node.next = edge.index
+                node.next = EdgeInfo(edge.index, i, edge.label)
             else:
                 warnings.warn(
                     "Nodes with multiple outgoing edges are not currently fully supported. Use with caution.",
                     UserWarning,
                 )
 
-        for v in edge.targets:
+        for (i, v) in enumerate(edge.targets):
             node = self.nodes[v]
             if node.prev is None:
-                node.prev = edge.index
+                node.prev = EdgeInfo(edge.index, i, edge.label)
             else:
                 warnings.warn(
                     "Nodes with multiple incoming edges are not currently fully supported. Use with caution.",

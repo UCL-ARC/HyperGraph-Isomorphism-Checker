@@ -462,13 +462,25 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             return NonIso  # these can't be isomorphic if sizes don't match
 
         # # Find most unique nodes by local neighbourhood (next/previous)
-        # neighbour_map1 = {}
-        # neighbour_map2 = {}
-        # for v in sg1.nodes:
-        #     key = g1.nodes[v].next
+        neighbour_map1 = construct_neighbour_map(sg1, g1)
+        neighbour_map2 = construct_neighbour_map(sg2, g2)
+        if neighbour_map1 != neighbour_map2:
+            print(neighbour_map1, neighbour_map2)
+            return NonIso
 
-        v1 = sg1.nodes[0]
-        for v2 in sg2.nodes:
+        optimal_key = sorted(neighbour_map1.items(), key=lambda x: x[1])[0][
+            0
+        ]  # optimal key has the fewest matching nodes
+        print(optimal_key)
+        starters_1 = list(
+            filter(lambda x: construct_node_key(x, g1) == optimal_key, sg1.nodes)
+        )
+        starters_2 = list(
+            filter(lambda x: construct_node_key(x, g2) == optimal_key, sg2.nodes)
+        )
+
+        v1 = starters_1[0]
+        for v2 in starters_2:
             iso = Isomorphism((g1, g2))
             sub_isomorphic = iso.check_subgraph_isomorphism(v1, v2, sg1, sg2)
             if sub_isomorphic.isomorphic:
@@ -477,6 +489,30 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
                 else:
                     return sub_isomorphic
         return NonIso
+
+    def construct_neighbour_map(sg: SubGraph, g: OpenHypergraph):
+        neighbour_map: dict[str, int] = {}
+        for v in sg.nodes:
+
+            key = construct_node_key(v, g)
+            if key in neighbour_map:
+                neighbour_map[key] += 1
+            else:
+                neighbour_map[key] = 1
+        return neighbour_map
+
+    def construct_node_key(v: int, g: OpenHypergraph):
+        e_n = g.nodes[v].next
+        e_p = g.nodes[v].prev
+
+        def edge_sig(e):
+            if e is None:
+                return "___"
+            else:
+                return e.label + str(e.port)
+
+        key = "i:" + edge_sig(e_n) + "_o:" + edge_sig(e_p)
+        return key
 
     for i, sg1 in enumerate(g1_subgraphs):
         if i not in paired_subgraphs.map:

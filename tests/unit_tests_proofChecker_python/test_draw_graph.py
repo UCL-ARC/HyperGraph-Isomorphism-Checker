@@ -50,3 +50,18 @@ def test_print_graph(sample_hypergraph: OpenHypergraph, capsys: pytest.CaptureFi
     assert "(1, 'B')" in captured.out
     assert "(2, 'C')" in captured.out
     assert "('f', [0, 1], [2])" in captured.out
+
+
+def test_highlighted_elements(sample_hypergraph: OpenHypergraph, tmp_path: Path):
+    """Test drawing the graph with highlighted nodes and edges."""
+    fname = tmp_path / "highlighted_graph"
+    draw_graph(
+        sample_hypergraph,
+        str(fname),
+        highlighted_nodes=[0, 2],
+        highlighted_edges=[0],
+    )
+
+    fpath = Path(fname.with_suffix(".png"))
+    assert fpath.exists()
+    assert fpath.stat().st_size > 0

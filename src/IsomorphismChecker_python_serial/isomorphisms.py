@@ -1,4 +1,9 @@
-from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph, Node, HyperEdge
+from IsomorphismChecker_python_serial.hypergraph import (
+    OpenHypergraph,
+    Node,
+    HyperEdge,
+    SubGraph,
+)
 import random
 import logging
 
@@ -183,7 +188,7 @@ class Isomorphism:
             and (len(edge1.targets) == len(edge2.targets))
         )
 
-    def explore_edges(self, e1: int | None, e2: int | None):
+    def explore_edges(self, e1: int, e2: int):
         """Explore edges e1 and e2, updating mappings and traversing connected nodes."""
 
         logger.debug(f"Exploring edges {e1, e2}")
@@ -197,54 +202,46 @@ class Isomorphism:
             self.mapping_valid = False
             return
 
-        if (e1 is None) or (e2 is None):
-            if e1 != e2:
-                self.mapping_valid = False
-            return
+        self.visited_edges.append(e1)
+        logger.debug(f"Mapping edge {e1} -> {e2}")
+        logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
+        self.update_mapping(e1, e2, MappingMode.EDGE)
+        logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
+        logger.debug("Checkpoint 1")
+        if not self.mapping_valid:
+            return False
+        logger.debug("Checkpoint 2")
 
-        else:
-            self.visited_edges.append(e1)
-            logger.debug(f"Mapping edge {e1} -> {e2}")
-            logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
-            self.update_mapping(e1, e2, MappingMode.EDGE)
-            logger.debug(f"Currently is_isomorphic = {self.mapping_valid}")
-            logger.debug("Checkpoint 1")
-            if not self.mapping_valid:
-                return False
-            logger.debug("Checkpoint 2")
+        # Commented out: logger.debug(g1.edges[e1], g2.edges[e2])
+        logger.debug(f"Edges: {self.graphs[0].edges[e1]}, {self.graphs[1].edges[e2]}")
+        n_sources = len(self.graphs[0].edges[e1].sources)
+        n_targets = len(self.graphs[0].edges[e1].targets)
 
-            # Commented out: logger.debug(g1.edges[e1], g2.edges[e2])
-            logger.debug(
-                f"Edges: {self.graphs[0].edges[e1]}, {self.graphs[1].edges[e2]}"
-            )
-            n_sources = len(self.graphs[0].edges[e1].sources)
-            n_targets = len(self.graphs[0].edges[e1].targets)
+        logger.debug(f"n_sources, n_targets = {n_sources, n_targets}")
 
-            logger.debug(f"n_sources, n_targets = {n_sources, n_targets}")
+        # check sources
+        for s in range(n_sources):
+            s1 = self.graphs[0].edges[e1].sources[s]
+            s2 = self.graphs[1].edges[e2].sources[s]
+            v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
+            logger.debug(f"Prev nodes = {v1, v2}")
+            self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
+            if self.mapping_valid:
+                self.traverse_from_nodes(v1, v2)
+            else:
+                return
 
-            # check sources
-            for s in range(n_sources):
-                s1 = self.graphs[0].edges[e1].sources[s]
-                s2 = self.graphs[1].edges[e2].sources[s]
-                v1, v2 = self.graphs[0].nodes[s1], self.graphs[1].nodes[s2]
-                logger.debug(f"Prev nodes = {v1, v2}")
-                self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
-                if self.mapping_valid:
-                    self.traverse_from_nodes(v1, v2)
-                else:
-                    return
-
-            # check targets
-            for t in range(n_targets):
-                t1 = self.graphs[0].edges[e1].targets[t]
-                t2 = self.graphs[1].edges[e2].targets[t]
-                v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
-                logger.debug(f"Prev nodes = {v1, v2}")
-                self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
-                if self.mapping_valid:
-                    self.traverse_from_nodes(v1, v2)
-                else:
-                    return
+        # check targets
+        for t in range(n_targets):
+            t1 = self.graphs[0].edges[e1].targets[t]
+            t2 = self.graphs[1].edges[e2].targets[t]
+            v1, v2 = self.graphs[0].nodes[t1], self.graphs[1].nodes[t2]
+            logger.debug(f"Prev nodes = {v1, v2}")
+            self.update_mapping(v1.index, v2.index, mode=MappingMode.NODE)
+            if self.mapping_valid:
+                self.traverse_from_nodes(v1, v2)
+            else:
+                return
 
     def traverse_from_nodes(self, v1: Node, v2: Node):
         """Traverse the graph from nodes v1 and v2, exploring connected edges and nodes."""
@@ -260,8 +257,20 @@ class Isomorphism:
             return
 
         self.visited_nodes.append(v1.index)
-        self.explore_edges(v1.next, v2.next)
-        self.explore_edges(v1.prev, v2.prev)
+
+        if (v1.next is None) or (v2.next is None):
+            if v1.next != v2.next:
+                self.mapping_valid = False
+                return
+        else:
+            self.explore_edges(v1.next.index, v2.next.index)
+
+        if (v1.prev is None) or (v2.prev is None):
+            if v1.prev != v2.prev:
+                self.mapping_valid = False
+                return
+        else:
+            self.explore_edges(v1.prev.index, v2.prev.index)
 
     def check_subgraph_isomorphism(
         self, v1: int, v2: int, subgraph1, subgraph2
@@ -271,7 +280,9 @@ class Isomorphism:
 
         g1, g2 = self.graphs
 
-        if (v1 < 0 or v1 > max(subgraph1[0])) or (v2 < 0 or v2 > max(subgraph2[0])):
+        if (v1 < 0 or v1 > max(subgraph1.nodes)) or (
+            v2 < 0 or v2 > max(subgraph2.nodes)
+        ):
             raise ValueError(
                 f"Node pair {(v1, v2)} not in the node sets for graph pair."
             )
@@ -282,7 +293,7 @@ class Isomorphism:
         self.traverse_from_nodes(g1.nodes[v1], g2.nodes[v2])
 
         if self.mapping_valid:
-            if any([self.node_mapping[i] == -1 for i in subgraph1[0]]):
+            if any([self.node_mapping[i] == -1 for i in subgraph1.nodes]):
                 raise ValueError(f"Permutation incomplete: {self.node_mapping}")
 
         return IsomorphismData(self.mapping_valid, self.node_mapping, self.edge_mapping)
@@ -327,7 +338,7 @@ class Isomorphism:
 
 def get_connected_subgraphs(
     g: OpenHypergraph,
-) -> tuple[list[tuple[list[int], list[int]]], dict]:
+) -> tuple[list[SubGraph], dict]:
     num_nodes = len(g.nodes)
     num_edges = len(g.edges)
 
@@ -348,11 +359,11 @@ def get_connected_subgraphs(
         added_nodes[node_idx] = True
         next_edge = g.nodes[node_idx].next
         if next_edge is not None:
-            traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
+            traverse_connected_graph_from_edge(next_edge.index, node_list, edge_list)
 
         prev_edge = g.nodes[node_idx].prev
         if prev_edge is not None:
-            traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
+            traverse_connected_graph_from_edge(prev_edge.index, node_list, edge_list)
 
     def traverse_connected_graph_from_edge(edge_idx, node_list, edge_list):
         if added_edges[edge_idx]:
@@ -373,7 +384,7 @@ def get_connected_subgraphs(
             node_list: list[int] = []
             edge_list: list[int] = []
             traverse_connected_graph(i, node_list, edge_list)
-            subgraphs.append((node_list, edge_list))
+            subgraphs.append(SubGraph(node_list, edge_list))
             current_sub_graph += 1
 
     # also explore edges in case any subgraph is a disconnected edge w/no inputs or outputs
@@ -382,7 +393,7 @@ def get_connected_subgraphs(
             node_list = []
             edge_list = []
             traverse_connected_graph_from_edge(i, node_list, edge_list)
-            subgraphs.append((node_list, edge_list))
+            subgraphs.append(SubGraph(node_list, edge_list))
             current_sub_graph += 1
 
     return subgraphs, node_subgraph_map
@@ -402,8 +413,8 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         return NonIso
 
     # Check number of subgraphs and sizes of subgraphs.
-    g1_sizes = [(len(l1), len(l2)) for (l1, l2) in g1_subgraphs]
-    g2_sizes = [(len(l1), len(l2)) for (l1, l2) in g2_subgraphs]
+    g1_sizes = [(len(sg.nodes), len(sg.edges)) for sg in g1_subgraphs]
+    g2_sizes = [(len(sg.nodes), len(sg.edges)) for sg in g2_subgraphs]
     if sorted(g1_sizes) != sorted(g2_sizes):
         return NonIso
 
@@ -421,12 +432,15 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             sg1 = subgraph_map_1[nodes1[i]]
             sg2 = subgraph_map_2[nodes2[i]]
             if not paired_subgraphs.insert(sg1, sg2):
-                return NonIso
+                return False
             else:
                 subgraph_start_point[i] = (nodes1[i], nodes2[i])
+        return True
 
-    update_mapping_from_interface(g1.input_nodes, g2.input_nodes)
-    update_mapping_from_interface(g1.output_nodes, g2.output_nodes)
+    if not update_mapping_from_interface(g1.input_nodes, g2.input_nodes):
+        return NonIso
+    if not update_mapping_from_interface(g1.output_nodes, g2.output_nodes):
+        return NonIso
 
     iso = Isomorphism((g1, g2))
 
@@ -442,12 +456,30 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         else:
             merge_isomorphism(isomorphic, sub_isomorphic)
 
-    def check_subgraph_pair(sg1, sg2):
+    def check_subgraph_pair(sg1: SubGraph, sg2: SubGraph):
         # another disconnected subgraph; check for isomorphism by depth first search
-        if len(sg1[0]) != len(sg2[0]) or len(sg1[1]) != len(sg2[1]):
+        if len(sg1.nodes) != len(sg2.nodes) or len(sg1.edges) != len(sg2.edges):
             return NonIso  # these can't be isomorphic if sizes don't match
-        v1 = sg1[0][0]
-        for v2 in sg2[0]:
+
+        # # Find most unique nodes by local neighbourhood (next/previous)
+        neighbour_map1 = construct_neighbour_map(sg1, g1)
+        neighbour_map2 = construct_neighbour_map(sg2, g2)
+        if neighbour_map1 != neighbour_map2:
+            return NonIso
+
+        optimal_key = sorted(neighbour_map1.items(), key=lambda x: x[1])[0][
+            0
+        ]  # optimal key has the fewest matching nodes
+        logger.debug(optimal_key)
+        starters_1 = list(
+            filter(lambda x: construct_node_key(x, g1) == optimal_key, sg1.nodes)
+        )
+        starters_2 = list(
+            filter(lambda x: construct_node_key(x, g2) == optimal_key, sg2.nodes)
+        )
+
+        v1 = starters_1[0]
+        for v2 in starters_2:
             iso = Isomorphism((g1, g2))
             sub_isomorphic = iso.check_subgraph_isomorphism(v1, v2, sg1, sg2)
             if sub_isomorphic.isomorphic:
@@ -456,6 +488,30 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
                 else:
                     return sub_isomorphic
         return NonIso
+
+    def construct_neighbour_map(sg: SubGraph, g: OpenHypergraph) -> dict[str, int]:
+        neighbour_map: dict[str, int] = {}
+        for v in sg.nodes:
+
+            key = construct_node_key(v, g)
+            if key in neighbour_map:
+                neighbour_map[key] += 1
+            else:
+                neighbour_map[key] = 1
+        return neighbour_map
+
+    def construct_node_key(v: int, g: OpenHypergraph):
+        e_n = g.nodes[v].next
+        e_p = g.nodes[v].prev
+
+        def edge_sig(e):
+            if e is None:
+                return "___"
+            else:
+                return e.label + str(e.port)
+
+        key = "i:" + edge_sig(e_n) + "_o:" + edge_sig(e_p)
+        return key
 
     for i, sg1 in enumerate(g1_subgraphs):
         if i not in paired_subgraphs.map:

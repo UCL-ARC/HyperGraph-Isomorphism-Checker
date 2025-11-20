@@ -15,9 +15,9 @@ def test_connected_graph(graph_file):
     subgraphs, _ = get_connected_subgraphs(g)
     assert len(subgraphs) == 1
 
-    nodes, edges = subgraphs[0]
-    assert sorted(nodes) == list(range(0, len(g.nodes)))
-    assert sorted(edges) == list(range(0, len(g.edges)))
+    sg = subgraphs[0]
+    assert sorted(sg.nodes) == list(range(0, len(g.nodes)))
+    assert sorted(sg.edges) == list(range(0, len(g.edges)))
 
 
 disjoint_graphs = ["Two_Subgraphs.json"]
@@ -29,8 +29,8 @@ def test_disconnected_graph(graph_file):
     subgraphs, _ = get_connected_subgraphs(g)
     assert len(subgraphs) == 2
 
-    assert sorted(subgraphs[0][0]) == list(range(0, 6))
-    assert sorted(subgraphs[0][1]) == list(range(0, 2))
+    assert sorted(subgraphs[0].nodes) == list(range(0, 6))
+    assert sorted(subgraphs[0].edges) == list(range(0, 2))
 
-    assert sorted(subgraphs[1][0]) == list(range(6, 12))
-    assert sorted(subgraphs[1][1]) == list(range(2, 4))
+    assert sorted(subgraphs[1].nodes) == list(range(6, 12))
+    assert sorted(subgraphs[1].edges) == list(range(2, 4))

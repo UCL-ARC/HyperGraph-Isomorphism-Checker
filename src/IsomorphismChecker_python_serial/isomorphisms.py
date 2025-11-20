@@ -471,7 +471,7 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         optimal_key = sorted(neighbour_map1.items(), key=lambda x: x[1])[0][
             0
         ]  # optimal key has the fewest matching nodes
-        print(optimal_key)
+        logger.debug(optimal_key)
         starters_1 = list(
             filter(lambda x: construct_node_key(x, g1) == optimal_key, sg1.nodes)
         )

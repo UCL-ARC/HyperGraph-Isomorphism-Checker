@@ -656,6 +656,18 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
     c = Colouring(g1, g2)
 
     # To start let's try to colour a single graph
-    # neighbour_map = construct_neighbour_map(g1)
+
+    # Initial colouring by immediate edges for each node
+    initial_key_colouring: dict[str, int] = {}
+    for v in g1.nodes:
+        key = construct_node_key(v)
+        if key in initial_key_colouring:
+            c.node_colouring[v.index] = initial_key_colouring[key]
+        else:
+            colour = c.get_new_colour()
+            c.node_colouring[v.index] = colour
+            initial_key_colouring[key] = colour
+
+    # Unique colours for input/output nodes
 
     return c

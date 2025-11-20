@@ -588,3 +588,31 @@ def MC_isomorphism(
     logger.info(f"Visited nodes: {iso.visited_nodes}")
 
     return ret
+
+
+class Colouring:
+    def __init__(self, g1: OpenHypergraph, g2: OpenHypergraph):
+        self.g1 = g1
+        self.g2 = g2
+        self.colour = 0
+        self.n_nodes = len(g1.nodes)
+        self.node_colouring: list[int] = [0] * self.n_nodes
+        # self.node_colouring: tuple[list[int], list[int]] = ([0]*self.n_nodes, [0]*self.n_nodes)
+        self.colour_map: dict[int, list[int]] = {}
+
+    def get_new_colour(self):
+        self.colour += 1
+        return self.colour
+
+
+def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
+    # iso = Isomorphism((g1, g2))
+
+    # Need a dimension check
+
+    # Colourings for nodes (do we also need to colour edges?)
+    c = Colouring(g1, g2)
+
+    # To start let's try to colour a single graph
+
+    return c

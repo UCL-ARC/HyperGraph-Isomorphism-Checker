@@ -532,8 +532,8 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             return NonIso  # these can't be isomorphic if sizes don't match
 
         # # Find most unique nodes by local neighbourhood (next/previous)
-        neighbour_map1 = construct_neighbour_map(sg1, g1)
-        neighbour_map2 = construct_neighbour_map(sg2, g2)
+        neighbour_map1 = construct_neighbour_map(g1, sg1)
+        neighbour_map2 = construct_neighbour_map(g2, sg2)
         if neighbour_map1 != neighbour_map2:
             print(neighbour_map1, neighbour_map2)
             return NonIso
@@ -543,10 +543,10 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         ]  # optimal key has the fewest matching nodes
         print(optimal_key)
         starters_1 = list(
-            filter(lambda x: construct_node_key(x, g1) == optimal_key, sg1.nodes)
+            filter(lambda x: construct_node_key(g1.nodes[x]) == optimal_key, sg1.nodes)
         )
         starters_2 = list(
-            filter(lambda x: construct_node_key(x, g2) == optimal_key, sg2.nodes)
+            filter(lambda x: construct_node_key(g2.nodes[x]) == optimal_key, sg2.nodes)
         )
 
         v1 = starters_1[0]
@@ -559,30 +559,6 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
                 else:
                     return sub_isomorphic
         return NonIso
-
-    def construct_neighbour_map(sg: SubGraph, g: OpenHypergraph):
-        neighbour_map: dict[str, int] = {}
-        for v in sg.nodes:
-
-            key = construct_node_key(v, g)
-            if key in neighbour_map:
-                neighbour_map[key] += 1
-            else:
-                neighbour_map[key] = 1
-        return neighbour_map
-
-    def construct_node_key(v: int, g: OpenHypergraph):
-        e_n = head(g.nodes[v].next)  # TODO: Update to handle non-monogamous?
-        e_p = head(g.nodes[v].prev)
-
-        def edge_sig(e):
-            if e is None:
-                return "___"
-            else:
-                return e.label + str(e.port)
-
-        key = "i:" + edge_sig(e_n) + "_o:" + edge_sig(e_p)
-        return key
 
     for i, sg1 in enumerate(g1_subgraphs):
         if i not in paired_subgraphs.map:
@@ -598,6 +574,32 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         return NonIso
     else:
         return isomorphic
+
+
+def construct_neighbour_map(g: OpenHypergraph, sg: SubGraph | None = None):
+    neighbour_map: dict[str, int] = {}
+    nodes = g.nodes if sg is None else [g.nodes[v] for v in sg.nodes]
+    for v in nodes:
+        key = construct_node_key(v)
+        if key in neighbour_map:
+            neighbour_map[key] += 1
+        else:
+            neighbour_map[key] = 1
+    return neighbour_map
+
+
+def construct_node_key(v: Node):
+    e_n = head(v.next)  # TODO: Update to handle non-monogamous?
+    e_p = head(v.prev)
+
+    def edge_sig(e):
+        if e is None:
+            return "___"
+        else:
+            return e.label + str(e.port)
+
+    key = "i:" + edge_sig(e_n) + "_o:" + edge_sig(e_p)
+    return key
 
 
 def merge_isomorphism(iso_main: IsomorphismData, iso_contribution: IsomorphismData):
@@ -654,5 +656,6 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
     c = Colouring(g1, g2)
 
     # To start let's try to colour a single graph
+    # neighbour_map = construct_neighbour_map(g1)
 
     return c

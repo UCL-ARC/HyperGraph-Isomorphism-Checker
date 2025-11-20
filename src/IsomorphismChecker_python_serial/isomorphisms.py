@@ -490,7 +490,7 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
                     return sub_isomorphic
         return NonIso
 
-    def construct_neighbour_map(sg: SubGraph, g: OpenHypergraph):
+    def construct_neighbour_map(sg: SubGraph, g: OpenHypergraph) -> dict[str, int]:
         neighbour_map: dict[str, int] = {}
         for v in sg.nodes:
 

@@ -3,6 +3,10 @@
 import time
 import networkx as nx
 import random
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def generate_random_hypergraph(
@@ -11,8 +15,8 @@ def generate_random_hypergraph(
     num_inputs: int,
     num_outputs: int,
     seed: int = 42,
-    node_labels: list[str] = ["node"],
-    edge_labels: list[str] = ["edge"],
+    wire_labels: list[str] = ["node"],
+    box_labels: list[str] = ["edge"],
 ) -> nx.DiGraph:
     """Generates a random hypergraph represented as a bipartite graph.
 
@@ -32,31 +36,52 @@ def generate_random_hypergraph(
 
     graph = nx.DiGraph()
 
-    node_labels = [random.choice(node_labels) for _ in range(num_nodes)]
-    edge_labels = [random.choice(edge_labels) for _ in range(num_edges)]
+    wire_labels = [random.choice(wire_labels) for _ in range(num_nodes)]
+    box_labels = [random.choice(box_labels) for _ in range(num_edges)]
 
-    wires = [f"{label}_{i}" for i, label in enumerate(node_labels)]
-    boxes = [f"{label}_{j}" for j, label in enumerate(edge_labels)]
+    wires = [f"{label}_{i}" for i, label in enumerate(wire_labels)]
+    boxes = [f"{label}_{j}" for j, label in enumerate(box_labels)]
     graph.add_nodes_from(wires, bipartite=0)
     graph.add_nodes_from(boxes, bipartite=1)
 
-    input_nodes = wires[:num_inputs]
-    output_nodes = wires[-num_outputs:]
-    internal_nodes = wires[num_inputs : num_nodes - num_outputs]
+    input_wires = wires[:num_inputs]
+    output_wires = wires[-num_outputs:]
+    internal_wires = wires[num_inputs : num_nodes - num_outputs]
 
-    for node in input_nodes:
-        edge = random.choice(boxes)
-        graph.add_edge(node, edge)
+    for wire in input_wires:
+        box = random.choice(boxes)
+        in_degree = graph.in_degree(box)
+        logger.debug(
+            f"Connecting input wire {wire} to box {box} with in_degree {in_degree}"
+        )
+        graph.add_edge(wire, box, port=in_degree)
+        logger.debug(f"Added edge from {wire} to {box} with port {in_degree}")
 
-    for node in output_nodes:
-        edge = random.choice(boxes)
-        graph.add_edge(edge, node)
+    for wire in output_wires:
+        box = random.choice(boxes)
+        out_degree = graph.out_degree(box)
+        logger.debug(
+            f"Connecting output wire {wire} to box {box} with out_degree {out_degree}"
+        )
+        graph.add_edge(box, wire, port=out_degree)
+        logger.debug(f"Added edge from {box} to {wire} with port {out_degree}")
 
-    for node in internal_nodes:
+    for wire in internal_wires:
         edge1 = random.choice(boxes)
-        graph.add_edge(node, edge1)
+        in_degree = graph.in_degree(edge1)
+        logger.debug(
+            f"Connecting internal wire {wire} to box {edge1} with in_degree {in_degree}"
+        )
+        graph.add_edge(wire, edge1, port=in_degree)
+        logger.debug(f"Added edge from {wire} to {edge1} with port {in_degree}")
         edge2 = random.choice(boxes)
-        graph.add_edge(edge2, node)
+        out_degree = graph.out_degree(edge2)
+        logger.debug(
+            f"Connecting internal wire {wire} to box {edge2} with out_degree {out_degree}"
+        )
+        graph.add_edge(edge2, wire, port=out_degree)
+
+        logger.debug(f"Added edge from {edge2} to {wire} with port {out_degree}")
 
     return graph
 
@@ -113,26 +138,25 @@ def graph_to_json_serializable(
 if __name__ == "__main__":
 
     initial_time = time.time()
-    hg = generate_random_hypergraph(100, 10, 2, 2, seed=42)
+    hg = generate_random_hypergraph(6, 1, 2, 2, seed=42)
     final_time = time.time()
 
-    print("Generated hypergraph edges:")
-    print(hg.edges)
-    print("Generated hypergraph nodes:")
-    print(hg.nodes)
-
+    logger.debug("Generated hypergraph edges:")
+    logger.debug(hg.edges)
+    logger.debug("Generated hypergraph nodes:")
+    logger.debug(hg.nodes)
     for node, data in hg.nodes(data=True):
         if data["bipartite"] == 0:
-            print(f"Node: {node}, Data: {data}, Degree: {hg.degree(node)}")  # type: ignore
+            logger.debug(f"Node: {node}, Data: {data}, Degree: {hg.degree(node)}")  # type: ignore
 
     for edge in hg.edges:
-        print(f"Edge: {edge}")
+        logger.debug(f"Edge: {edge}")
 
-    print(
+    logger.debug(
         f"Time taken to generate hypergraph: {(final_time - initial_time) * 1000} milliseconds"
     )
 
     json_serializable_hg = graph_to_json_serializable(hg, 2, 2)
-    print("JSON-serializable hypergraph:")
-    print(json_serializable_hg)
-    print("Done.")
+    logger.debug("JSON-serializable hypergraph:")
+    logger.debug(json_serializable_hg)
+    logger.debug("Done.")

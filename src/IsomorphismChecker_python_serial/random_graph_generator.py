@@ -35,27 +35,27 @@ def generate_random_hypergraph(
     node_labels = [random.choice(node_labels) for _ in range(num_nodes)]
     edge_labels = [random.choice(edge_labels) for _ in range(num_edges)]
 
-    hypergraph_nodes = [f"{label}_{i}" for i, label in enumerate(node_labels)]
-    hypergraph_edges = [f"{label}_{j}" for j, label in enumerate(edge_labels)]
-    graph.add_nodes_from(hypergraph_nodes, bipartite=0)
-    graph.add_nodes_from(hypergraph_edges, bipartite=1)
+    wires = [f"{label}_{i}" for i, label in enumerate(node_labels)]
+    boxes = [f"{label}_{j}" for j, label in enumerate(edge_labels)]
+    graph.add_nodes_from(wires, bipartite=0)
+    graph.add_nodes_from(boxes, bipartite=1)
 
-    input_nodes = hypergraph_nodes[:num_inputs]
-    output_nodes = hypergraph_nodes[-num_outputs:]
-    internal_nodes = hypergraph_nodes[num_inputs : num_nodes - num_outputs]
+    input_nodes = wires[:num_inputs]
+    output_nodes = wires[-num_outputs:]
+    internal_nodes = wires[num_inputs : num_nodes - num_outputs]
 
     for node in input_nodes:
-        edge = random.choice(hypergraph_edges)
+        edge = random.choice(boxes)
         graph.add_edge(node, edge)
 
     for node in output_nodes:
-        edge = random.choice(hypergraph_edges)
+        edge = random.choice(boxes)
         graph.add_edge(edge, node)
 
     for node in internal_nodes:
-        edge1 = random.choice(hypergraph_edges)
+        edge1 = random.choice(boxes)
         graph.add_edge(node, edge1)
-        edge2 = random.choice(hypergraph_edges)
+        edge2 = random.choice(boxes)
         graph.add_edge(edge2, node)
 
     return graph

@@ -1,5 +1,7 @@
 """Module to generate random hypergraphs on demand."""
 
+import json
+import os
 import time
 import networkx as nx
 import random
@@ -15,8 +17,8 @@ def generate_random_hypergraph(
     num_inputs: int,
     num_outputs: int,
     seed: int = 42,
-    wire_labels: list[str] = ["node"],
-    box_labels: list[str] = ["edge"],
+    wire_labels: list[str] = ["wire"],
+    box_labels: list[str] = ["box"],
 ) -> nx.DiGraph:
     """Generates a random hypergraph represented as a bipartite graph.
 
@@ -87,7 +89,11 @@ def generate_random_hypergraph(
 
 
 def graph_to_json_serializable(
-    graph: nx.DiGraph, num_inputs: int, num_outputs: int
+    graph: nx.DiGraph,
+    num_inputs: int,
+    num_outputs: int,
+    file_name: str = "random_hypergraph",
+    directory: str = "trial_graphs",
 ) -> dict:
     """Converts a NetworkX graph to a JSON-serializable dictionary.
 
@@ -122,15 +128,17 @@ def graph_to_json_serializable(
             "target_nodes": target_nodes,
         }
 
-        data.setdefault("edges", []).append(edge_dict)
+        data.setdefault("hyperedges", []).append(edge_dict)
 
     data["nodes"] = nodes
 
-    data["inputs"] = nodes[:num_inputs]
-    data["outputs"] = nodes[-num_outputs:]
+    data["Inputs"] = [i for i in range(num_inputs)]
+    data["Outputs"] = [i for i in range(len(nodes) - num_outputs, len(nodes))]
 
-    data["inputs"] = [i for i in range(num_inputs)]
-    data["outputs"] = [i for i in range(len(nodes) - num_outputs, len(nodes))]
+    os.makedirs(directory, exist_ok=True)
+
+    with open(f"{directory}/{file_name}.json", "w") as f:
+        json.dump(data, f, indent=4)
 
     return data
 
@@ -138,7 +146,7 @@ def graph_to_json_serializable(
 if __name__ == "__main__":
 
     initial_time = time.time()
-    hg = generate_random_hypergraph(6, 1, 2, 2, seed=42)
+    hg = generate_random_hypergraph(200, 55, 20, 20, seed=42)
     final_time = time.time()
 
     logger.debug("Generated hypergraph edges:")

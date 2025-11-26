@@ -88,12 +88,6 @@ def generate_random_hypergraph(
 
         logger.debug(f"Added edge from {edge2} to {wire} with port {out_degree}")
 
-    for node, data in graph.nodes(data=True):
-        if data["bipartite"] == 0:
-            print(f"Node: {node}, Data: {data}, Degree: {graph.degree(node)}")  # type: ignore
-
-    exit()
-
     return graph
 
 

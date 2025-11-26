@@ -61,7 +61,9 @@ def generate_random_hypergraph(
     return graph
 
 
-def graph_to_json_serializable(graph: nx.DiGraph) -> dict:
+def graph_to_json_serializable(
+    graph: nx.DiGraph, num_inputs: int, num_outputs: int
+) -> dict:
     """Converts a NetworkX graph to a JSON-serializable dictionary.
 
     Args:
@@ -98,7 +100,12 @@ def graph_to_json_serializable(graph: nx.DiGraph) -> dict:
         data.setdefault("edges", []).append(edge_dict)
 
     data["nodes"] = nodes
-    # data["edges"] = edges
+
+    data["inputs"] = nodes[:num_inputs]
+    data["outputs"] = nodes[-num_outputs:]
+
+    data["inputs"] = [i for i in range(num_inputs)]
+    data["outputs"] = [i for i in range(len(nodes) - num_outputs, len(nodes))]
 
     return data
 
@@ -106,7 +113,7 @@ def graph_to_json_serializable(graph: nx.DiGraph) -> dict:
 if __name__ == "__main__":
 
     initial_time = time.time()
-    hg = generate_random_hypergraph(10_000, 1_000, 2, 2, seed=42)
+    hg = generate_random_hypergraph(100, 10, 2, 2, seed=42)
     final_time = time.time()
 
     print("Generated hypergraph edges:")
@@ -125,7 +132,7 @@ if __name__ == "__main__":
         f"Time taken to generate hypergraph: {(final_time - initial_time) * 1000} milliseconds"
     )
 
-    json_serializable_hg = graph_to_json_serializable(hg)
+    json_serializable_hg = graph_to_json_serializable(hg, 2, 2)
     print("JSON-serializable hypergraph:")
-    print(json_serializable_hg["edges"])
+    print(json_serializable_hg)
     print("Done.")

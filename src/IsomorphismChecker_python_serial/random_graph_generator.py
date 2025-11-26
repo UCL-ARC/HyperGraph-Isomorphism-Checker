@@ -3,6 +3,7 @@
 import json
 import os
 import time
+from typing import Any
 import networkx as nx
 import random
 import logging
@@ -94,7 +95,7 @@ def graph_to_json_serializable(
     num_outputs: int,
     file_name: str = "random_hypergraph",
     directory: str = "trial_graphs",
-) -> dict:
+) -> dict[str, Any]:
     """Converts a NetworkX graph to a JSON-serializable dictionary.
 
     Args:
@@ -104,7 +105,7 @@ def graph_to_json_serializable(
         dict: A JSON-serializable representation of the graph.
     """
 
-    data = {}
+    data: dict[str, Any] = {}
     data["graph_name"] = "random_hypergraph"
     data["comment"] = "This is a randomly generated hypergraph."
 
@@ -118,6 +119,7 @@ def graph_to_json_serializable(
         node for node, data in graph.nodes(data=True) if data["bipartite"] == 1
     ]
 
+    data["hyperedges"] = []
     for hyperedge in hyperedges:
         source_nodes = [int(i.split("_")[1]) for i, j in graph.in_edges(hyperedge)]
         target_nodes = [int(j.split("_")[1]) for i, j in graph.out_edges(hyperedge)]
@@ -128,7 +130,8 @@ def graph_to_json_serializable(
             "target_nodes": target_nodes,
         }
 
-        data.setdefault("hyperedges", []).append(edge_dict)
+        # data.setdefault("hyperedges", []).append(edge_dict)
+        data["hyperedges"].append(edge_dict)
 
     data["nodes"] = nodes
 

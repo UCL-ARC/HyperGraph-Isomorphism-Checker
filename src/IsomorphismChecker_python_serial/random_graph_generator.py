@@ -2,7 +2,6 @@
 
 import json
 import os
-import time
 from typing import Any
 import networkx as nx
 import random
@@ -33,6 +32,11 @@ def generate_random_hypergraph(
     Returns:
         networkx.Graph: A bipartite graph representing the hypergraph.
     """
+
+    if num_inputs + num_outputs > num_nodes:
+        raise ValueError(
+            "The sum of num_inputs and num_outputs cannot exceed num_nodes."
+        )
 
     if seed is not None:
         random.seed(seed)
@@ -93,13 +97,15 @@ def generate_random_hypergraph(
 
 def graph_to_json_serializable(
     graph: nx.DiGraph,
-    file_name: str = "random_hypergraph",
+    file_name: str | None = "random_hypergraph",
     directory: str = "trial_graphs",
 ) -> dict[str, Any]:
     """Converts a NetworkX graph to a JSON-serializable dictionary.
 
     Args:
         graph (networkx.Graph): The input graph.
+        file_name (str | None): Name of the file to save. If None, no file is written.
+        directory (str): Directory to save the file in.
 
     Returns:
         dict: A JSON-serializable representation of the graph.
@@ -150,36 +156,10 @@ def graph_to_json_serializable(
     data["Inputs"] = input_nodes
     data["Outputs"] = output_nodes
 
-    os.makedirs(directory, exist_ok=True)
+    if file_name is not None:
+        os.makedirs(directory, exist_ok=True)
 
-    with open(f"{directory}/{file_name}.json", "w") as f:
-        json.dump(data, f, indent=4)
+        with open(f"{directory}/{file_name}.json", "w") as f:
+            json.dump(data, f, indent=4)
 
     return data
-
-
-if __name__ == "__main__":
-
-    initial_time = time.time()
-    hg = generate_random_hypergraph(200, 55, 20, 20, seed=42)
-    final_time = time.time()
-
-    logger.debug("Generated hypergraph edges:")
-    logger.debug(hg.edges)
-    logger.debug("Generated hypergraph nodes:")
-    logger.debug(hg.nodes)
-    for node, data in hg.nodes(data=True):
-        if data["bipartite"] == 0:
-            logger.debug(f"Node: {node}, Data: {data}, Degree: {hg.degree(node)}")  # type: ignore
-
-    for edge in hg.edges:
-        logger.debug(f"Edge: {edge}")
-
-    logger.debug(
-        f"Time taken to generate hypergraph: {(final_time - initial_time) * 1000} milliseconds"
-    )
-
-    json_serializable_hg = graph_to_json_serializable(hg)
-    logger.debug("JSON-serializable hypergraph:")
-    logger.debug(json_serializable_hg)
-    logger.debug("Done.")

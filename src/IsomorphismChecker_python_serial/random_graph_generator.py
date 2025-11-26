@@ -44,7 +44,7 @@ def generate_random_hypergraph(
 
     wires = [f"{label}_{i}" for i, label in enumerate(wire_labels)]
     boxes = [f"{label}_{j}" for j, label in enumerate(box_labels)]
-    graph.add_nodes_from(wires, bipartite=0)
+    graph.add_nodes_from(wires, bipartite=0, input=False, output=False)
     graph.add_nodes_from(boxes, bipartite=1)
 
     input_wires = wires[:num_inputs]
@@ -52,6 +52,7 @@ def generate_random_hypergraph(
     internal_wires = wires[num_inputs : num_nodes - num_outputs]
 
     for wire in input_wires:
+        graph.nodes[wire]["input"] = True
         box = random.choice(boxes)
         in_degree = graph.in_degree(box)
         logger.debug(
@@ -61,6 +62,7 @@ def generate_random_hypergraph(
         logger.debug(f"Added edge from {wire} to {box} with port {in_degree}")
 
     for wire in output_wires:
+        graph.nodes[wire]["output"] = True
         box = random.choice(boxes)
         out_degree = graph.out_degree(box)
         logger.debug(
@@ -86,13 +88,17 @@ def generate_random_hypergraph(
 
         logger.debug(f"Added edge from {edge2} to {wire} with port {out_degree}")
 
+    for node, data in graph.nodes(data=True):
+        if data["bipartite"] == 0:
+            print(f"Node: {node}, Data: {data}, Degree: {graph.degree(node)}")  # type: ignore
+
+    exit()
+
     return graph
 
 
 def graph_to_json_serializable(
     graph: nx.DiGraph,
-    num_inputs: int,
-    num_outputs: int,
     file_name: str = "random_hypergraph",
     directory: str = "trial_graphs",
 ) -> dict[str, Any]:
@@ -135,8 +141,20 @@ def graph_to_json_serializable(
 
     data["nodes"] = nodes
 
-    data["Inputs"] = [i for i in range(num_inputs)]
-    data["Outputs"] = [i for i in range(len(nodes) - num_outputs, len(nodes))]
+    input_nodes = [
+        int(node.split("_")[1])
+        for node, data in graph.nodes(data=True)
+        if data["bipartite"] == 0 and data["input"]
+    ]
+
+    output_nodes = [
+        int(node.split("_")[1])
+        for node, data in graph.nodes(data=True)
+        if data["bipartite"] == 0 and data["output"]
+    ]
+
+    data["Inputs"] = input_nodes
+    data["Outputs"] = output_nodes
 
     os.makedirs(directory, exist_ok=True)
 
@@ -167,7 +185,7 @@ if __name__ == "__main__":
         f"Time taken to generate hypergraph: {(final_time - initial_time) * 1000} milliseconds"
     )
 
-    json_serializable_hg = graph_to_json_serializable(hg, 2, 2)
+    json_serializable_hg = graph_to_json_serializable(hg)
     logger.debug("JSON-serializable hypergraph:")
     logger.debug(json_serializable_hg)
     logger.debug("Done.")

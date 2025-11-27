@@ -63,10 +63,10 @@ class MappingMode(Enum):
 
 class BiMap:
     def __init__(self):
-        self.map = {}
-        self.inverse = {}
+        self.map: dict[int, int] = {}
+        self.inverse: dict[int, int] = {}
 
-    def insert(self, i, j):
+    def insert(self, i: int, j: int) -> bool:
         if (i in self.map and self.map[i] != j) or (
             j in self.inverse and self.inverse[j] != i
         ):

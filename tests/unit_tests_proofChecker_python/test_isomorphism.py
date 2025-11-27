@@ -42,10 +42,6 @@ def Random_Permutation_Test(graph_file):
     g1 = create_hypergraph(test_graph_dir + graph_file)
     (pi_n, pi_e, g2) = permute_graph(g1)  # calculates a random permutation of the graph
 
-    # print_graph(g1)
-    # print_graph(g2)
-    # print(pi_n, pi_e)
-
     isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
     assert_isomorphism(g1, g2, pi_n, pi_e, p_nodes, p_edges, isomorphic)
 
@@ -148,7 +144,6 @@ disconnected_graphs = ["Two_Subgraphs.json", "Three_Subgraphs.json"]
 def test_disconnected_graph_isomorphism(graph_file):
     g1 = create_hypergraph(test_graph_dir + graph_file)
     pi_n, pi_e, g2 = permute_graph(g1)
-    print(pi_n, pi_e)
     isomorphism = disconnected_subgraph_isomorphism(g1, g2)
     assert isomorphism.isomorphic
 
@@ -242,7 +237,5 @@ def test_traverse_from_node_part_2():
     assert not iso.mapping_valid
 
     iso = Isomorphism((g1, g2))
-    print(g1.nodes)
-    print(g2.nodes)
     iso.traverse_from_nodes(g1.nodes[3], g2.nodes[2])
     assert not iso.mapping_valid

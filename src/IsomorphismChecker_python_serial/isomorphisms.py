@@ -377,7 +377,7 @@ def get_connected_subgraphs(
         for t in edge.targets:
             traverse_connected_graph(t, node_list, edge_list)
 
-    subgraphs = []
+    subgraphs: list[SubGraph] = []
 
     for i in range(num_nodes):
         if not added_nodes[i]:
@@ -446,10 +446,10 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
 
     isomorphic = IsomorphismData(True, [-1] * num_nodes, [-1] * num_edges)
 
-    for sg1, sg2 in paired_subgraphs.map.items():
-        v1, v2 = subgraph_start_point[sg1]
+    for sg1_idx, sg2_idx in paired_subgraphs.map.items():
+        v1, v2 = subgraph_start_point[sg1_idx]
         sub_isomorphic = iso.check_subgraph_isomorphism(
-            v1, v2, g1_subgraphs[sg1], g2_subgraphs[sg2]
+            v1, v2, g1_subgraphs[sg1_idx], g2_subgraphs[sg2_idx]
         )
         if not sub_isomorphic:
             return NonIso

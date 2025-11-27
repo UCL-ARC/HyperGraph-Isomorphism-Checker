@@ -2,7 +2,6 @@
 
 import json
 import os
-import time
 from typing import Any
 import networkx as nx
 import random
@@ -34,6 +33,11 @@ def generate_random_hypergraph(
         networkx.Graph: A bipartite graph representing the hypergraph.
     """
 
+    if num_inputs + num_outputs > num_nodes:
+        raise ValueError(
+            "The sum of num_inputs and num_outputs cannot exceed num_nodes."
+        )
+
     if seed is not None:
         random.seed(seed)
 
@@ -44,7 +48,7 @@ def generate_random_hypergraph(
 
     wires = [f"{label}_{i}" for i, label in enumerate(wire_labels)]
     boxes = [f"{label}_{j}" for j, label in enumerate(box_labels)]
-    graph.add_nodes_from(wires, bipartite=0)
+    graph.add_nodes_from(wires, bipartite=0, input=False, output=False)
     graph.add_nodes_from(boxes, bipartite=1)
 
     input_wires = wires[:num_inputs]
@@ -52,6 +56,7 @@ def generate_random_hypergraph(
     internal_wires = wires[num_inputs : num_nodes - num_outputs]
 
     for wire in input_wires:
+        graph.nodes[wire]["input"] = True
         box = random.choice(boxes)
         in_degree = graph.in_degree(box)
         logger.debug(
@@ -61,6 +66,7 @@ def generate_random_hypergraph(
         logger.debug(f"Added edge from {wire} to {box} with port {in_degree}")
 
     for wire in output_wires:
+        graph.nodes[wire]["output"] = True
         box = random.choice(boxes)
         out_degree = graph.out_degree(box)
         logger.debug(
@@ -91,15 +97,15 @@ def generate_random_hypergraph(
 
 def graph_to_json_serializable(
     graph: nx.DiGraph,
-    num_inputs: int,
-    num_outputs: int,
-    file_name: str = "random_hypergraph",
+    file_name: str | None = "random_hypergraph",
     directory: str = "trial_graphs",
 ) -> dict[str, Any]:
     """Converts a NetworkX graph to a JSON-serializable dictionary.
 
     Args:
         graph (networkx.Graph): The input graph.
+        file_name (str | None): Name of the file to save. If None, no file is written.
+        directory (str): Directory to save the file in.
 
     Returns:
         dict: A JSON-serializable representation of the graph.
@@ -135,39 +141,25 @@ def graph_to_json_serializable(
 
     data["nodes"] = nodes
 
-    data["Inputs"] = [i for i in range(num_inputs)]
-    data["Outputs"] = [i for i in range(len(nodes) - num_outputs, len(nodes))]
+    input_nodes = [
+        int(node.split("_")[1])
+        for node, data in graph.nodes(data=True)
+        if data["bipartite"] == 0 and data["input"]
+    ]
 
-    os.makedirs(directory, exist_ok=True)
+    output_nodes = [
+        int(node.split("_")[1])
+        for node, data in graph.nodes(data=True)
+        if data["bipartite"] == 0 and data["output"]
+    ]
 
-    with open(f"{directory}/{file_name}.json", "w") as f:
-        json.dump(data, f, indent=4)
+    data["Inputs"] = input_nodes
+    data["Outputs"] = output_nodes
+
+    if file_name is not None:
+        os.makedirs(directory, exist_ok=True)
+
+        with open(f"{directory}/{file_name}.json", "w") as f:
+            json.dump(data, f, indent=4)
 
     return data
-
-
-if __name__ == "__main__":
-
-    initial_time = time.time()
-    hg = generate_random_hypergraph(200, 55, 20, 20, seed=42)
-    final_time = time.time()
-
-    logger.debug("Generated hypergraph edges:")
-    logger.debug(hg.edges)
-    logger.debug("Generated hypergraph nodes:")
-    logger.debug(hg.nodes)
-    for node, data in hg.nodes(data=True):
-        if data["bipartite"] == 0:
-            logger.debug(f"Node: {node}, Data: {data}, Degree: {hg.degree(node)}")  # type: ignore
-
-    for edge in hg.edges:
-        logger.debug(f"Edge: {edge}")
-
-    logger.debug(
-        f"Time taken to generate hypergraph: {(final_time - initial_time) * 1000} milliseconds"
-    )
-
-    json_serializable_hg = graph_to_json_serializable(hg, 2, 2)
-    logger.debug("JSON-serializable hypergraph:")
-    logger.debug(json_serializable_hg)
-    logger.debug("Done.")

@@ -273,7 +273,7 @@ class Isomorphism:
             self.explore_edges(v1.prev.index, v2.prev.index)
 
     def check_subgraph_isomorphism(
-        self, v1: int, v2: int, subgraph1, subgraph2
+        self, v1: int, v2: int, subgraph1: SubGraph, subgraph2: SubGraph
     ) -> IsomorphismData:
         """Check for disconnected subgraph isomorphism where no nodes connect
         to global inputs or outputs"""

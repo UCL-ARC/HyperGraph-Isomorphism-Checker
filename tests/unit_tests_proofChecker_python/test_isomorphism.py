@@ -230,3 +230,19 @@ def test_traverse_from_node():
     iso.visited_nodes.append(0)
     iso.node_mapping[0] = 2
     assert not iso.traverse_from_nodes(g1.nodes[0], g2.nodes[1])
+
+
+def test_traverse_from_node_part_2():
+    g1 = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
+    g2 = create_hypergraph(test_graph_dir + "Acyclic_Reordered_Edge_Output.json")
+    iso = Isomorphism((g1, g2))
+
+    assert iso.mapping_valid
+    iso.traverse_from_nodes(g1.nodes[0], g2.nodes[4])
+    assert not iso.mapping_valid
+
+    iso = Isomorphism((g1, g2))
+    print(g1.nodes)
+    print(g2.nodes)
+    iso.traverse_from_nodes(g1.nodes[3], g2.nodes[2])
+    assert not iso.mapping_valid

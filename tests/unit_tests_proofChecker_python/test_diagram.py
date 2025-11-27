@@ -80,5 +80,5 @@ def test_draw_invalid_hypergraph():
 
 def test_diagram_with_invalid_orientation(sample_hypergraph: OpenHypergraph):
     """Test that providing an invalid orientation raises an error."""
-    with pytest.raises(ValueError, match="Invalid orientation value."):
+    with pytest.raises(ValueError, match="Invalid orientation provided."):
         Diagram(openHyperGraph=sample_hypergraph, orientation="INVALID")  # type: ignore

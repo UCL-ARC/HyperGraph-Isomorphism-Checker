@@ -103,6 +103,9 @@ class Diagram:
         if not self.openHyperGraph.is_valid():
             raise ValueError("The provided OpenHypergraph is not valid.")
 
+        if self.orientation not in Orientation:
+            raise ValueError("Invalid orientation provided.")
+
         self.nodes = self.openHyperGraph.nodes
         self.hyperEdges = self.openHyperGraph.edges
 

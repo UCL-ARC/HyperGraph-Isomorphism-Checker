@@ -16,8 +16,8 @@ class ElementType(Enum):
 
 
 class Orientation(Enum):
-    LEFT_TO_RIGHT = "LR"
     TOP_TO_BOTTOM = "TB"
+    LEFT_TO_RIGHT = "LR"
 
 
 @dataclass(slots=True)
@@ -29,7 +29,6 @@ class Diagram:
     nodes: list[Node] = field(init=False)
     hyperEdges: list[HyperEdge] = field(init=False)
     graphRep: Digraph = field(init=False)
-    orientation: Orientation = field(default=Orientation.TOP_TO_BOTTOM)
 
     @staticmethod
     def diagram_label(label: str, index: int, type: ElementType, hash: int = -1) -> str:
@@ -70,7 +69,13 @@ class Diagram:
             node_label = self.diagram_label(
                 node.label, self.nodes.index(node), ElementType.NODE
             )
-            self.graphRep.node(node_label, shape="circle")
+
+            if node.index in self.highlighted_nodes:
+                color = "red"
+            else:
+                color = "black"
+
+            self.graphRep.node(node_label, shape="circle", fontcolor=color)
 
         for hyperEdge in self.hyperEdges:
             edge_label = self.diagram_label(
@@ -79,7 +84,12 @@ class Diagram:
                 ElementType.EDGE,
                 hash=hyperEdge.signature,
             )
-            self.graphRep.node(edge_label, shape="box")
+
+            if hyperEdge.index in self.highlighted_edges:
+                color = "red"
+            else:
+                color = "black"
+            self.graphRep.node(edge_label, shape="box", fontcolor=color)
 
             self.drawArrows(hyperEdge, edge_label, self.nodes)
 

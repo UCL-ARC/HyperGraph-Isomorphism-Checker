@@ -861,16 +861,21 @@ void CompareEdgesGPU()
 	/*=========================================================================*/
 	/* C] Compare Hashes if they don't match it is not isomorphic */
 	/*=========================================================================*/
-	bool source_hashes_match = thrust::equal( d_ptr_source_hash_A, d_ptr_source_hash_A + num_edges,d_ptr_source_hash_B  );
+	bool source_hashes_match = false;
+	bool target_hashes_match = false;
+
+
+	source_hashes_match = thrust::equal( d_ptr_source_hash_A, d_ptr_source_hash_A + num_edges,d_ptr_source_hash_B  );
+
 	if (!source_hashes_match)
 	{
-		  std::cout << "Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
+		  std::cout << "QAZ Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
 	}
 	else
 	{
-	  std::cout << "Source neighborhood hashes match " << std::endl;
+	  std::cout << "WSX Source neighborhood hashes match " << std::endl;
 
-	  bool target_hashes_match = thrust::equal( d_ptr_target_hash_A, d_ptr_target_hash_A + num_edges, d_ptr_target_hash_B);
+	  target_hashes_match = thrust::equal( d_ptr_target_hash_A, d_ptr_target_hash_A + num_edges, d_ptr_target_hash_B);
 
 	  if (!target_hashes_match)
 	  {
@@ -883,7 +888,8 @@ void CompareEdgesGPU()
 	/*DD---------------------------------------------------------------------------------------------------------------------DD*/
 	/* Debug print non matching */
 	/*DD---------------------------------------------------------------------------------------------------------------------DD*/
-    {
+    if (!source_hashes_match || !target_hashes_match)
+	{
 	  std::cout << "Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
 	  std::cout << "\n  --- Printing Source Mismatches ---" << std::endl;
 	  std::cout << std::hex << std::setfill('0');

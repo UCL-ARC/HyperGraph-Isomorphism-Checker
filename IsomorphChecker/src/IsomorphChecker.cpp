@@ -73,8 +73,8 @@ struct InputGraph
 	std::vector<std::string>  nodeLabelsDB;      /* Unique node labels */
 	std::vector<uint>         nodeLabelIndex;    /* Label index for each node */
 
-	std::vector<uint>         node_EdgeSources;  /* Node edge source connections */
-	std::vector<uint>         node_EdgeTargets;  /* Node edge target connections */
+	// std::vector<uint>         node_EdgeSources;  /* Node edge source connections */
+	// std::vector<uint>         node_EdgeTargets;  /* Node edge target connections */
 
 	std::vector<std::string>  edgeLabelsDB;      /* Unique edge labels */
 	std::vector<IO_hyperEdge> edges;             /* All hyperedges */
@@ -259,12 +259,7 @@ static inline void ProcessEdgeNodes(
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* IO Mimic by reading a JSON file and creating the compact lists for node and edges */
 /*-------------------------------------------------------------------------------------------------------------------*/
-void parseGraphJSON_global(std::istream& json_stream,
-		                   std::vector<std::string>  &IO_node_LabelsDB, std::vector<uint>         &IO_node_LabelsIndex,
-
-						   std::vector<uint>         &IO_globalInputs,  std::vector<uint>         &IO_globalOutputs,
-
-						   std::vector<std::string>  &IO_edge_LabelsDB,  std::vector<IO_hyperEdge> &IO_edges)
+void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph)
 {
 	json j;
 
@@ -272,14 +267,14 @@ void parseGraphJSON_global(std::istream& json_stream,
 	std::map<std::string, int> node_label_to_index;
 	std::map<std::string, int> edge_label_to_index;
 
-	// Clear all vectors passed by reference
-	IO_node_LabelsDB.clear();
-	IO_node_LabelsIndex.clear();
+	// Clear all vectors in the struct
+	graph.nodeLabelsDB.clear();
+	graph.nodeLabelIndex.clear();
 
-	IO_edge_LabelsDB.clear();
-	IO_edges.clear();
-	IO_globalInputs.clear();
-	IO_globalOutputs.clear();
+	graph.edgeLabelsDB.clear();
+	graph.edges.clear();
+	graph.globalInputs.clear();
+	graph.globalOutputs.clear();
 
 
 	try
@@ -298,15 +293,15 @@ void parseGraphJSON_global(std::istream& json_stream,
 
 			if (it == node_label_to_index.end())
 			{
-				IO_node_LabelsDB.push_back(label);
-				index = IO_node_LabelsDB.size() - 1;
+				graph.nodeLabelsDB.push_back(label);
+				index = graph.nodeLabelsDB.size() - 1;
 				node_label_to_index[label] = index;
 			}
 			else
 			{
 				index = it->second;
 			}
-			IO_node_LabelsIndex.push_back(index);
+			graph.nodeLabelIndex.push_back(index);
 		}
 		/*-----------------------------------------------------------------------------*/
 
@@ -324,8 +319,8 @@ void parseGraphJSON_global(std::istream& json_stream,
 			if (it == edge_label_to_index.end())
 			{
 				// It's a new edge label
-				IO_edge_LabelsDB.push_back(label_str);
-				index = IO_edge_LabelsDB.size() - 1;
+				graph.edgeLabelsDB.push_back(label_str);
+				index = graph.edgeLabelsDB.size() - 1;
 				edge_label_to_index[label_str] = index;
 			}
 			else
@@ -352,19 +347,19 @@ void parseGraphJSON_global(std::istream& json_stream,
 				MaxNodesPerEdge = edge.targetNodes.size();
 			}
 
-			IO_edges.push_back(edge);
+			graph.edges.push_back(edge);
 		}
 		/*-----------------------------------------------------------------------------*/
 
 
 		/*-----------------------------------------------------------------------------*/
 		/* 3. Extract Global Inputs Nodes */
-		IO_globalInputs = j["Inputs"].get<std::vector<uint>>();
+		graph.globalInputs = j["Inputs"].get<std::vector<uint>>();
 		/*-----------------------------------------------------------------------------*/
 
 		/*-----------------------------------------------------------------------------*/
 		/* 4. Extract Global Output Nodes */
-		IO_globalOutputs = j["Outputs"].get<std::vector<uint>>();
+		graph.globalOutputs = j["Outputs"].get<std::vector<uint>>();
 		/*-----------------------------------------------------------------------------*/
 
 	}
@@ -674,12 +669,7 @@ int main(int argc, char* argv[])
 			std::cerr << "Error: Could not open file " << filenames[gInd] << std::endl;
 			return 1;
 		}
-		parseGraphJSON_global(
-			file_stream, 
-			IO_graphs[gInd].nodeLabelsDB, IO_graphs[gInd].nodeLabelIndex,
-			IO_graphs[gInd].globalInputs, IO_graphs[gInd].globalOutputs,
-			IO_graphs[gInd].edgeLabelsDB, IO_graphs[gInd].edges
-		);
+		parseGraphJSON_global(file_stream, IO_graphs[gInd]);
 		file_stream.close();
 
 		std::cout<<" IONodeLabels "<<IO_graphs[gInd].nodeLabelsDB.size()<<" IONodes "<<IO_graphs[gInd].nodeLabelIndex.size()

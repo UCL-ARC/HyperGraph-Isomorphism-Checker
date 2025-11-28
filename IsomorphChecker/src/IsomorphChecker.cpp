@@ -66,18 +66,26 @@ static inline bool HyperEdgeLess(const IO_hyperEdge& a, const IO_hyperEdge& b)
 
 
 /*-------------------------------------------------------------------------------------------------------------------*/
-/* _Data Input Mimic_ */
+/* Input Graph Structure - encapsulates all IO data for a single graph */
+/*-------------------------------------------------------------------------------------------------------------------*/
+struct InputGraph
+{
+	std::vector<std::string>  nodeLabelsDB;      /* Unique node labels */
+	std::vector<uint>         nodeLabelIndex;    /* Label index for each node */
+
+	std::vector<uint>         node_EdgeSources;  /* Node edge source connections */
+	std::vector<uint>         node_EdgeTargets;  /* Node edge target connections */
+
+	std::vector<std::string>  edgeLabelsDB;      /* Unique edge labels */
+	std::vector<IO_hyperEdge> edges;             /* All hyperedges */
+
+	std::vector<uint>         globalInputs;      /* Global input node IDs */
+	std::vector<uint>         globalOutputs;     /* Global output node IDs */
+};
+
 /* Graph Details [2] means we will store 2 graphs can be made to as many as needed */
-std::vector<std::string>  IO_nodeLabelsDB     [2];
-std::vector<uint>         IO_nodeLabelIndex   [2];
+InputGraph IO_graphs[2];
 
-vector<uint>              IO_node_EdgeSources [2];
-vector<uint>              IO_node_EdgeTargets [2];
-
-std::vector<std::string>  IO_edgeLabelsDB     [2];
-std::vector<IO_hyperEdge> IO_edges            [2];
-std::vector<uint>         IO_globalInputs     [2];
-std::vector<uint>         IO_globalOutputs    [2];
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -161,7 +169,7 @@ uint  *m_Edge_LabelDBIndexOrg         [2]; /* unsorted */
  * To get original->sorted positions, invoke before sorting or capture the original order. */
 static void DebugEdgeIndexMapping(int gInd)
 {
-	uint numEdgesS = IO_edges[gInd].size();
+	uint numEdgesS = IO_graphs[gInd].edges.size();
 	printf(" EdgeSortIndex %u \n", numEdgesS);
 
 	// Allocate index array (identity permutation)
@@ -172,7 +180,7 @@ static void DebugEdgeIndexMapping(int gInd)
 	}
 
 	// Sort the index array using the same comparator (redundant post edge sort)
-	const auto& edges_to_compare = IO_edges[gInd];
+	const auto& edges_to_compare = IO_graphs[gInd].edges;
 	std::sort(
 		m_Edge_LabelDBIndexOrg[gInd],
 		m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
@@ -548,8 +556,8 @@ void printGraphStatsConn()
 		m_Hist_nodeIOCounts       [gInd] = new uint  [m_HistNodeMaxEdgesSize[gInd] +1](); /* Arr19 */
 
 
-	    printGraphStats(    // Node Args
-								m_numNodes[gInd], IO_globalInputs[gInd].size(), IO_globalOutputs[gInd].size(),
+    	printGraphStats(    // Node Args
+								m_numNodes[gInd], IO_graphs[gInd].globalInputs.size(), IO_graphs[gInd].globalOutputs.size(),
 								// m_Node_LabelDBIndex[gInd], 
 								m_numNodeLabelsDB[gInd],
 								// m_Node_EdgeStartPrevsStart[gInd],
@@ -583,38 +591,38 @@ void printGraphStatsConn()
 	 /*-------------------------------------------------------------------------------------------*/
 		std::cout << " Basic Iso Tests \n";
 
-		if (IO_globalInputs[0].size() != IO_globalInputs[1].size())
+		if (IO_graphs[0].globalInputs.size() != IO_graphs[1].globalInputs.size())
 		{
 			std::cout<<"NotIso: GlobalInputCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_globalOutputs[0].size() != IO_globalOutputs[1].size())
+		if (IO_graphs[0].globalOutputs.size() != IO_graphs[1].globalOutputs.size())
 		{
 			std::cout<<"NotIso: GlobalOutputCount "<<endl;
 			isIso = false;
 		}
 
 
-		if (IO_nodeLabelsDB[0].size() != IO_nodeLabelsDB[1].size())
+		if (IO_graphs[0].nodeLabelsDB.size() != IO_graphs[1].nodeLabelsDB.size())
 		{
 			std::cout<<"NotIso: NodeLabelCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_nodeLabelIndex[0].size() != IO_nodeLabelIndex[1].size())
+		if (IO_graphs[0].nodeLabelIndex.size() != IO_graphs[1].nodeLabelIndex.size())
 		{
 			std::cout<<"NotIso: NodeCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_edgeLabelsDB[0].size() != IO_edgeLabelsDB[1].size())
+		if (IO_graphs[0].edgeLabelsDB.size() != IO_graphs[1].edgeLabelsDB.size())
 		{
 			std::cout<<"NotIso: EdgeLabelCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_edges[0].size() != IO_edges[1].size())
+		if (IO_graphs[0].edges.size() != IO_graphs[1].edges.size())
 		{
 			std::cout<<"NotIso: EdgeCount "<<endl;
 			isIso = false;
@@ -668,15 +676,15 @@ int main(int argc, char* argv[])
 		}
 		parseGraphJSON_global(
 			file_stream, 
-			IO_nodeLabelsDB[gInd], IO_nodeLabelIndex[gInd],
-			IO_globalInputs[gInd], IO_globalOutputs[gInd],
-			IO_edgeLabelsDB[gInd], IO_edges[gInd]
+			IO_graphs[gInd].nodeLabelsDB, IO_graphs[gInd].nodeLabelIndex,
+			IO_graphs[gInd].globalInputs, IO_graphs[gInd].globalOutputs,
+			IO_graphs[gInd].edgeLabelsDB, IO_graphs[gInd].edges
 		);
 		file_stream.close();
 
-		std::cout<<" IONodeLabels "<<IO_nodeLabelsDB[gInd].size()<<" IONodes "<<IO_nodeLabelIndex[gInd].size()
-			<<" IOInputNodes "<<IO_globalInputs[gInd].size()<<" IOOutputNodes "<<IO_globalOutputs[gInd].size()
-			<<" IOEdgeLabels "<<IO_edgeLabelsDB[gInd].size()<<" IOEdges "<<IO_edges[gInd].size()<<std::endl;
+		std::cout<<" IONodeLabels "<<IO_graphs[gInd].nodeLabelsDB.size()<<" IONodes "<<IO_graphs[gInd].nodeLabelIndex.size()
+			<<" IOInputNodes "<<IO_graphs[gInd].globalInputs.size()<<" IOOutputNodes "<<IO_graphs[gInd].globalOutputs.size()
+			<<" IOEdgeLabels "<<IO_graphs[gInd].edgeLabelsDB.size()<<" IOEdges "<<IO_graphs[gInd].edges.size()<<std::endl;
 
 		std::cout<<std::endl;
 		
@@ -684,8 +692,8 @@ int main(int argc, char* argv[])
 							/* Edge Sorting by key */
 		auto start_sort = std::chrono::high_resolution_clock::now();
 		std::sort(
-			IO_edges[gInd].begin(),
-			IO_edges[gInd].end(),
+			IO_graphs[gInd].edges.begin(),
+			IO_graphs[gInd].edges.end(),
 			HyperEdgeLess
 		);
 		auto end_sort = std::chrono::high_resolution_clock::now();
@@ -716,13 +724,13 @@ int main(int argc, char* argv[])
     	 cout<<" Create Compact Arrays " <<gInd<<endl;
  		/*-------------------------------------------------------------------------------------------*/
  		/* Set Global Vars to IO Value for nodes */
- 		m_numNodes        [gInd] = IO_nodeLabelIndex[gInd].size();
- 		m_numNodeLabelsDB [gInd] = IO_nodeLabelsDB[gInd].size();
+ 		m_numNodes        [gInd] = IO_graphs[gInd].nodeLabelIndex.size();
+ 		m_numNodeLabelsDB [gInd] = IO_graphs[gInd].nodeLabelsDB.size();
 
 
 		/* Set Global Vars to IO Value for edges */
-		m_numEdges        [gInd]  = IO_edges[gInd].size();
-		m_numEdgeLabelsDB [gInd]  = IO_edgeLabelsDB[gInd].size();
+		m_numEdges        [gInd]  = IO_graphs[gInd].edges.size();
+		m_numEdgeLabelsDB [gInd]  = IO_graphs[gInd].edgeLabelsDB.size();
 		/*-------------------------------------------------------------------------------------------*/
 
 
@@ -749,21 +757,21 @@ int main(int argc, char* argv[])
 		for (uint e=0;e<m_numEdges[gInd];e++)
 		{
 			/* Each edge will increment its source nodes as a Next */
-			for(uint i=0; i<IO_edges[gInd].at(e).sourceNodes.size(); i++)
+			for(uint i=0; i<IO_graphs[gInd].edges.at(e).sourceNodes.size(); i++)
 			{
 				/* Primary: Number of source nodes  */
 				m_EdgeNodesSourceSize    [gInd] ++;
 
 				/* Secondary: NodeCompactList Inc the Node counter also */
-				m_Node_EdgeStartNextsNum [gInd] [ IO_edges[gInd].at(e).sourceNodes.at(i) ]++;
+				m_Node_EdgeStartNextsNum [gInd] [ IO_graphs[gInd].edges.at(e).sourceNodes.at(i) ]++;
 			}
 
 			/* Each edge will increment its target nodes as a Prev */
-			for(uint i=0;i<IO_edges[gInd].at(e).targetNodes.size();i++)
+			for(uint i=0;i<IO_graphs[gInd].edges.at(e).targetNodes.size();i++)
 			{
 				m_edgeNodesTargetSize [gInd] ++;
 
-				m_Node_EdgeStartPrevsNum [gInd] [ IO_edges[gInd].at(e).targetNodes.at(i) ]++;
+				m_Node_EdgeStartPrevsNum [gInd] [ IO_graphs[gInd].edges.at(e).targetNodes.at(i) ]++;
 			}
 		}
 		/*-------------------------------------------------------------------------------------------*/
@@ -774,7 +782,7 @@ int main(int argc, char* argv[])
 		/* A1] Loop over all nodes and complete the locations of where each needs to read its "next" and "prev" from using a running sum */
 		for (uint n=0;n<m_numNodes[gInd];n++)
 		{
-			m_Node_LabelDBIndex [gInd] [n] = IO_nodeLabelIndex[gInd].at(n);
+			m_Node_LabelDBIndex [gInd] [n] = IO_graphs[gInd].nodeLabelIndex.at(n);
 
 			/* Compact Array of node Prevs Start */
 			m_Node_EdgeStartPrevsStart [gInd] [n] = m_nodeEdgesPrevsSize[gInd];
@@ -800,26 +808,26 @@ int main(int argc, char* argv[])
 		/*-------------------------------------------------------------------------------------------*/
 		/* A2 IO Tag sent node status */
 		// int isError = -1;
-		for (uint n=0;n<IO_globalInputs[gInd].size();n++)
+		for (uint n=0;n<IO_graphs[gInd].globalInputs.size();n++)
 		{
-			m_Node_IOTag[gInd][IO_globalInputs[gInd].at(n)] = 1;
+			m_Node_IOTag[gInd][IO_graphs[gInd].globalInputs.at(n)] = 1;
 		}
 
-		for (uint n=0;n<IO_globalOutputs[gInd].size();n++)
+		for (uint n=0;n<IO_graphs[gInd].globalOutputs.size();n++)
 	    {
-		  if(m_Node_IOTag[gInd][IO_globalOutputs[gInd].at(n)]==0)
+		  if(m_Node_IOTag[gInd][IO_graphs[gInd].globalOutputs.at(n)]==0)
 		  {
-		    m_Node_IOTag[gInd][IO_globalOutputs[gInd].at(n)] = 2;
+		    m_Node_IOTag[gInd][IO_graphs[gInd].globalOutputs.at(n)] = 2;
 		  }
-		  else if(m_Node_IOTag[gInd][IO_globalOutputs[gInd].at(n)]==1)
+		  else if(m_Node_IOTag[gInd][IO_graphs[gInd].globalOutputs.at(n)]==1)
 		  {
-			  m_Node_IOTag[gInd][IO_globalOutputs[gInd].at(n)]=3;
+			  m_Node_IOTag[gInd][IO_graphs[gInd].globalOutputs.at(n)]=3;
 		  }
 		  else
 		  {
-			 m_Node_IOTag[IO_globalOutputs[gInd].at(n)]++;
-			 cout<<"ERROR NodeID: "<<IO_globalOutputs[gInd].at(n)<<" LabelIndex: "<<m_Node_LabelDBIndex[IO_globalOutputs[gInd].at(n)]
-																 <<" Label: "<< IO_nodeLabelsDB[gInd].at( m_Node_LabelDBIndex[gInd][IO_globalOutputs[gInd].at(n)]  )<<endl;
+			 m_Node_IOTag[gInd][IO_graphs[gInd].globalOutputs.at(n)]++;
+			 cout<<"ERROR NodeID: "<<IO_graphs[gInd].globalOutputs.at(n)<<" LabelIndex: "<<m_Node_LabelDBIndex[gInd][IO_graphs[gInd].globalOutputs.at(n)]
+																 <<" Label: "<< IO_graphs[gInd].nodeLabelsDB.at( m_Node_LabelDBIndex[gInd][IO_graphs[gInd].globalOutputs.at(n)]  )<<endl;
 		  }
 		}
 		/*-------------------------------------------------------------------------------------------*/
@@ -868,47 +876,47 @@ int main(int argc, char* argv[])
 		/* B1] Loop over sorted edges */
 		for (uint e=0;e<m_numEdges[gInd];e++)
 		{
-			m_Edge_LabelDBIndex [gInd] [e] = IO_edges[gInd].at(e).labelIndex;
+			m_Edge_LabelDBIndex [gInd] [e] = IO_graphs[gInd].edges.at(e).labelIndex;
 
 			/* 1. Start and Num for Edge Source Nodes */
 			m_Edge_NodeStartSourcesStart[gInd][e]  = DEBUGedgeCounterSources;
-			m_Edge_NodeStartSourcesNum  [gInd][e]  = IO_edges[gInd].at(e).sourceNodes.size();
+			m_Edge_NodeStartSourcesNum  [gInd][e]  = IO_graphs[gInd].edges.at(e).sourceNodes.size();
 
 			/* Process source nodes */
 			ProcessEdgeNodes(
 				gInd, e,
-				IO_edges[gInd].at(e).sourceNodes,
+				IO_graphs[gInd].edges.at(e).sourceNodes,
 				m_Edge_NodesSources[gInd],
 				DEBUGedgeCounterSources,
 				m_Node_EdgeNexts,
 				m_Node_EdgeNextsPort,
 				DEBUGnode_CountTargets,
 				m_Node_NextsFirstEdge,
-				IO_edges[gInd].at(e).labelIndex
+				IO_graphs[gInd].edges.at(e).labelIndex
 			);
 
 			/* 2. Start and Num for Edge Target Nodes */
 			m_Edge_NodeStartTargetsStart[gInd][e] = DEBUGedgeCounterTargets;
-			m_Edge_NodeStartTargetsNum[gInd][e]  = IO_edges[gInd].at(e).targetNodes.size();
+			m_Edge_NodeStartTargetsNum[gInd][e]  = IO_graphs[gInd].edges.at(e).targetNodes.size();
 
 			/* Process target nodes */
 			ProcessEdgeNodes(
 				gInd, e,
-				IO_edges[gInd].at(e).targetNodes,
+				IO_graphs[gInd].edges.at(e).targetNodes,
 				m_Edge_NodesTargets[gInd],
 				DEBUGedgeCounterTargets,
 				m_Node_EdgePrevs,
 				m_Node_EdgePrevsPort,
 				DEBUGnode_CountSources,
 				m_Node_PrevsFirstEdge,
-				IO_edges[gInd].at(e).labelIndex
+				IO_graphs[gInd].edges.at(e).labelIndex
 			);
 
 			m_Edge_TotNodes          [gInd][e] = m_Edge_NodeStartSourcesNum  [gInd][e] + m_Edge_NodeStartTargetsNum[gInd][e] ;
 
-			if ( (IO_edges[gInd].at(e).sourceNodes.size() + IO_edges[gInd].at(e).targetNodes.size() )> m_HistEdgeMaxNodesSize[gInd])
+			if ( (IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size() )> m_HistEdgeMaxNodesSize[gInd])
 			{
-				m_HistEdgeMaxNodesSize[gInd] = IO_edges[gInd].at(e).sourceNodes.size() + IO_edges[gInd].at(e).targetNodes.size();
+				m_HistEdgeMaxNodesSize[gInd] = IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size();
 			}
 
 		}

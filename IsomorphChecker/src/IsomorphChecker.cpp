@@ -84,7 +84,7 @@ struct InputGraph
 };
 
 /* Graph Details [2] means we will store 2 graphs can be made to as many as needed */
-InputGraph IO_graphs[2];
+/* MOVED: InputGraph IO_graphs[2]; is now declared locally in main() */
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 
@@ -183,9 +183,9 @@ uint  *m_Edge_LabelDBIndexOrg         [2]; /* unsorted */
 /* Debug helper: builds a permutation index for edges and prints the mapping.
  * NOTE: If called after IO_edges[gInd] is sorted, permutation will be identity.
  * To get original->sorted positions, invoke before sorting or capture the original order. */
-static void DebugEdgeIndexMapping(int gInd)
+static void DebugEdgeIndexMapping(int gInd, const InputGraph* graphs)
 {
-	uint numEdgesS = IO_graphs[gInd].edges.size();
+	uint numEdgesS = graphs[gInd].edges.size();
 	printf(" EdgeSortIndex %u \n", numEdgesS);
 
 	// Allocate index array (identity permutation)
@@ -196,7 +196,7 @@ static void DebugEdgeIndexMapping(int gInd)
 	}
 
 	// Sort the index array using the same comparator (redundant post edge sort)
-	const auto& edges_to_compare = IO_graphs[gInd].edges;
+	const auto& edges_to_compare = graphs[gInd].edges;
 	std::sort(
 		m_Edge_LabelDBIndexOrg[gInd],
 		m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
@@ -272,32 +272,90 @@ static inline void ProcessEdgeNodes(
 }
 
 /* Allocate histogram arrays for debug statistics */
-static inline void AllocateDebugHistograms(int gInd)
+static inline void AllocateDebugHistograms(DebugHistogram& debugHist)
 {
-	m_DebugHist[gInd].edge.sourceNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr13 */
-	m_DebugHist[gInd].edge.targetNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr14 */
-	m_DebugHist[gInd].edge.totalNodeCount  = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr15 */
+	debugHist.edge.sourceNodeCount = new uint  [debugHist.edge.maxNodesSize +1](); /* Arr13 */
+	debugHist.edge.targetNodeCount = new uint  [debugHist.edge.maxNodesSize +1](); /* Arr14 */
+	debugHist.edge.totalNodeCount  = new uint  [debugHist.edge.maxNodesSize +1](); /* Arr15 */
 
-	m_DebugHist[gInd].node.prevCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr16 */
-	m_DebugHist[gInd].node.nextCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr17 */
-	m_DebugHist[gInd].node.totalCount  = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr18 */
-	m_DebugHist[gInd].node.ioTagCounts = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr19 */
+	debugHist.node.prevCount   = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr16 */
+	debugHist.node.nextCount   = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr17 */
+	debugHist.node.totalCount  = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr18 */
+	debugHist.node.ioTagCounts = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr19 */
 }
 
 /* Deallocate histogram arrays for debug statistics */
-static inline void DeallocateDebugHistograms(int gInd)
+static inline void DeallocateDebugHistograms(DebugHistogram& debugHist)
 {
-	delete [] m_DebugHist[gInd].edge.sourceNodeCount;
-	delete [] m_DebugHist[gInd].edge.targetNodeCount;
-	delete [] m_DebugHist[gInd].edge.totalNodeCount;
+	delete [] debugHist.edge.sourceNodeCount;
+	delete [] debugHist.edge.targetNodeCount;
+	delete [] debugHist.edge.totalNodeCount;
 
-	delete [] m_DebugHist[gInd].node.prevCount;
-	delete [] m_DebugHist[gInd].node.nextCount;
-	delete [] m_DebugHist[gInd].node.totalCount;
-	delete [] m_DebugHist[gInd].node.ioTagCounts;
+	delete [] debugHist.node.prevCount;
+	delete [] debugHist.node.nextCount;
+	delete [] debugHist.node.totalCount;
+	delete [] debugHist.node.ioTagCounts;
 }
 
+/* Forward declarations */
+void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph);
 
+/* Load input graphs from files */
+static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs)
+{
+	string filenames[2];
+	ParseInputFilenames(argc, argv, filenames);
+
+	auto start_io = std::chrono::high_resolution_clock::now();
+    for (int gInd = 0;gInd<2;gInd++ )
+	{
+    	cout<< filenames[gInd]<<endl;
+		std::ifstream file_stream(filenames[gInd]);
+		if (!file_stream.is_open())
+		{
+			std::cerr << "Error: Could not open file " << filenames[gInd] << std::endl;
+			return -1;
+		}
+		parseGraphJSON_global(file_stream, graphs[gInd]);
+		file_stream.close();
+
+		std::cout<<" IONodeLabels "<<graphs[gInd].nodeLabelsDB.size()<<" IONodes "<<graphs[gInd].nodeLabelIndex.size()
+			<<" IOInputNodes "<<graphs[gInd].globalInputs.size()<<" IOOutputNodes "<<graphs[gInd].globalOutputs.size()
+			<<" IOEdgeLabels "<<graphs[gInd].edgeLabelsDB.size()<<" IOEdges "<<graphs[gInd].edges.size()<<std::endl;
+
+		std::cout<<std::endl;
+	}
+	auto end_io = std::chrono::high_resolution_clock::now();
+	auto io_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_io - start_io).count();
+	std::cout << "Total I/O and parsing time: " << io_time << " ms" << std::endl;
+	
+	return io_time;
+}
+
+/* Sort edges in input graphs */
+static inline void SortGraphEdges(InputGraph* graphs)
+{
+    for (int gInd = 0;gInd<2;gInd++ )
+	{
+		/*-------------------------------------------------------------------------------------------*/
+						/* Edge Sorting by key */
+		auto start_sort = std::chrono::high_resolution_clock::now();
+		std::sort(
+			graphs[gInd].edges.begin(),
+			graphs[gInd].edges.end(),
+			HyperEdgeLess
+		);
+		auto end_sort = std::chrono::high_resolution_clock::now();
+		auto sort_time = std::chrono::duration_cast<std::chrono::microseconds>(end_sort - start_sort).count();
+		std::cout << "  Sorting time: " << std::fixed << std::setprecision(3) 
+		          << sort_time / 1000.0 << " ms" << std::endl;
+		std::cout<<std::endl;
+		/*-------------------------------------------------------------------------------------------*/
+
+	    /* Debug edge index mapping */
+		if (debugSort) DebugEdgeIndexMapping(gInd, graphs);
+	}
+}
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* IO Mimic by reading a JSON file and creating the compact lists for node and edges */
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -564,7 +622,7 @@ void printGraphStats(   // Node Info
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Debug Print Stats Connections*/
 /*-------------------------------------------------------------------------------------------------------------------*/
-void printGraphStatsConn()
+void printGraphStatsConn(const InputGraph* graphs)
 {
 	bool isIso = true;
 
@@ -574,11 +632,11 @@ void printGraphStatsConn()
 	{
 		std::cout <<" HistMaxEdgeBins "<< m_DebugHist[gInd].edge.maxNodesSize<<" HistMaxNodeBins "<< m_DebugHist[gInd].node.maxEdgesSize<<endl;
 		std::cout << "\n--- Calling printGraphStats ---\n";
-		AllocateDebugHistograms(gInd);
+		AllocateDebugHistograms(m_DebugHist[gInd]);
 
 
     	printGraphStats(    // Node Args
-								m_numNodes[gInd], IO_graphs[gInd].globalInputs.size(), IO_graphs[gInd].globalOutputs.size(),
+								m_numNodes[gInd], graphs[gInd].globalInputs.size(), graphs[gInd].globalOutputs.size(),
 								// m_Node_LabelDBIndex[gInd], 
 								m_numNodeLabelsDB[gInd],
 								// m_Node_EdgeStartPrevsStart[gInd],
@@ -604,38 +662,38 @@ void printGraphStatsConn()
 	 /*-------------------------------------------------------------------------------------------*/
 		std::cout << " Basic Iso Tests \n";
 
-		if (IO_graphs[0].globalInputs.size() != IO_graphs[1].globalInputs.size())
+		if (graphs[0].globalInputs.size() != graphs[1].globalInputs.size())
 		{
 			std::cout<<"NotIso: GlobalInputCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_graphs[0].globalOutputs.size() != IO_graphs[1].globalOutputs.size())
+		if (graphs[0].globalOutputs.size() != graphs[1].globalOutputs.size())
 		{
 			std::cout<<"NotIso: GlobalOutputCount "<<endl;
 			isIso = false;
 		}
 
 
-		if (IO_graphs[0].nodeLabelsDB.size() != IO_graphs[1].nodeLabelsDB.size())
+		if (graphs[0].nodeLabelsDB.size() != graphs[1].nodeLabelsDB.size())
 		{
 			std::cout<<"NotIso: NodeLabelCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_graphs[0].nodeLabelIndex.size() != IO_graphs[1].nodeLabelIndex.size())
+		if (graphs[0].nodeLabelIndex.size() != graphs[1].nodeLabelIndex.size())
 		{
 			std::cout<<"NotIso: NodeCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_graphs[0].edgeLabelsDB.size() != IO_graphs[1].edgeLabelsDB.size())
+		if (graphs[0].edgeLabelsDB.size() != graphs[1].edgeLabelsDB.size())
 		{
 			std::cout<<"NotIso: EdgeLabelCount "<<endl;
 			isIso = false;
 		}
 
-		if (IO_graphs[0].edges.size() != IO_graphs[1].edges.size())
+		if (graphs[0].edges.size() != graphs[1].edges.size())
 		{
 			std::cout<<"NotIso: EdgeCount "<<endl;
 			isIso = false;
@@ -651,7 +709,7 @@ void printGraphStatsConn()
 
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
-		DeallocateDebugHistograms(gInd);
+		DeallocateDebugHistograms(m_DebugHist[gInd]);
 	}
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -661,56 +719,17 @@ void printGraphStatsConn()
 /*-------------------------------------------------------------------------------------------------------------------*/
 int main(int argc, char* argv[])
 {
+	/* Declare IO graphs locally */
+	InputGraph IO_graphs[2];
 
 	/*===========================================================================================*/
 	                                   /* _Mimic Input_ */
 	/*===========================================================================================*/
 	auto start_total = std::chrono::high_resolution_clock::now();
 	
-	string filenames[2];
-	ParseInputFilenames(argc, argv, filenames);
+	LoadGraphs(argc, argv, IO_graphs);
+	SortGraphEdges(IO_graphs);
 
-	auto start_io = std::chrono::high_resolution_clock::now();
-    for (int gInd = 0;gInd<2;gInd++ )
-	{
-    	cout<< filenames[gInd]<<endl;
-		std::ifstream file_stream(filenames[gInd]);
-		if (!file_stream.is_open())
-		{
-			std::cerr << "Error: Could not open file " << filenames[gInd] << std::endl;
-			return 1;
-		}
-		parseGraphJSON_global(file_stream, IO_graphs[gInd]);
-		file_stream.close();
-
-		std::cout<<" IONodeLabels "<<IO_graphs[gInd].nodeLabelsDB.size()<<" IONodes "<<IO_graphs[gInd].nodeLabelIndex.size()
-			<<" IOInputNodes "<<IO_graphs[gInd].globalInputs.size()<<" IOOutputNodes "<<IO_graphs[gInd].globalOutputs.size()
-			<<" IOEdgeLabels "<<IO_graphs[gInd].edgeLabelsDB.size()<<" IOEdges "<<IO_graphs[gInd].edges.size()<<std::endl;
-
-		std::cout<<std::endl;
-		
-		/*-------------------------------------------------------------------------------------------*/
-							/* Edge Sorting by key */
-		auto start_sort = std::chrono::high_resolution_clock::now();
-		std::sort(
-			IO_graphs[gInd].edges.begin(),
-			IO_graphs[gInd].edges.end(),
-			HyperEdgeLess
-		);
-		auto end_sort = std::chrono::high_resolution_clock::now();
-		auto sort_time = std::chrono::duration_cast<std::chrono::microseconds>(end_sort - start_sort).count();
-		std::cout << "  Sorting time: " << std::fixed << std::setprecision(3) 
-		          << sort_time / 1000.0 << " ms" << std::endl;
-		std::cout<<std::endl;
-		/*-------------------------------------------------------------------------------------------*/
-
-	    /* Debug edge index mapping */
-		if (debugSort) DebugEdgeIndexMapping(gInd);
-	}
-	auto end_io = std::chrono::high_resolution_clock::now();
-	auto io_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_io - start_io).count();
-	std::cout << "Total I/O and parsing time: " << io_time << " ms" << std::endl;
-										  /* End Edge Sorting */
 	/*===========================================================================================*/
 									/* End _Mimic Input_ */
 	/*===========================================================================================*/
@@ -958,7 +977,7 @@ int main(int argc, char* argv[])
  	/*===========================================================================================*/
 
 
-    printGraphStatsConn();
+    printGraphStatsConn(IO_graphs);
 
 	auto start_gpu = std::chrono::high_resolution_clock::now();
     /* Free CPU Memory */

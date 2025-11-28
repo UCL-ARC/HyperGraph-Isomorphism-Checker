@@ -271,6 +271,32 @@ static inline void ProcessEdgeNodes(
 	}
 }
 
+/* Allocate histogram arrays for debug statistics */
+static inline void AllocateDebugHistograms(int gInd)
+{
+	m_DebugHist[gInd].edge.sourceNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr13 */
+	m_DebugHist[gInd].edge.targetNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr14 */
+	m_DebugHist[gInd].edge.totalNodeCount  = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr15 */
+
+	m_DebugHist[gInd].node.prevCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr16 */
+	m_DebugHist[gInd].node.nextCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr17 */
+	m_DebugHist[gInd].node.totalCount  = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr18 */
+	m_DebugHist[gInd].node.ioTagCounts = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr19 */
+}
+
+/* Deallocate histogram arrays for debug statistics */
+static inline void DeallocateDebugHistograms(int gInd)
+{
+	delete [] m_DebugHist[gInd].edge.sourceNodeCount;
+	delete [] m_DebugHist[gInd].edge.targetNodeCount;
+	delete [] m_DebugHist[gInd].edge.totalNodeCount;
+
+	delete [] m_DebugHist[gInd].node.prevCount;
+	delete [] m_DebugHist[gInd].node.nextCount;
+	delete [] m_DebugHist[gInd].node.totalCount;
+	delete [] m_DebugHist[gInd].node.ioTagCounts;
+}
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* IO Mimic by reading a JSON file and creating the compact lists for node and edges */
@@ -548,14 +574,7 @@ void printGraphStatsConn()
 	{
 		std::cout <<" HistMaxEdgeBins "<< m_DebugHist[gInd].edge.maxNodesSize<<" HistMaxNodeBins "<< m_DebugHist[gInd].node.maxEdgesSize<<endl;
 		std::cout << "\n--- Calling printGraphStats ---\n";
-		m_DebugHist[gInd].edge.sourceNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr13 */
-		m_DebugHist[gInd].edge.targetNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr14 */
-		m_DebugHist[gInd].edge.totalNodeCount  = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr15 */
-
-		m_DebugHist[gInd].node.prevCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr16 */
-		m_DebugHist[gInd].node.nextCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr17 */
-		m_DebugHist[gInd].node.totalCount  = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr18 */
-		m_DebugHist[gInd].node.ioTagCounts = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr19 */
+		AllocateDebugHistograms(gInd);
 
 
     	printGraphStats(    // Node Args
@@ -632,14 +651,7 @@ void printGraphStatsConn()
 
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
-		delete [] m_DebugHist[gInd].edge.sourceNodeCount;
-		delete [] m_DebugHist[gInd].edge.targetNodeCount;
-		delete [] m_DebugHist[gInd].edge.totalNodeCount;
-
-		delete [] m_DebugHist[gInd].node.prevCount;
-		delete [] m_DebugHist[gInd].node.nextCount;
-		delete [] m_DebugHist[gInd].node.totalCount;
-		delete [] m_DebugHist[gInd].node.ioTagCounts;
+		DeallocateDebugHistograms(gInd);
 	}
 }
 /*-------------------------------------------------------------------------------------------------------------------*/

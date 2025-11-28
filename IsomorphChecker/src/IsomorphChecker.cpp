@@ -89,17 +89,33 @@ InputGraph IO_graphs[2];
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------------------------------------------------------*/
-/* Debug Host Side checks  */
-uint   m_HistEdgeMaxNodesSize             [2] = {};
-uint  *m_Hist_edgeSourceNodeCount [2];
-uint  *m_Hist_edgeTargetNodeCount [2];
-uint  *m_Hist_edgeTotNodeCount    [2];
+/* Debug Histogram Structures - organize histograms for analyzing graph topology */
+/*-------------------------------------------------------------------------------------------------------------------*/
+struct EdgeHistogram
+{
+	uint   maxNodesSize;           /* Max number of nodes in any edge (for bin sizing) */
+	uint  *sourceNodeCount;        /* Histogram: count of edges with N source nodes */
+	uint  *targetNodeCount;        /* Histogram: count of edges with N target nodes */
+	uint  *totalNodeCount;         /* Histogram: count of edges with N total nodes */
+};
 
-uint   m_HistNodeMaxEdgesSize             [2] = {};
-uint  *m_Hist_nodePrevCount       [2];
-uint  *m_Hist_nodeNextCount       [2];
-uint  *m_Hist_nodeTotalCount      [2];
-uint  *m_Hist_nodeIOCounts        [2];
+struct NodeHistogram
+{
+	uint   maxEdgesSize;           /* Max number of edges any node connects to (for bin sizing) */
+	uint  *prevCount;              /* Histogram: count of nodes with N incoming edges */
+	uint  *nextCount;              /* Histogram: count of nodes with N outgoing edges */
+	uint  *totalCount;             /* Histogram: count of nodes with N total edges */
+	uint  *ioTagCounts;            /* Histogram: count of nodes by IO tag (none/input/output/both) */
+};
+
+struct DebugHistogram
+{
+	EdgeHistogram edge;
+	NodeHistogram node;
+};
+
+/* Debug histograms [2] for two graphs */
+DebugHistogram m_DebugHist[2] = {};
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 
@@ -403,17 +419,8 @@ void printGraphStats(   // Node Info
 						// const uint* edge_NodeStartTargetsStart,
 						const uint* edge_NodeStartTargetsNum,
 
-						/* Output */
-						int    Hist_edgeCount,
-						uint  *Hist_edgeSourceNodeCount,
-						uint  *Hist_edgeTargetNodeCount,
-						uint  *Hist_edgeTotNodeCount,
-
-						int    Hist_nodeCount,
-						uint  *Hist_nodePrevCount,
-						uint  *Hist_nodeNextCount,
-						uint  *Hist_nodeTotalCount,
-						uint  *Hist_nodeIOCounts )
+						/* Debug Histograms */
+						const DebugHistogram& debugHist )
 {
 
     std::cout << "----------------------------------------------------------------" << std::endl;
@@ -433,40 +440,40 @@ void printGraphStats(   // Node Info
     /* Build Histo for edge props */
     for (unsigned int i = 0; i < numEdges; ++i)
     {
-    	Hist_edgeSourceNodeCount[ edge_NodeStartSourcesNum[i] ]++;
-    	Hist_edgeTargetNodeCount[ edge_NodeStartTargetsNum[i] ]++;
-    	Hist_edgeTotNodeCount   [ edge_NodeStartSourcesNum[i] + edge_NodeStartTargetsNum[i] ]++;
+    	debugHist.edge.sourceNodeCount[ edge_NodeStartSourcesNum[i] ]++;
+    	debugHist.edge.targetNodeCount[ edge_NodeStartTargetsNum[i] ]++;
+    	debugHist.edge.totalNodeCount   [ edge_NodeStartSourcesNum[i] + edge_NodeStartTargetsNum[i] ]++;
     }
 
     std::cout << "----------------------------------------------------------------" << std::endl;
     std::cout << "## 🔗 Edge Degree Distribution ##" << std::endl;
 
     std::cout << "EdgeHist-CountSourceNodes" << std::endl;
-    for (int i=0; i<Hist_edgeCount;i++)
+    for (int i=0; i<(int)debugHist.edge.maxNodesSize+1;i++)
     {
-    	if(Hist_edgeSourceNodeCount[i]>0)
+    	if(debugHist.edge.sourceNodeCount[i]>0)
     	{
-         std::cout << "* " << std::setw(3) << i << " sourcesNodes: " << Hist_edgeSourceNodeCount[i] << " count" << std::endl;
+         std::cout << "* " << std::setw(3) << i << " sourcesNodes: " << debugHist.edge.sourceNodeCount[i] << " count" << std::endl;
     	}
     }
     std::cout << std::endl;
 
     std::cout << "EdgeHist-CountTargetNodes" << std::endl;
-    for (int i=0; i<Hist_edgeCount;i++)
+    for (int i=0; i<(int)debugHist.edge.maxNodesSize+1;i++)
 	{
-		if(Hist_edgeTargetNodeCount[i]>0)
+		if(debugHist.edge.targetNodeCount[i]>0)
 		{
-		 std::cout << "* " << std::setw(3) << i << " targetNodes: " << Hist_edgeTargetNodeCount[i] << " count" << std::endl;
+		 std::cout << "* " << std::setw(3) << i << " targetNodes: " << debugHist.edge.targetNodeCount[i] << " count" << std::endl;
 		}
 	}
     std::cout << std::endl;
 
     std::cout << "EdgeHist-TotNodes" << std::endl;
-    for (int i=0; i<Hist_edgeCount;i++)
+    for (int i=0; i<(int)debugHist.edge.maxNodesSize+1;i++)
 	{
-		if(Hist_edgeTotNodeCount[i]>0)
+		if(debugHist.edge.totalNodeCount[i]>0)
 		{
-		 std::cout << "* " << std::setw(3) << i << " totNodes: " << Hist_edgeTotNodeCount[i] << " count" << std::endl;
+		 std::cout << "* " << std::setw(3) << i << " totNodes: " << debugHist.edge.totalNodeCount[i] << " count" << std::endl;
 		}
 	}
     std::cout << "----------------------------------------------------------------" << std::endl;
@@ -478,48 +485,48 @@ void printGraphStats(   // Node Info
 
     for (unsigned int i = 0; i < numNodes; ++i)
     {
-    	Hist_nodePrevCount  [ node_EdgeStartPrevsNum[i] ]++;
-    	Hist_nodeNextCount  [ node_EdgeStartNextsNum[i] ]++;
-    	Hist_nodeTotalCount [ node_EdgeStartPrevsNum[i] + node_EdgeStartNextsNum[i] ]++;
-    	Hist_nodeIOCounts   [ node_IOTag[i] ]++;
+    	debugHist.node.prevCount  [ node_EdgeStartPrevsNum[i] ]++;
+    	debugHist.node.nextCount  [ node_EdgeStartNextsNum[i] ]++;
+    	debugHist.node.totalCount [ node_EdgeStartPrevsNum[i] + node_EdgeStartNextsNum[i] ]++;
+    	debugHist.node.ioTagCounts   [ node_IOTag[i] ]++;
     }
 
     std::cout << "NodeHist-NodesIO" << std::endl;
-    for (int i=0; i<Hist_nodeCount;i++)
+    for (int i=0; i<(int)debugHist.node.maxEdgesSize+1;i++)
     {
-    	if(Hist_nodeIOCounts[i]>0)
+    	if(debugHist.node.ioTagCounts[i]>0)
     	{
-         std::cout << "* " << std::setw(3) << i << "NodesIO " << Hist_nodeIOCounts[i] << " count" << std::endl;
+         std::cout << "* " << std::setw(3) << i << "NodesIO " << debugHist.node.ioTagCounts[i] << " count" << std::endl;
     	}
     }
     std::cout << "---" << std::endl;
 
     std::cout << "NodeHist-NumPrevs" << std::endl;
-    for (int i=0; i<Hist_nodeCount;i++)
+    for (int i=0; i<(int)debugHist.node.maxEdgesSize+1;i++)
 	{
-		if(Hist_nodePrevCount[i]>0)
+		if(debugHist.node.prevCount[i]>0)
 		{
-		 std::cout << "* " << std::setw(3) << i << "NodesPrev " << Hist_nodePrevCount[i] << " count" << std::endl;
+		 std::cout << "* " << std::setw(3) << i << "NodesPrev " << debugHist.node.prevCount[i] << " count" << std::endl;
 		}
 	}
     std::cout << std::endl;
 
     std::cout << "NodeHist-NumNexts" << std::endl;
-    for (int i=0; i<Hist_nodeCount;i++)
+    for (int i=0; i<(int)debugHist.node.maxEdgesSize+1;i++)
 	{
-		if(Hist_nodeNextCount[i]>0)
+		if(debugHist.node.nextCount[i]>0)
 		{
-		 std::cout << "* " << std::setw(3) << i << "NodesNext " << Hist_nodeNextCount[i] << " count" << std::endl;
+		 std::cout << "* " << std::setw(3) << i << "NodesNext " << debugHist.node.nextCount[i] << " count" << std::endl;
 		}
 	}
     std::cout << std::endl;
 
     std::cout << "NodeHist-TotEdges" << std::endl;
-    for (int i=0; i<Hist_nodeCount;i++)
+    for (int i=0; i<(int)debugHist.node.maxEdgesSize+1;i++)
 	{
-		if(Hist_nodeTotalCount[i]>0)
+		if(debugHist.node.totalCount[i]>0)
 		{
-		 std::cout << "* " << std::setw(3) << i << "NodesIO " << Hist_nodeTotalCount[i] << " count" << std::endl;
+		 std::cout << "* " << std::setw(3) << i << "NodesIO " << debugHist.node.totalCount[i] << " count" << std::endl;
 		}
 	}
     std::cout << "----------------------------------------------------------------" << std::endl;
@@ -539,16 +546,16 @@ void printGraphStatsConn()
 	 /* Construct Histogram */
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
-		std::cout <<" HistMaxEdgeBins "<< m_HistEdgeMaxNodesSize[gInd]<<" HistMaxNodeBins "<< m_HistNodeMaxEdgesSize[gInd]<<endl;
+		std::cout <<" HistMaxEdgeBins "<< m_DebugHist[gInd].edge.maxNodesSize<<" HistMaxNodeBins "<< m_DebugHist[gInd].node.maxEdgesSize<<endl;
 		std::cout << "\n--- Calling printGraphStats ---\n";
-		m_Hist_edgeSourceNodeCount[gInd] = new uint  [m_HistEdgeMaxNodesSize[gInd] +1](); /* Arr13 */
-		m_Hist_edgeTargetNodeCount[gInd] = new uint  [m_HistEdgeMaxNodesSize[gInd] +1](); /* Arr14 */
-		m_Hist_edgeTotNodeCount   [gInd] = new uint  [m_HistEdgeMaxNodesSize[gInd] +1](); /* Arr15 */
+		m_DebugHist[gInd].edge.sourceNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr13 */
+		m_DebugHist[gInd].edge.targetNodeCount = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr14 */
+		m_DebugHist[gInd].edge.totalNodeCount  = new uint  [m_DebugHist[gInd].edge.maxNodesSize +1](); /* Arr15 */
 
-		m_Hist_nodePrevCount      [gInd] = new uint  [m_HistNodeMaxEdgesSize[gInd] +1](); /* Arr16 */
-		m_Hist_nodeNextCount      [gInd] = new uint  [m_HistNodeMaxEdgesSize[gInd] +1](); /* Arr17 */
-		m_Hist_nodeTotalCount     [gInd] = new uint  [m_HistNodeMaxEdgesSize[gInd] +1](); /* Arr18 */
-		m_Hist_nodeIOCounts       [gInd] = new uint  [m_HistNodeMaxEdgesSize[gInd] +1](); /* Arr19 */
+		m_DebugHist[gInd].node.prevCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr16 */
+		m_DebugHist[gInd].node.nextCount   = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr17 */
+		m_DebugHist[gInd].node.totalCount  = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr18 */
+		m_DebugHist[gInd].node.ioTagCounts = new uint  [m_DebugHist[gInd].node.maxEdgesSize +1](); /* Arr19 */
 
 
     	printGraphStats(    // Node Args
@@ -569,16 +576,8 @@ void printGraphStatsConn()
 								// m_Edge_NodeStartTargetsStart[gInd],
 								m_Edge_NodeStartTargetsNum[gInd],
 
-								m_HistEdgeMaxNodesSize[gInd],
-								m_Hist_edgeSourceNodeCount[gInd],
-								m_Hist_edgeTargetNodeCount[gInd],
-								m_Hist_edgeTotNodeCount[gInd],
-
-								m_HistNodeMaxEdgesSize[gInd],
-								m_Hist_nodePrevCount  [gInd],
-								m_Hist_nodeNextCount  [gInd],
-								m_Hist_nodeTotalCount [gInd],
-								m_Hist_nodeIOCounts   [gInd] );
+								/* Pass the entire debug histogram struct */
+								m_DebugHist[gInd] );
 			std::cout << "--- Finished printGraphStats ---\n";
 	 }
 	/*-------------------------------------------------------------------------------------------*/
@@ -633,14 +632,14 @@ void printGraphStatsConn()
 
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
-		delete [] m_Hist_edgeSourceNodeCount[gInd];
-		delete [] m_Hist_edgeTargetNodeCount[gInd];
-		delete [] m_Hist_edgeTotNodeCount[gInd];
+		delete [] m_DebugHist[gInd].edge.sourceNodeCount;
+		delete [] m_DebugHist[gInd].edge.targetNodeCount;
+		delete [] m_DebugHist[gInd].edge.totalNodeCount;
 
-		delete [] m_Hist_nodePrevCount[gInd];
-		delete [] m_Hist_nodeNextCount[gInd];
-		delete [] m_Hist_nodeTotalCount[gInd];
-		delete [] m_Hist_nodeIOCounts[gInd];
+		delete [] m_DebugHist[gInd].node.prevCount;
+		delete [] m_DebugHist[gInd].node.nextCount;
+		delete [] m_DebugHist[gInd].node.totalCount;
+		delete [] m_DebugHist[gInd].node.ioTagCounts;
 	}
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -766,7 +765,7 @@ int main(int argc, char* argv[])
 		}
 		/*-------------------------------------------------------------------------------------------*/
 
-		m_HistNodeMaxEdgesSize[gInd] = 0; /* Debug host varible for histo on CPU */
+		m_DebugHist[gInd].node.maxEdgesSize = 0; /* Debug host varible for histo on CPU */
 
 		/*-------------------------------------------------------------------------------------------*/
 		/* A1] Loop over all nodes and complete the locations of where each needs to read its "next" and "prev" from using a running sum */
@@ -786,9 +785,9 @@ int main(int argc, char* argv[])
 			m_Node_TotEdges            [gInd][n] = m_Node_EdgeStartPrevsNum[gInd][n] + m_Node_EdgeStartNextsNum [gInd] [n]; /* Total Counter for easy hashing */
 
 			/* Debug For host binning stats find the node with the most edges */
-			if ( (m_Node_EdgeStartPrevsNum [gInd] [n] + m_Node_EdgeStartNextsNum [gInd] [n])> m_HistNodeMaxEdgesSize[gInd])
+			if ( (m_Node_EdgeStartPrevsNum [gInd] [n] + m_Node_EdgeStartNextsNum [gInd] [n])> m_DebugHist[gInd].node.maxEdgesSize)
 			{
-				m_HistNodeMaxEdgesSize[gInd] = m_Node_EdgeStartPrevsNum [gInd] [n] + m_Node_EdgeStartNextsNum [gInd] [n];
+				m_DebugHist[gInd].node.maxEdgesSize = m_Node_EdgeStartPrevsNum [gInd] [n] + m_Node_EdgeStartNextsNum [gInd] [n];
 			}
 		}
 		cout<<" EdgeSourceCSR: "<<m_EdgeNodesSourceSize[gInd]<<"  EdgeTargetCSR: "<<m_edgeNodesTargetSize[gInd]
@@ -862,7 +861,7 @@ int main(int argc, char* argv[])
 
 		int DEBUGedgeCounterSources ={}, DEBUGedgeCounterTargets={}; /* Local Counter but also used as DEBUG to check counters match */
 
-		 m_HistEdgeMaxNodesSize[gInd] =0;
+		 m_DebugHist[gInd].edge.maxNodesSize =0;
 		/* B1] Loop over sorted edges */
 		for (uint e=0;e<m_numEdges[gInd];e++)
 		{
@@ -904,9 +903,9 @@ int main(int argc, char* argv[])
 
 			m_Edge_TotNodes          [gInd][e] = m_Edge_NodeStartSourcesNum  [gInd][e] + m_Edge_NodeStartTargetsNum[gInd][e] ;
 
-			if ( (IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size() )> m_HistEdgeMaxNodesSize[gInd])
+			if ( (IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size() )> m_DebugHist[gInd].edge.maxNodesSize)
 			{
-				m_HistEdgeMaxNodesSize[gInd] = IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size();
+				m_DebugHist[gInd].edge.maxNodesSize = IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size();
 			}
 
 		}

@@ -359,6 +359,193 @@ static inline void DeallocateGPUGraphData(GPUGraphData& gpuData)
 	delete[] gpuData.edgeData.nodesTargets;
 }
 
+/* Compute compact array metadata (A0 + A1 + A2 phases)
+ * Counts edge nodes, computes CSR offsets, and assigns IO tags
+ * Returns the computed sizes needed for allocation
+ */
+static inline void ComputeCompactArrayMetadata(
+	int gInd,
+	const InputGraph& graph,
+	GPUGraphData& gpuData)
+{
+	/* A0] Count edge nodes to determine CSR array sizes */
+	for (uint e = 0; e < gpuData.edgeData.numEdges; e++)
+	{
+		/* Each edge will increment its source nodes as a Next */
+		for (uint i = 0; i < graph.edges.at(e).sourceNodes.size(); i++)
+		{
+			/* Primary: Number of source nodes  */
+			gpuData.edgeData.edgeNodesSourceSize++;
+
+			/* Secondary: NodeCompactList Inc the Node counter also */
+			gpuData.nodeData.edgeStartNextsNum[graph.edges.at(e).sourceNodes.at(i)]++;
+		}
+
+		/* Each edge will increment its target nodes as a Prev */
+		for (uint i = 0; i < graph.edges.at(e).targetNodes.size(); i++)
+		{
+			gpuData.edgeData.edgeNodesTargetSize++;
+
+			gpuData.nodeData.edgeStartPrevsNum[graph.edges.at(e).targetNodes.at(i)]++;
+		}
+	}
+
+	/* A1] Compute CSR offsets and total edges per node using prefix sum */
+	for (uint n = 0; n < gpuData.nodeData.numNodes; n++)
+	{
+		gpuData.nodeData.labelIndex[n] = graph.nodeLabelIndex.at(n);
+
+		/* Compact Array of node Prevs Start */
+		gpuData.nodeData.edgeStartPrevsStart[n] = gpuData.nodeData.nodeEdgesPrevsSize;
+		/* Compact Array of node Prevs Size */
+		gpuData.nodeData.nodeEdgesPrevsSize += gpuData.nodeData.edgeStartPrevsNum[n];
+
+		/* Next Array */
+		gpuData.nodeData.edgeStartNextsStart[n] = gpuData.nodeData.nodeEdgesNextsSize;
+		gpuData.nodeData.nodeEdgesNextsSize += gpuData.nodeData.edgeStartNextsNum[n];
+
+		gpuData.nodeData.totalEdges[n] = gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n];
+
+		/* Debug: track max edges for histogram binning */
+		if ((gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n]) > m_DebugHist[gInd].node.maxEdgesSize)
+		{
+			m_DebugHist[gInd].node.maxEdgesSize = gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n];
+		}
+	}
+
+	/* A2] Assign IO tags for global input/output nodes */
+	for (uint n = 0; n < graph.globalInputs.size(); n++)
+	{
+		gpuData.nodeData.ioTags[graph.globalInputs.at(n)] = 1;
+	}
+
+	for (uint n = 0; n < graph.globalOutputs.size(); n++)
+	{
+		if (gpuData.nodeData.ioTags[graph.globalOutputs.at(n)] == 0)
+		{
+			gpuData.nodeData.ioTags[graph.globalOutputs.at(n)] = 2;
+		}
+		else if (gpuData.nodeData.ioTags[graph.globalOutputs.at(n)] == 1)
+		{
+			gpuData.nodeData.ioTags[graph.globalOutputs.at(n)] = 3;
+		}
+		else
+		{
+			gpuData.nodeData.ioTags[graph.globalOutputs.at(n)]++;
+			cout << "ERROR NodeID: " << graph.globalOutputs.at(n) 
+			     << " LabelIndex: " << gpuData.nodeData.labelIndex[graph.globalOutputs.at(n)]
+			     << " Label: " << graph.nodeLabelsDB.at(gpuData.nodeData.labelIndex[graph.globalOutputs.at(n)]) << endl;
+		}
+	}
+}
+
+/* Allocate and populate compact CSR arrays (B phase)
+ * Takes computed sizes from ComputeCompactArrayMetadata as parameters
+ * Populates all edge-node and node-edge relationship arrays
+ */
+static inline void AllocateAndPopulateCompactArrays(
+	int gInd,
+	const InputGraph& graph,
+	GPUGraphData& gpuData,
+	GPUGraphData gpuGraphs[2])
+{
+	/* Allocate node and edge CSR arrays using pre-computed sizes */
+	gpuData.nodeData.edgePrevs = new uint[gpuData.nodeData.nodeEdgesPrevsSize]();
+	gpuData.nodeData.edgeNexts = new uint[gpuData.nodeData.nodeEdgesNextsSize]();
+	gpuData.nodeData.edgePrevsPort = new int[gpuData.nodeData.nodeEdgesPrevsSize]();
+	gpuData.nodeData.edgeNextsPort = new int[gpuData.nodeData.nodeEdgesNextsSize]();
+
+	std::fill_n(gpuData.nodeData.edgeNextsPort, gpuData.nodeData.nodeEdgesNextsSize, -1);
+	std::fill_n(gpuData.nodeData.edgePrevsPort, gpuData.nodeData.nodeEdgesPrevsSize, -1);
+
+	/* Allocate edge arrays */
+	gpuData.edgeData.nodesSources = new uint[gpuData.edgeData.edgeNodesSourceSize]();
+	gpuData.edgeData.nodesTargets = new uint[gpuData.edgeData.edgeNodesTargetSize]();
+
+	uint *DEBUGnode_CountSources = new uint[gpuData.nodeData.numNodes]();
+	uint *DEBUGnode_CountTargets = new uint[gpuData.nodeData.numNodes]();
+
+	/* Create array pointers for ProcessEdgeNodes compatibility */
+	uint* nodeEdgeNextsArray[2] = {gpuGraphs[0].nodeData.edgeNexts, gpuGraphs[1].nodeData.edgeNexts};
+	int* nodeEdgeNextsPortArray[2] = {gpuGraphs[0].nodeData.edgeNextsPort, gpuGraphs[1].nodeData.edgeNextsPort};
+	uint* nodeEdgePrevsArray[2] = {gpuGraphs[0].nodeData.edgePrevs, gpuGraphs[1].nodeData.edgePrevs};
+	int* nodeEdgePrevsPortArray[2] = {gpuGraphs[0].nodeData.edgePrevsPort, gpuGraphs[1].nodeData.edgePrevsPort};
+	int* nodeNextsFirstEdgeArray[2] = {gpuGraphs[0].nodeData.nextsFirstEdge, gpuGraphs[1].nodeData.nextsFirstEdge};
+	int* nodePrevsFirstEdgeArray[2] = {gpuGraphs[0].nodeData.prevsFirstEdge, gpuGraphs[1].nodeData.prevsFirstEdge};
+
+	int DEBUGedgeCounterSources = 0, DEBUGedgeCounterTargets = 0;
+	m_DebugHist[gInd].edge.maxNodesSize = 0;
+
+	/* B1] Loop over sorted edges and populate CSR arrays */
+	for (uint e = 0; e < gpuData.edgeData.numEdges; e++)
+	{
+		gpuData.edgeData.labelIndex[e] = graph.edges.at(e).labelIndex;
+
+		/* 1. Start and Num for Edge Source Nodes */
+		gpuData.edgeData.nodeStartSourcesStart[e] = DEBUGedgeCounterSources;
+		gpuData.edgeData.nodeStartSourcesNum[e] = graph.edges.at(e).sourceNodes.size();
+
+		/* Process source nodes */
+		ProcessEdgeNodes(
+			gInd, e,
+			graph.edges.at(e).sourceNodes,
+			gpuData.edgeData.nodesSources,
+			DEBUGedgeCounterSources,
+			nodeEdgeNextsArray,
+			nodeEdgeNextsPortArray,
+			DEBUGnode_CountTargets,
+			nodeNextsFirstEdgeArray,
+			graph.edges.at(e).labelIndex
+		);
+
+		/* 2. Start and Num for Edge Target Nodes */
+		gpuData.edgeData.nodeStartTargetsStart[e] = DEBUGedgeCounterTargets;
+		gpuData.edgeData.nodeStartTargetsNum[e] = graph.edges.at(e).targetNodes.size();
+
+		/* Process target nodes */
+		ProcessEdgeNodes(
+			gInd, e,
+			graph.edges.at(e).targetNodes,
+			gpuData.edgeData.nodesTargets,
+			DEBUGedgeCounterTargets,
+			nodeEdgePrevsArray,
+			nodeEdgePrevsPortArray,
+			DEBUGnode_CountSources,
+			nodePrevsFirstEdgeArray,
+			graph.edges.at(e).labelIndex
+		);
+
+		gpuData.edgeData.totalNodes[e] = gpuData.edgeData.nodeStartSourcesNum[e] + gpuData.edgeData.nodeStartTargetsNum[e];
+
+		if ((graph.edges.at(e).sourceNodes.size() + graph.edges.at(e).targetNodes.size()) > m_DebugHist[gInd].edge.maxNodesSize)
+		{
+			m_DebugHist[gInd].edge.maxNodesSize = graph.edges.at(e).sourceNodes.size() + graph.edges.at(e).targetNodes.size();
+		}
+	}
+
+	cout << " DEBUG: EdgeSourceCountCSR " << DEBUGedgeCounterSources << " EdgeTargetCountCSR " << DEBUGedgeCounterTargets << endl;
+
+	/* Error Checking */
+	for (uint n = 0; n < gpuData.nodeData.numNodes; n++)
+	{
+		if (gpuData.nodeData.edgeStartPrevsNum[n] != DEBUGnode_CountSources[n])
+		{
+			cout << n << " Error SourceNodeEdgeMapping Got " << DEBUGnode_CountSources[n]
+			     << " Expected " << gpuData.nodeData.edgeStartPrevsNum[n] << endl;
+		}
+
+		if (gpuData.nodeData.edgeStartNextsNum[n] != DEBUGnode_CountTargets[n])
+		{
+			cout << n << " Error TargetNodeEdgeMapping Got " << DEBUGnode_CountTargets[n]
+			     << " Expected " << gpuData.nodeData.edgeStartNextsNum[n] << endl;
+		}
+	}
+
+	/* Cleanup temp counter arrays */
+	delete[] DEBUGnode_CountSources;
+	delete[] DEBUGnode_CountTargets;
+}
+
 /* Allocate histogram arrays for debug statistics */
 static inline void AllocateDebugHistograms(DebugHistogram& debugHist)
 {
@@ -838,185 +1025,15 @@ int main(int argc, char* argv[])
 		InitializeGPUGraphData(gInd, IO_graphs[gInd], gpuGraphs[gInd]);
 		m_DebugHist[gInd].node.maxEdgesSize = 0; /* Debug host variable for histo on CPU */
 
-		/* A0] Count edge nodes to determine CSR array sizes */
-		for (uint e=0; e<gpuGraphs[gInd].edgeData.numEdges; e++)
-		{
-			/* Each edge will increment its source nodes as a Next */
-			for(uint i=0; i<IO_graphs[gInd].edges.at(e).sourceNodes.size(); i++)
-			{
-				/* Primary: Number of source nodes  */
-				gpuGraphs[gInd].edgeData.edgeNodesSourceSize++;
+		/* Compute metadata: edge counts, CSR offsets, and IO tags (A0 + A1 + A2) */
+		ComputeCompactArrayMetadata(gInd, IO_graphs[gInd], gpuGraphs[gInd]);
 
-				/* Secondary: NodeCompactList Inc the Node counter also */
-				gpuGraphs[gInd].nodeData.edgeStartNextsNum[IO_graphs[gInd].edges.at(e).sourceNodes.at(i)]++;
-			}
-
-			/* Each edge will increment its target nodes as a Prev */
-			for(uint i=0; i<IO_graphs[gInd].edges.at(e).targetNodes.size(); i++)
-			{
-				gpuGraphs[gInd].edgeData.edgeNodesTargetSize++;
-
-				gpuGraphs[gInd].nodeData.edgeStartPrevsNum[IO_graphs[gInd].edges.at(e).targetNodes.at(i)]++;
-			}
-		}
-
-		/*-------------------------------------------------------------------------------------------*/
-		/* A1] Loop over all nodes and complete the locations of where each needs to read its "next" and "prev" from using a running sum */
-		for (uint n=0; n<gpuGraphs[gInd].nodeData.numNodes; n++)
-		{
-			gpuGraphs[gInd].nodeData.labelIndex[n] = IO_graphs[gInd].nodeLabelIndex.at(n);
-
-			/* Compact Array of node Prevs Start */
-			gpuGraphs[gInd].nodeData.edgeStartPrevsStart[n] = gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize;
-			/* Compact Array of node Prevs Size */
-			gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize += gpuGraphs[gInd].nodeData.edgeStartPrevsNum[n];
-
-			/* Next Array*/
-			gpuGraphs[gInd].nodeData.edgeStartNextsStart[n] = gpuGraphs[gInd].nodeData.nodeEdgesNextsSize;
-			gpuGraphs[gInd].nodeData.nodeEdgesNextsSize += gpuGraphs[gInd].nodeData.edgeStartNextsNum[n];
-
-			gpuGraphs[gInd].nodeData.totalEdges[n] = gpuGraphs[gInd].nodeData.edgeStartPrevsNum[n] + gpuGraphs[gInd].nodeData.edgeStartNextsNum[n];
-
-			/* Debug For host binning stats find the node with the most edges */
-			if ((gpuGraphs[gInd].nodeData.edgeStartPrevsNum[n] + gpuGraphs[gInd].nodeData.edgeStartNextsNum[n]) > m_DebugHist[gInd].node.maxEdgesSize)
-			{
-				m_DebugHist[gInd].node.maxEdgesSize = gpuGraphs[gInd].nodeData.edgeStartPrevsNum[n] + gpuGraphs[gInd].nodeData.edgeStartNextsNum[n];
-			}
-		}
 		cout<<" EdgeSourceCSR: "<<gpuGraphs[gInd].edgeData.edgeNodesSourceSize<<"  EdgeTargetCSR: "<<gpuGraphs[gInd].edgeData.edgeNodesTargetSize
 			<<" NodePrevsCSR:  "<<gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize <<"  NodeNextsCSR:  "<<gpuGraphs[gInd].nodeData.nodeEdgesNextsSize<<endl;
 
-
-		/*-------------------------------------------------------------------------------------------*/
-		/* A2 IO Tag sent node status */
-		for (uint n=0; n<IO_graphs[gInd].globalInputs.size(); n++)
-		{
-			gpuGraphs[gInd].nodeData.ioTags[IO_graphs[gInd].globalInputs.at(n)] = 1;
-		}
-
-		for (uint n=0; n<IO_graphs[gInd].globalOutputs.size(); n++)
-	    {
-		  if(gpuGraphs[gInd].nodeData.ioTags[IO_graphs[gInd].globalOutputs.at(n)]==0)
-		  {
-		    gpuGraphs[gInd].nodeData.ioTags[IO_graphs[gInd].globalOutputs.at(n)] = 2;
-		  }
-		  else if(gpuGraphs[gInd].nodeData.ioTags[IO_graphs[gInd].globalOutputs.at(n)]==1)
-		  {
-			  gpuGraphs[gInd].nodeData.ioTags[IO_graphs[gInd].globalOutputs.at(n)]=3;
-		  }
-		  else
-		  {
-			 gpuGraphs[gInd].nodeData.ioTags[IO_graphs[gInd].globalOutputs.at(n)]++;
-			 cout<<"ERROR NodeID: "<<IO_graphs[gInd].globalOutputs.at(n)<<" LabelIndex: "<<gpuGraphs[gInd].nodeData.labelIndex[IO_graphs[gInd].globalOutputs.at(n)]
-																 <<" Label: "<< IO_graphs[gInd].nodeLabelsDB.at(gpuGraphs[gInd].nodeData.labelIndex[IO_graphs[gInd].globalOutputs.at(n)])<<endl;
-		  }
-		}
-		/*-------------------------------------------------------------------------------------------*/
-
-
-
-		/*-------------------------------------------------------------------------------------------*/
-		/* B] Populate compact list for edges and nodes by looping over edges   */
+		/* Allocate and populate compact arrays using computed metadata (B phase) */
 		cout<<" Create Edge Compact Arrays " <<gInd<<endl;
-
-		/*-------------------------------------------------------------------------------------------*/
-		/* Allocate node and edge CSR arrays */
-		gpuGraphs[gInd].nodeData.edgePrevs = new uint[gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize]();
-		gpuGraphs[gInd].nodeData.edgeNexts = new uint[gpuGraphs[gInd].nodeData.nodeEdgesNextsSize]();
-		gpuGraphs[gInd].nodeData.edgePrevsPort = new int[gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize]();
-		gpuGraphs[gInd].nodeData.edgeNextsPort = new int[gpuGraphs[gInd].nodeData.nodeEdgesNextsSize]();
-
-		std::fill_n(gpuGraphs[gInd].nodeData.edgeNextsPort, gpuGraphs[gInd].nodeData.nodeEdgesNextsSize, -1);
-		std::fill_n(gpuGraphs[gInd].nodeData.edgePrevsPort, gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize, -1);
-
-		/* Allocate edge arrays */
-		gpuGraphs[gInd].edgeData.nodesSources = new uint[gpuGraphs[gInd].edgeData.edgeNodesSourceSize]();
-		gpuGraphs[gInd].edgeData.nodesTargets = new uint[gpuGraphs[gInd].edgeData.edgeNodesTargetSize]();
-
-		uint *DEBUGnode_CountSources = new uint [gpuGraphs[gInd].nodeData.numNodes](); /* Arr 22] */
-		uint *DEBUGnode_CountTargets = new uint [gpuGraphs[gInd].nodeData.numNodes](); /* Arr 23] */
-
-		/* Create array pointers for ProcessEdgeNodes */
-		uint* nodeEdgeNextsArray[2] = {gpuGraphs[0].nodeData.edgeNexts, gpuGraphs[1].nodeData.edgeNexts};
-		int* nodeEdgeNextsPortArray[2] = {gpuGraphs[0].nodeData.edgeNextsPort, gpuGraphs[1].nodeData.edgeNextsPort};
-		uint* nodeEdgePrevsArray[2] = {gpuGraphs[0].nodeData.edgePrevs, gpuGraphs[1].nodeData.edgePrevs};
-		int* nodeEdgePrevsPortArray[2] = {gpuGraphs[0].nodeData.edgePrevsPort, gpuGraphs[1].nodeData.edgePrevsPort};
-		int* nodeNextsFirstEdgeArray[2] = {gpuGraphs[0].nodeData.nextsFirstEdge, gpuGraphs[1].nodeData.nextsFirstEdge};
-		int* nodePrevsFirstEdgeArray[2] = {gpuGraphs[0].nodeData.prevsFirstEdge, gpuGraphs[1].nodeData.prevsFirstEdge};
-		/*-------------------------------------------------------------------------------------------*/
-
-		int DEBUGedgeCounterSources = 0, DEBUGedgeCounterTargets = 0;
-		m_DebugHist[gInd].edge.maxNodesSize = 0;
-
-		/* B1] Loop over sorted edges */
-		for (uint e=0; e<gpuGraphs[gInd].edgeData.numEdges; e++)
-		{
-			gpuGraphs[gInd].edgeData.labelIndex[e] = IO_graphs[gInd].edges.at(e).labelIndex;
-
-			/* 1. Start and Num for Edge Source Nodes */
-			gpuGraphs[gInd].edgeData.nodeStartSourcesStart[e] = DEBUGedgeCounterSources;
-			gpuGraphs[gInd].edgeData.nodeStartSourcesNum[e] = IO_graphs[gInd].edges.at(e).sourceNodes.size();
-
-			/* Process source nodes */
-			ProcessEdgeNodes(
-				gInd, e,
-				IO_graphs[gInd].edges.at(e).sourceNodes,
-				gpuGraphs[gInd].edgeData.nodesSources,
-				DEBUGedgeCounterSources,
-				nodeEdgeNextsArray,
-				nodeEdgeNextsPortArray,
-				DEBUGnode_CountTargets,
-				nodeNextsFirstEdgeArray,
-				IO_graphs[gInd].edges.at(e).labelIndex
-			);
-
-			/* 2. Start and Num for Edge Target Nodes */
-			gpuGraphs[gInd].edgeData.nodeStartTargetsStart[e] = DEBUGedgeCounterTargets;
-			gpuGraphs[gInd].edgeData.nodeStartTargetsNum[e] = IO_graphs[gInd].edges.at(e).targetNodes.size();
-
-			/* Process target nodes */
-			ProcessEdgeNodes(
-				gInd, e,
-				IO_graphs[gInd].edges.at(e).targetNodes,
-				gpuGraphs[gInd].edgeData.nodesTargets,
-				DEBUGedgeCounterTargets,
-				nodeEdgePrevsArray,
-				nodeEdgePrevsPortArray,
-				DEBUGnode_CountSources,
-				nodePrevsFirstEdgeArray,
-				IO_graphs[gInd].edges.at(e).labelIndex
-			);
-
-			gpuGraphs[gInd].edgeData.totalNodes[e] = gpuGraphs[gInd].edgeData.nodeStartSourcesNum[e] + gpuGraphs[gInd].edgeData.nodeStartTargetsNum[e];
-
-			if ((IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size()) > m_DebugHist[gInd].edge.maxNodesSize)
-			{
-				m_DebugHist[gInd].edge.maxNodesSize = IO_graphs[gInd].edges.at(e).sourceNodes.size() + IO_graphs[gInd].edges.at(e).targetNodes.size();
-			}
-		}
-		cout<<" DEBUG: EdgeSourceCountCSR "<<DEBUGedgeCounterSources<<" EdgeTargetCountCSR "<<DEBUGedgeCounterTargets<<endl;
-
-
-
-		/*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
-		                                  /* Error Checking  */
-		for (uint n=0; n<gpuGraphs[gInd].nodeData.numNodes; n++)
-		{
-			if(gpuGraphs[gInd].nodeData.edgeStartPrevsNum[n] != DEBUGnode_CountSources[n])
-			{
-				cout<<n<<" Error SourceNodeEdgeMapping Got "<<DEBUGnode_CountSources[n]<<" Expected "<<gpuGraphs[gInd].nodeData.edgeStartPrevsNum[n] <<endl;
-			}
-
-			if(gpuGraphs[gInd].nodeData.edgeStartNextsNum[n] != DEBUGnode_CountTargets[n])
-			{
-				cout<<n<<" Error TargetNodeEdgeMapping Got "<<DEBUGnode_CountTargets[n]<<" Expected "<<gpuGraphs[gInd].nodeData.edgeStartNextsNum[n] <<endl;
-			}
-		}
-		/*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
-
-		/* Temp CounterArrays */
-		delete [] DEBUGnode_CountSources;
-		delete [] DEBUGnode_CountTargets;
+		AllocateAndPopulateCompactArrays(gInd, IO_graphs[gInd], gpuGraphs[gInd], gpuGraphs);
     }
 	auto end_compact = std::chrono::high_resolution_clock::now();
 	auto compact_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_compact - start_compact).count();

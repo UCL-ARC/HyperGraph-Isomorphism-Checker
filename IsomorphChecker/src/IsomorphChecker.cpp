@@ -23,6 +23,18 @@ string defaultFile2 = "../Input/DrugBLarge.json";
 
 /* XML Reader for C++ */
 using json = nlohmann::json;
+
+/**
+ * @brief Structure representing a hyperedge in the input graph.
+ * 
+ * A hyperedge connects multiple source nodes to multiple target nodes and has a label.
+ * Think of them as a function with multiple inputs and outputs. For example, a hyperedge
+ * f(x, y) -> (z1, z2) takes inputs x and y and produces outputs z1 and z2.
+ * 
+ * @member labelIndex Index of the hyperedge label in the edge labels database. 'f' in the example above.
+ * @member sourceNodes Vector of source node indices (inputs). 'x' and 'y' in the example above.
+ * @member targetNodes Vector of target node indices (outputs). 'z1' and 'z2' in the example above.
+ */
 struct IO_hyperEdge
 {
 	int labelIndex;
@@ -31,8 +43,21 @@ struct IO_hyperEdge
 };
 
 
-/* Comparator for hyperedges used in multiple sorts */
-namespace {
+/**
+ * @brief Comparator for hyperedges using multi-level sort criteria.
+ * 
+ * Sorts hyperedges by:
+ * 1. Number of source nodes (ascending)
+ * 2. Number of target nodes (ascending)
+ * 3. Total node count (ascending)
+ * 4. Label index (ascending)
+ * 
+ * This ordering is used consistently throughout the codebase for deterministic edge sorting.
+ * 
+ * @param a First hyperedge to compare
+ * @param b Second hyperedge to compare
+ * @return true if a should come before b in sorted order, false otherwise
+ */
 static inline bool HyperEdgeLess(const IO_hyperEdge& a, const IO_hyperEdge& b)
 {
 	// Compute totals once
@@ -60,14 +85,24 @@ static inline bool HyperEdgeLess(const IO_hyperEdge& a, const IO_hyperEdge& b)
 	// Finally by label index
 	return a.labelIndex < b.labelIndex;
 }
-} // anonymous namespace
 
 
 
 
-/*-------------------------------------------------------------------------------------------------------------------*/
-/* Input Graph Structure - encapsulates all IO data for a single graph */
-/*-------------------------------------------------------------------------------------------------------------------*/
+/**
+ * @brief Container for all input graph data from JSON parsing.
+ * 
+ * Organizes a complete hypergraph representation including node labels, edge definitions,
+ * and global input/output node designations. This structure serves as the intermediate
+ * representation between JSON file parsing and GPU data marshaling.
+ * 
+ * @member nodeLabelsDB Database of unique node label strings
+ * @member nodeLabelIndex Label index assigned to each node
+ * @member edgeLabelsDB Database of unique edge label strings
+ * @member edges Vector of hyperedges (each can connect multiple source/target nodes)
+ * @member globalInputs Node IDs designated as graph inputs
+ * @member globalOutputs Node IDs designated as graph outputs
+ */
 struct InputGraph
 {
 	std::vector<std::string>  nodeLabelsDB;      /* Unique node labels */
@@ -83,8 +118,6 @@ struct InputGraph
 	std::vector<uint>         globalOutputs;     /* Global output node IDs */
 };
 
-/* Graph Details [2] means we will store 2 graphs can be made to as many as needed */
-/* MOVED: InputGraph IO_graphs[2]; is now declared locally in main() */
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 

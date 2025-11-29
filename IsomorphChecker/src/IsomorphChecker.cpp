@@ -192,25 +192,25 @@ static inline void TransferGraphToGPU(const GPUGraphData& gpuData)
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 /* Debug helper: builds a permutation index for edges and prints the mapping.
- * NOTE: If called after IO_edges[gInd] is sorted, permutation will be identity.
+ * NOTE: If called after graph edges are sorted, permutation will be identity.
  * To get original->sorted positions, invoke before sorting or capture the original order. */
-static void DebugEdgeIndexMapping(int gInd, const InputGraph* graphs, uint** edgeLabelIndexOrg)
+static void DebugEdgeIndexMapping(const InputGraph& graph, uint*& edgeLabelIndexOrg)
 {
-	uint numEdgesS = graphs[gInd].edges.size();
+	uint numEdgesS = graph.edges.size();
 	printf(" EdgeSortIndex %u \n", numEdgesS);
 
 	// Allocate index array (identity permutation)
-	edgeLabelIndexOrg[gInd] = new uint[numEdgesS]();
+	edgeLabelIndexOrg = new uint[numEdgesS]();
 	for (uint i = 0; i < numEdgesS; ++i)
 	{
-		edgeLabelIndexOrg[gInd][i] = i;
+		edgeLabelIndexOrg[i] = i;
 	}
 
 	// Sort the index array using the same comparator (redundant post edge sort)
-	const auto& edges_to_compare = graphs[gInd].edges;
+	const auto& edges_to_compare = graph.edges;
 	std::sort(
-		edgeLabelIndexOrg[gInd],
-		edgeLabelIndexOrg[gInd] + numEdgesS,
+		edgeLabelIndexOrg,
+		edgeLabelIndexOrg + numEdgesS,
 		[&edges_to_compare](uint ia, uint ib)
 		{
 			return HyperEdgeLess(edges_to_compare[ia], edges_to_compare[ib]);
@@ -220,7 +220,7 @@ static void DebugEdgeIndexMapping(int gInd, const InputGraph* graphs, uint** edg
 	// Print mapping
 	for (uint i = 0; i < numEdgesS; ++i)
 	{
-		printf(" %u EdgeLabMap %u \n", i, edgeLabelIndexOrg[gInd][i]);
+		printf(" %u EdgeLabMap %u \n", i, edgeLabelIndexOrg[i]);
 	}
 }
 
@@ -622,7 +622,7 @@ static inline void SortGraphEdges(InputGraph* graphs, uint** edgeLabelIndexOrg)
 		/*-------------------------------------------------------------------------------------------*/
 
 	    /* Debug edge index mapping */
-		if (debugSort) DebugEdgeIndexMapping(gInd, graphs, edgeLabelIndexOrg);
+		if (debugSort) DebugEdgeIndexMapping(graphs[gInd], edgeLabelIndexOrg[gInd]);
 	}
 }
 /*-------------------------------------------------------------------------------------------------------------------*/

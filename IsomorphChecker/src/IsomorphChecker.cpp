@@ -114,8 +114,6 @@ struct DebugHistogram
 	NodeHistogram node;
 };
 
-/* Debug histograms [2] for two graphs */
-DebugHistogram m_DebugHist[2] = {};
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 
@@ -124,12 +122,6 @@ DebugHistogram m_DebugHist[2] = {};
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* GPU Data Transfer Structures - organize node and edge data for GPU initialization */
 /*-------------------------------------------------------------------------------------------------------------------*/
-
-/* Maximum nodes per edge (used for GPU kernel constraints) */
-uint MaxNodesPerEdge = 0;
-
-/* Unsorted edge label index mapping for debugging */
-uint  *m_Edge_LabelDBIndexOrg[2] = {};
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 struct GPUNodeData
@@ -202,23 +194,23 @@ static inline void TransferGraphToGPU(const GPUGraphData& gpuData)
 /* Debug helper: builds a permutation index for edges and prints the mapping.
  * NOTE: If called after IO_edges[gInd] is sorted, permutation will be identity.
  * To get original->sorted positions, invoke before sorting or capture the original order. */
-static void DebugEdgeIndexMapping(int gInd, const InputGraph* graphs)
+static void DebugEdgeIndexMapping(int gInd, const InputGraph* graphs, uint** edgeLabelIndexOrg)
 {
 	uint numEdgesS = graphs[gInd].edges.size();
 	printf(" EdgeSortIndex %u \n", numEdgesS);
 
 	// Allocate index array (identity permutation)
-	m_Edge_LabelDBIndexOrg[gInd] = new uint[numEdgesS]();
+	edgeLabelIndexOrg[gInd] = new uint[numEdgesS]();
 	for (uint i = 0; i < numEdgesS; ++i)
 	{
-		m_Edge_LabelDBIndexOrg[gInd][i] = i;
+		edgeLabelIndexOrg[gInd][i] = i;
 	}
 
 	// Sort the index array using the same comparator (redundant post edge sort)
 	const auto& edges_to_compare = graphs[gInd].edges;
 	std::sort(
-		m_Edge_LabelDBIndexOrg[gInd],
-		m_Edge_LabelDBIndexOrg[gInd] + numEdgesS,
+		edgeLabelIndexOrg[gInd],
+		edgeLabelIndexOrg[gInd] + numEdgesS,
 		[&edges_to_compare](uint ia, uint ib)
 		{
 			return HyperEdgeLess(edges_to_compare[ia], edges_to_compare[ib]);
@@ -228,7 +220,7 @@ static void DebugEdgeIndexMapping(int gInd, const InputGraph* graphs)
 	// Print mapping
 	for (uint i = 0; i < numEdgesS; ++i)
 	{
-		printf(" %u EdgeLabMap %u \n", i, m_Edge_LabelDBIndexOrg[gInd][i]);
+		printf(" %u EdgeLabMap %u \n", i, edgeLabelIndexOrg[gInd][i]);
 	}
 }
 
@@ -366,7 +358,8 @@ static inline void DeallocateGPUGraphData(GPUGraphData& gpuData)
 static inline void ComputeCompactArrayMetadata(
 	int gInd,
 	const InputGraph& graph,
-	GPUGraphData& gpuData)
+	GPUGraphData& gpuData,
+	DebugHistogram* debugHist)
 {
 	/* A0] Count edge nodes to determine CSR array sizes */
 	for (uint e = 0; e < gpuData.edgeData.numEdges; e++)
@@ -407,9 +400,9 @@ static inline void ComputeCompactArrayMetadata(
 		gpuData.nodeData.totalEdges[n] = gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n];
 
 		/* Debug: track max edges for histogram binning */
-		if ((gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n]) > m_DebugHist[gInd].node.maxEdgesSize)
+		if ((gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n]) > debugHist[gInd].node.maxEdgesSize)
 		{
-			m_DebugHist[gInd].node.maxEdgesSize = gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n];
+			debugHist[gInd].node.maxEdgesSize = gpuData.nodeData.edgeStartPrevsNum[n] + gpuData.nodeData.edgeStartNextsNum[n];
 		}
 	}
 
@@ -447,7 +440,8 @@ static inline void AllocateAndPopulateCompactArrays(
 	int gInd,
 	const InputGraph& graph,
 	GPUGraphData& gpuData,
-	GPUGraphData gpuGraphs[2])
+	GPUGraphData gpuGraphs[2],
+	DebugHistogram* debugHist)
 {
 	/* Allocate node and edge CSR arrays using pre-computed sizes */
 	gpuData.nodeData.edgePrevs = new uint[gpuData.nodeData.nodeEdgesPrevsSize]();
@@ -474,7 +468,7 @@ static inline void AllocateAndPopulateCompactArrays(
 	int* nodePrevsFirstEdgeArray[2] = {gpuGraphs[0].nodeData.prevsFirstEdge, gpuGraphs[1].nodeData.prevsFirstEdge};
 
 	int DEBUGedgeCounterSources = 0, DEBUGedgeCounterTargets = 0;
-	m_DebugHist[gInd].edge.maxNodesSize = 0;
+	debugHist[gInd].edge.maxNodesSize = 0;
 
 	/* B1] Loop over sorted edges and populate CSR arrays */
 	for (uint e = 0; e < gpuData.edgeData.numEdges; e++)
@@ -517,9 +511,9 @@ static inline void AllocateAndPopulateCompactArrays(
 
 		gpuData.edgeData.totalNodes[e] = gpuData.edgeData.nodeStartSourcesNum[e] + gpuData.edgeData.nodeStartTargetsNum[e];
 
-		if ((graph.edges.at(e).sourceNodes.size() + graph.edges.at(e).targetNodes.size()) > m_DebugHist[gInd].edge.maxNodesSize)
+		if ((graph.edges.at(e).sourceNodes.size() + graph.edges.at(e).targetNodes.size()) > debugHist[gInd].edge.maxNodesSize)
 		{
-			m_DebugHist[gInd].edge.maxNodesSize = graph.edges.at(e).sourceNodes.size() + graph.edges.at(e).targetNodes.size();
+			debugHist[gInd].edge.maxNodesSize = graph.edges.at(e).sourceNodes.size() + graph.edges.at(e).targetNodes.size();
 		}
 	}
 
@@ -573,10 +567,10 @@ static inline void DeallocateDebugHistograms(DebugHistogram& debugHist)
 }
 
 /* Forward declarations */
-void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph);
+void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& maxNodesPerEdge);
 
 /* Load input graphs from files */
-static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs)
+static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs, uint& maxNodesPerEdge)
 {
 	string filenames[2];
 	ParseInputFilenames(argc, argv, filenames);
@@ -591,7 +585,7 @@ static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs)
 			std::cerr << "Error: Could not open file " << filenames[gInd] << std::endl;
 			return -1;
 		}
-		parseGraphJSON_global(file_stream, graphs[gInd]);
+		parseGraphJSON_global(file_stream, graphs[gInd], maxNodesPerEdge);
 		file_stream.close();
 
 		std::cout<<" IONodeLabels "<<graphs[gInd].nodeLabelsDB.size()<<" IONodes "<<graphs[gInd].nodeLabelIndex.size()
@@ -608,7 +602,7 @@ static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs)
 }
 
 /* Sort edges in input graphs */
-static inline void SortGraphEdges(InputGraph* graphs)
+static inline void SortGraphEdges(InputGraph* graphs, uint** edgeLabelIndexOrg)
 {
     for (int gInd = 0;gInd<2;gInd++ )
 	{
@@ -628,13 +622,13 @@ static inline void SortGraphEdges(InputGraph* graphs)
 		/*-------------------------------------------------------------------------------------------*/
 
 	    /* Debug edge index mapping */
-		if (debugSort) DebugEdgeIndexMapping(gInd, graphs);
+		if (debugSort) DebugEdgeIndexMapping(gInd, graphs, edgeLabelIndexOrg);
 	}
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* IO Mimic by reading a JSON file and creating the compact lists for node and edges */
 /*-------------------------------------------------------------------------------------------------------------------*/
-void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph)
+void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& maxNodesPerEdge)
 {
 	json j;
 
@@ -712,14 +706,14 @@ void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph)
 			edge.sourceNodes = edge_obj["source_nodes"].get<std::vector<uint>>();
 			edge.targetNodes = edge_obj["target_nodes"].get<std::vector<uint>>();
 
-			if(edge.sourceNodes.size()>MaxNodesPerEdge)
+			if(edge.sourceNodes.size()>maxNodesPerEdge)
 			{
-				MaxNodesPerEdge = edge.sourceNodes.size();
+				maxNodesPerEdge = edge.sourceNodes.size();
 			}
 
-			if(edge.targetNodes.size()>MaxNodesPerEdge)
+			if(edge.targetNodes.size()>maxNodesPerEdge)
 			{
-				MaxNodesPerEdge = edge.targetNodes.size();
+				maxNodesPerEdge = edge.targetNodes.size();
 			}
 
 			graph.edges.push_back(edge);
@@ -897,7 +891,7 @@ void printGraphStats(   // Node Info
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Debug Print Stats Connections*/
 /*-------------------------------------------------------------------------------------------------------------------*/
-void printGraphStatsConn(const InputGraph* graphs, const GPUGraphData* gpuGraphs)
+void printGraphStatsConn(const InputGraph* graphs, const GPUGraphData* gpuGraphs, DebugHistogram* debugHist)
 {
 	bool isIso = true;
 
@@ -905,9 +899,9 @@ void printGraphStatsConn(const InputGraph* graphs, const GPUGraphData* gpuGraphs
 	 /* Construct Histogram */
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
-		std::cout <<" HistMaxEdgeBins "<< m_DebugHist[gInd].edge.maxNodesSize<<" HistMaxNodeBins "<< m_DebugHist[gInd].node.maxEdgesSize<<endl;
+		std::cout <<" HistMaxEdgeBins "<< debugHist[gInd].edge.maxNodesSize<<" HistMaxNodeBins "<< debugHist[gInd].node.maxEdgesSize<<endl;
 		std::cout << "\n--- Calling printGraphStats ---\n";
-		AllocateDebugHistograms(m_DebugHist[gInd]);
+		AllocateDebugHistograms(debugHist[gInd]);
 
 
     	printGraphStats(    // Node Args
@@ -929,7 +923,7 @@ void printGraphStatsConn(const InputGraph* graphs, const GPUGraphData* gpuGraphs
 								gpuGraphs[gInd].edgeData.nodeStartTargetsNum,
 
 								/* Pass the entire debug histogram struct */
-								m_DebugHist[gInd] );
+								debugHist[gInd] );
 			std::cout << "--- Finished printGraphStats ---\n";
 	 }
 	/*-------------------------------------------------------------------------------------------*/
@@ -984,7 +978,7 @@ void printGraphStatsConn(const InputGraph* graphs, const GPUGraphData* gpuGraphs
 
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
-		DeallocateDebugHistograms(m_DebugHist[gInd]);
+		DeallocateDebugHistograms(debugHist[gInd]);
 	}
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -994,28 +988,16 @@ void printGraphStatsConn(const InputGraph* graphs, const GPUGraphData* gpuGraphs
 /*-------------------------------------------------------------------------------------------------------------------*/
 int main(int argc, char* argv[])
 {
-	/* Declare IO graphs locally */
 	InputGraph IO_graphs[2];
-
-	/* Declare GPU data locally - eliminates need for global intermediates */
 	GPUGraphData gpuGraphs[2] = {};
+	DebugHistogram m_DebugHist[2] = {};
+	uint MaxNodesPerEdge = 0;
+	uint* m_Edge_LabelDBIndexOrg[2] = {};
 
-	/*===========================================================================================*/
-	                                   /* _Mimic Input_ */
-	/*===========================================================================================*/
-	auto start_total = std::chrono::high_resolution_clock::now();
-	
-	LoadGraphs(argc, argv, IO_graphs);
-	SortGraphEdges(IO_graphs);
+	auto start_total = std::chrono::high_resolution_clock::now();	
+	LoadGraphs(argc, argv, IO_graphs, MaxNodesPerEdge);
+	SortGraphEdges(IO_graphs, m_Edge_LabelDBIndexOrg);
 
-	/*===========================================================================================*/
-									/* End _Mimic Input_ */
-	/*===========================================================================================*/
-
-
-	/*===========================================================================================*/
-				          /* Create compact arrays and pass to the GPU */
-	/*===========================================================================================*/
 	auto start_compact = std::chrono::high_resolution_clock::now();
      for (int gInd = 0;gInd<2;gInd++ )
 	 {
@@ -1026,14 +1008,14 @@ int main(int argc, char* argv[])
 		m_DebugHist[gInd].node.maxEdgesSize = 0; /* Debug host variable for histo on CPU */
 
 		/* Compute metadata: edge counts, CSR offsets, and IO tags (A0 + A1 + A2) */
-		ComputeCompactArrayMetadata(gInd, IO_graphs[gInd], gpuGraphs[gInd]);
+		ComputeCompactArrayMetadata(gInd, IO_graphs[gInd], gpuGraphs[gInd], m_DebugHist);
 
 		cout<<" EdgeSourceCSR: "<<gpuGraphs[gInd].edgeData.edgeNodesSourceSize<<"  EdgeTargetCSR: "<<gpuGraphs[gInd].edgeData.edgeNodesTargetSize
 			<<" NodePrevsCSR:  "<<gpuGraphs[gInd].nodeData.nodeEdgesPrevsSize <<"  NodeNextsCSR:  "<<gpuGraphs[gInd].nodeData.nodeEdgesNextsSize<<endl;
 
 		/* Allocate and populate compact arrays using computed metadata (B phase) */
 		cout<<" Create Edge Compact Arrays " <<gInd<<endl;
-		AllocateAndPopulateCompactArrays(gInd, IO_graphs[gInd], gpuGraphs[gInd], gpuGraphs);
+		AllocateAndPopulateCompactArrays(gInd, IO_graphs[gInd], gpuGraphs[gInd], gpuGraphs, m_DebugHist);
     }
 	auto end_compact = std::chrono::high_resolution_clock::now();
 	auto compact_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_compact - start_compact).count();
@@ -1043,7 +1025,7 @@ int main(int argc, char* argv[])
  	/*===========================================================================================*/
 
 
-    printGraphStatsConn(IO_graphs, gpuGraphs);
+    printGraphStatsConn(IO_graphs, gpuGraphs, m_DebugHist);
 
 	auto start_gpu = std::chrono::high_resolution_clock::now();
     /* Transfer GPU data to device */
@@ -1078,6 +1060,10 @@ int main(int argc, char* argv[])
 	{
       FreeGPUArrays(gInd,0);
 	  DeallocateGPUGraphData(gpuGraphs[gInd]);
+	  if (m_Edge_LabelDBIndexOrg[gInd] != nullptr)
+	  {
+	  	delete[] m_Edge_LabelDBIndexOrg[gInd];
+	  }
 	}
 
 	auto end_total = std::chrono::high_resolution_clock::now();

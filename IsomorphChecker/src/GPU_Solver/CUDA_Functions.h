@@ -8,6 +8,8 @@
 #ifndef GPU_SOLVER_CUDA_FUNCTIONS_H_
 #define GPU_SOLVER_CUDA_FUNCTIONS_H_
 
+typedef unsigned int uint;
+
 void InitGPUArrays( uint gIndex,
 					uint numNodesH,
 					uint *NodeLabelIndexH,

@@ -8,6 +8,8 @@
 #include "json.hpp"
 
 #include "GPU_Solver/CUDA_Functions.h" /* CUDA Solver */
+#include "DebugHistogram.h"
+#include "GPUDataStructures.h"
 
 
 using namespace std;
@@ -119,115 +121,24 @@ struct InputGraph
 };
 
 
-/*-------------------------------------------------------------------------------------------------------------------*/
 
-/*-------------------------------------------------------------------------------------------------------------------*/
-/* Debug Histogram Structures - organize histograms for analyzing graph topology */
-/*-------------------------------------------------------------------------------------------------------------------*/
-struct EdgeHistogram
-{
-	uint   maxNodesSize;           /* Max number of nodes in any edge (for bin sizing) */
-	uint  *sourceNodeCount;        /* Histogram: count of edges with N source nodes */
-	uint  *targetNodeCount;        /* Histogram: count of edges with N target nodes */
-	uint  *totalNodeCount;         /* Histogram: count of edges with N total nodes */
-};
-
-struct NodeHistogram
-{
-	uint   maxEdgesSize;           /* Max number of edges any node connects to (for bin sizing) */
-	uint  *prevCount;              /* Histogram: count of nodes with N incoming edges */
-	uint  *nextCount;              /* Histogram: count of nodes with N outgoing edges */
-	uint  *totalCount;             /* Histogram: count of nodes with N total edges */
-	uint  *ioTagCounts;            /* Histogram: count of nodes by IO tag (none/input/output/both) */
-};
-
-struct DebugHistogram
-{
-	EdgeHistogram edge;
-	NodeHistogram node;
-};
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-
-
-
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-/* GPU Data Transfer Structures - organize node and edge data for GPU initialization */
-/*-------------------------------------------------------------------------------------------------------------------*/
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-struct GPUNodeData
-{
-	uint numNodes;
-	uint numNodeLabelsDB;
-	uint nodeEdgesPrevsSize;
-	uint nodeEdgesNextsSize;
-	uint* labelIndex;
-	int* prevsFirstEdge;
-	int* nextsFirstEdge;
-	uint* edgePrevs;
-	uint* edgeNexts;
-	int* edgePrevsPort;
-	int* edgeNextsPort;
-	uint* edgeStartPrevsStart;
-	uint* edgeStartPrevsNum;
-	uint* edgeStartNextsStart;
-	uint* edgeStartNextsNum;
-	uint* totalEdges;
-	uint* ioTags;
-};
-
-struct GPUEdgeData
-{
-	uint numEdges;
-	uint numEdgeLabelsDB;
-	uint edgeNodesSourceSize;
-	uint edgeNodesTargetSize;
-	uint* labelIndex;
-	uint* nodesSources;
-	uint* nodesTargets;
-	uint* nodeStartSourcesStart;
-	uint* nodeStartSourcesNum;
-	uint* nodeStartTargetsStart;
-	uint* nodeStartTargetsNum;
-	uint* totalNodes;
-};
-
-struct GPUGraphData
-{
-	uint graphIndex;
-	GPUNodeData nodeData;
-	GPUEdgeData edgeData;
-	uint gpu;
-};
-
-/* Wrapper function to transfer GPU data using organized struct */
-static inline void TransferGraphToGPU(const GPUGraphData& gpuData)
-{
-	InitGPUArrays( gpuData.graphIndex,
-	               gpuData.nodeData.numNodes, gpuData.nodeData.labelIndex,
-	               gpuData.nodeData.prevsFirstEdge, gpuData.nodeData.nextsFirstEdge,
-	               gpuData.nodeData.nodeEdgesPrevsSize, gpuData.nodeData.nodeEdgesNextsSize,
-	               gpuData.nodeData.edgePrevs, gpuData.nodeData.edgeNexts,
-	               gpuData.nodeData.edgePrevsPort, gpuData.nodeData.edgeNextsPort,
-	               gpuData.nodeData.edgeStartPrevsStart, gpuData.nodeData.edgeStartPrevsNum,
-	               gpuData.nodeData.edgeStartNextsStart, gpuData.nodeData.edgeStartNextsNum,
-	               gpuData.nodeData.totalEdges, gpuData.nodeData.ioTags,
-	               gpuData.edgeData.numEdges, gpuData.edgeData.labelIndex,
-	               gpuData.edgeData.edgeNodesSourceSize, gpuData.edgeData.edgeNodesTargetSize,
-	               gpuData.edgeData.nodesSources, gpuData.edgeData.nodesTargets,
-	               gpuData.edgeData.nodeStartSourcesStart, gpuData.edgeData.nodeStartSourcesNum,
-	               gpuData.edgeData.nodeStartTargetsStart, gpuData.edgeData.nodeStartTargetsNum,
-	               gpuData.edgeData.totalNodes, gpuData.gpu );
-}
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 /* Debug helper: builds a permutation index for edges and prints the mapping.
  * NOTE: If called after graph edges are sorted, permutation will be identity.
  * To get original->sorted positions, invoke before sorting or capture the original order. */
-static void DebugEdgeIndexMapping(const InputGraph& graph, uint*& edgeLabelIndexOrg)
+
+/**
+ * @brief Debug helper to build a permutation index for edges and print the mapping.
+ *
+ * The function builds a permutation index that maps original edge positions to their sorted positions.
+ * @note If called after graph edges are sorted, permutation will be identity.
+ *
+ * @param graph The input graph containing edges.
+ * @param edgeLabelIndexOrg Output array to store the original edge indices.
+ */
+ static void DebugEdgeIndexMapping(const InputGraph& graph, uint*& edgeLabelIndexOrg)
 {
 	uint numEdgesS = graph.edges.size();
 	printf(" EdgeSortIndex %u \n", numEdgesS);
@@ -315,8 +226,51 @@ static inline void ProcessEdgeNodes(
 	}
 }
 
-/* Initialize GPU graph data structure with allocated arrays */
-static inline void InitializeGPUGraphData(int gInd, const InputGraph& graph, GPUGraphData& gpuData)
+/**
+ * @brief Wrapper function to transfer GPU graph data to GPU device.
+ * 
+ * Unpacks the organized GPUGraphData structure and calls the low-level GPU
+ * initialization function with all necessary arrays and metadata.
+ * 
+ * @param gpuData Complete GPU graph data structure containing all node/edge arrays
+ * 
+ * @see GPUGraphData, InitGPUArrays
+ */
+void TransferGraphToGPU(const GPUGraphData& gpuData)
+{
+	InitGPUArrays( gpuData.graphIndex,
+	               gpuData.nodeData.numNodes, gpuData.nodeData.labelIndex,
+	               gpuData.nodeData.prevsFirstEdge, gpuData.nodeData.nextsFirstEdge,
+	               gpuData.nodeData.nodeEdgesPrevsSize, gpuData.nodeData.nodeEdgesNextsSize,
+	               gpuData.nodeData.edgePrevs, gpuData.nodeData.edgeNexts,
+	               gpuData.nodeData.edgePrevsPort, gpuData.nodeData.edgeNextsPort,
+	               gpuData.nodeData.edgeStartPrevsStart, gpuData.nodeData.edgeStartPrevsNum,
+	               gpuData.nodeData.edgeStartNextsStart, gpuData.nodeData.edgeStartNextsNum,
+	               gpuData.nodeData.totalEdges, gpuData.nodeData.ioTags,
+	               gpuData.edgeData.numEdges, gpuData.edgeData.labelIndex,
+	               gpuData.edgeData.edgeNodesSourceSize, gpuData.edgeData.edgeNodesTargetSize,
+	               gpuData.edgeData.nodesSources, gpuData.edgeData.nodesTargets,
+	               gpuData.edgeData.nodeStartSourcesStart, gpuData.edgeData.nodeStartSourcesNum,
+	               gpuData.edgeData.nodeStartTargetsStart, gpuData.edgeData.nodeStartTargetsNum,
+	               gpuData.edgeData.totalNodes, gpuData.gpu );
+}
+
+/**
+ * @brief Initialize GPU graph data structure with allocated arrays.
+ * 
+ * Allocates all necessary GPU arrays for node and edge data based on the input graph
+ * structure. Sets up metadata fields and initializes special arrays (prevsFirstEdge,
+ * nextsFirstEdge) to -1.
+ * 
+ * @param gInd Graph index (0 or 1) for identification
+ * @param graph Input graph containing topology information
+ * @param gpuData Output GPU graph data structure to be populated
+ * 
+ * @post All pointer fields in gpuData are allocated and ready for population.
+ * 
+ * @see DeallocateGPUGraphData
+ */
+void InitializeGPUGraphData(int gInd, const InputGraph& graph, GPUGraphData& gpuData)
 {
 	gpuData.graphIndex = gInd;
 	gpuData.gpu = 0;
@@ -357,8 +311,19 @@ static inline void InitializeGPUGraphData(int gInd, const InputGraph& graph, GPU
 	gpuData.edgeData.nodeStartTargetsStart = new uint[gpuData.edgeData.numEdges]();
 }
 
-/* Deallocate GPU graph data structure */
-static inline void DeallocateGPUGraphData(GPUGraphData& gpuData)
+/**
+ * @brief Deallocate GPU graph data structure.
+ * 
+ * Frees all dynamically allocated arrays in the GPU graph data structure.
+ * Performs null-safe deletion of all pointer members.
+ * 
+ * @param gpuData GPU graph data structure to deallocate
+ * 
+ * @pre gpuData should have been initialized with InitializeGPUGraphData
+ * 
+ * @see InitializeGPUGraphData
+ */
+void DeallocateGPUGraphData(GPUGraphData& gpuData)
 {
 	delete[] gpuData.nodeData.labelIndex;
 	delete[] gpuData.nodeData.ioTags;
@@ -571,32 +536,6 @@ static inline void AllocateAndPopulateCompactArrays(
 	/* Cleanup temp counter arrays */
 	delete[] DEBUGnode_CountSources;
 	delete[] DEBUGnode_CountTargets;
-}
-
-/* Allocate histogram arrays for debug statistics */
-static inline void AllocateDebugHistograms(DebugHistogram& debugHist)
-{
-	debugHist.edge.sourceNodeCount = new uint  [debugHist.edge.maxNodesSize +1](); /* Arr13 */
-	debugHist.edge.targetNodeCount = new uint  [debugHist.edge.maxNodesSize +1](); /* Arr14 */
-	debugHist.edge.totalNodeCount  = new uint  [debugHist.edge.maxNodesSize +1](); /* Arr15 */
-
-	debugHist.node.prevCount   = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr16 */
-	debugHist.node.nextCount   = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr17 */
-	debugHist.node.totalCount  = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr18 */
-	debugHist.node.ioTagCounts = new uint  [debugHist.node.maxEdgesSize +1](); /* Arr19 */
-}
-
-/* Deallocate histogram arrays for debug statistics */
-static inline void DeallocateDebugHistograms(DebugHistogram& debugHist)
-{
-	delete [] debugHist.edge.sourceNodeCount;
-	delete [] debugHist.edge.targetNodeCount;
-	delete [] debugHist.edge.totalNodeCount;
-
-	delete [] debugHist.node.prevCount;
-	delete [] debugHist.node.nextCount;
-	delete [] debugHist.node.totalCount;
-	delete [] debugHist.node.ioTagCounts;
 }
 
 /* Forward declarations */

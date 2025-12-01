@@ -4,6 +4,16 @@ build/
 [Bb]uild*/
 cmake-build-*/
 
+IsomorphChecker/Debug/
+IsomorphChecker/Release/
+IsomorphChecker/.clang-format
+IsomorphChecker/.cproject
+IsomorphChecker/.gitignore
+IsomorphChecker/.project
+IsomorphChecker/.settings/
+RemoteSystemsTempFiles/
+
+
 # --- CMake in-source artifacts ---
 CMakeCache.txt
 CMakeFiles/
@@ -73,3 +83,4 @@ Thumbs.db
 *~
 *.tmp
 .cache/
+/.metadata/

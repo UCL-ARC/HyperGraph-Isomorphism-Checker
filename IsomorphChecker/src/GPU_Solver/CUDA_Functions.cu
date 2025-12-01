@@ -12,7 +12,6 @@
 #include <device_launch_parameters.h>
 #include <iostream>
 #include <stdio.h>
-#include <string>
 #include <iomanip>    // <-- For std::setw and std::left
 #include <sstream>    // <-- For std::stringstream (which we also used)
 #include <vector>     // <-- For std::vector (which we also used)
@@ -869,11 +868,11 @@ void CompareEdgesGPU()
 
 	if (!source_hashes_match)
 	{
-		  std::cout << "QAZ Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
+		  std::cout << "Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
 	}
 	else
 	{
-	  std::cout << "WSX Source neighborhood hashes match " << std::endl;
+	  std::cout << "Source neighborhood hashes match " << std::endl;
 
 	  target_hashes_match = thrust::equal( d_ptr_target_hash_A, d_ptr_target_hash_A + num_edges, d_ptr_target_hash_B);
 

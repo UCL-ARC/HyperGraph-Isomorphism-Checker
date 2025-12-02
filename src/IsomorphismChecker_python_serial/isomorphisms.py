@@ -63,10 +63,10 @@ class MappingMode(Enum):
 
 class BiMap:
     def __init__(self):
-        self.map = {}
-        self.inverse = {}
+        self.map: dict[int, int] = {}
+        self.inverse: dict[int, int] = {}
 
-    def insert(self, i, j):
+    def insert(self, i: int, j: int) -> bool:
         if (i in self.map and self.map[i] != j) or (
             j in self.inverse and self.inverse[j] != i
         ):
@@ -273,7 +273,7 @@ class Isomorphism:
             self.explore_edges(v1.prev.index, v2.prev.index)
 
     def check_subgraph_isomorphism(
-        self, v1: int, v2: int, subgraph1, subgraph2
+        self, v1: int, v2: int, subgraph1: SubGraph, subgraph2: SubGraph
     ) -> IsomorphismData:
         """Check for disconnected subgraph isomorphism where no nodes connect
         to global inputs or outputs"""
@@ -377,7 +377,7 @@ def get_connected_subgraphs(
         for t in edge.targets:
             traverse_connected_graph(t, node_list, edge_list)
 
-    subgraphs = []
+    subgraphs: list[SubGraph] = []
 
     for i in range(num_nodes):
         if not added_nodes[i]:
@@ -446,10 +446,10 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
 
     isomorphic = IsomorphismData(True, [-1] * num_nodes, [-1] * num_edges)
 
-    for sg1, sg2 in paired_subgraphs.map.items():
-        v1, v2 = subgraph_start_point[sg1]
+    for sg1_idx, sg2_idx in paired_subgraphs.map.items():
+        v1, v2 = subgraph_start_point[sg1_idx]
         sub_isomorphic = iso.check_subgraph_isomorphism(
-            v1, v2, g1_subgraphs[sg1], g2_subgraphs[sg2]
+            v1, v2, g1_subgraphs[sg1_idx], g2_subgraphs[sg2_idx]
         )
         if not sub_isomorphic:
             return NonIso

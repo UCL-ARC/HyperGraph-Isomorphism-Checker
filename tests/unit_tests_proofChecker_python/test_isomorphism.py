@@ -3,6 +3,8 @@ from IsomorphismChecker_python_serial.isomorphisms import (
     MC_isomorphism,
     permute_graph,
     disconnected_subgraph_isomorphism,
+    Isomorphism,
+    MappingMode,
 )
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 import pytest
@@ -39,10 +41,6 @@ test_graph_dir = "tests/inputs/"
 def Random_Permutation_Test(graph_file):
     g1 = create_hypergraph(test_graph_dir + graph_file)
     (pi_n, pi_e, g2) = permute_graph(g1)  # calculates a random permutation of the graph
-
-    # print_graph(g1)
-    # print_graph(g2)
-    # print(pi_n, pi_e)
 
     isomorphic, p_nodes, p_edges = MC_isomorphism(g1, g2)
     assert_isomorphism(g1, g2, pi_n, pi_e, p_nodes, p_edges, isomorphic)
@@ -146,7 +144,6 @@ disconnected_graphs = ["Two_Subgraphs.json", "Three_Subgraphs.json"]
 def test_disconnected_graph_isomorphism(graph_file):
     g1 = create_hypergraph(test_graph_dir + graph_file)
     pi_n, pi_e, g2 = permute_graph(g1)
-    print(pi_n, pi_e)
     isomorphism = disconnected_subgraph_isomorphism(g1, g2)
     assert isomorphism.isomorphic
 
@@ -161,3 +158,84 @@ def test_disconnected_graph_non_iso(graph_file):
 
     isomorphism = disconnected_subgraph_isomorphism(g1, g2)
     assert not isomorphism.isomorphic
+
+
+def test_bimap_invalid_insertion():
+    from IsomorphismChecker_python_serial.isomorphisms import BiMap
+
+    bimap = BiMap()
+
+    assert bimap.insert(1, 2)
+    assert not bimap.insert(1, 3)
+    assert not bimap.insert(4, 2)
+
+
+def test_invalid_update_model():
+    g1 = create_hypergraph(test_graph_dir + "MA_Graph.json")
+    g2 = create_hypergraph(test_graph_dir + "MA_Graph.json")
+
+    iso = Isomorphism((g1, g2))
+
+    num_nodes = len(g1.nodes)
+
+    with pytest.raises(
+        ValueError,
+        match="Mode must be 'node' or 'edge', got invalid_model",
+    ):
+        iso.update_mapping(0, 0, "invalid_model")  # type: ignore
+
+    with pytest.raises(
+        ValueError,
+        match=f"Index {num_nodes + 1} out of bounds for permutation of size {num_nodes}",
+    ):
+        iso.update_mapping(num_nodes + 1, 0, MappingMode.NODE)  # type: ignore
+
+    with pytest.raises(
+        ValueError,
+        match=f"Index {num_nodes + 1} out of bounds for permutation of size {num_nodes}",
+    ):
+        iso.update_mapping(0, num_nodes + 1, MappingMode.NODE)  # type: ignore
+
+    iso.update_mapping(0, 1, MappingMode.NODE)
+    assert iso.mapping_valid
+    iso.update_mapping(2, 1, MappingMode.NODE)
+    assert not iso.mapping_valid
+
+    with pytest.raises(ValueError, match="Lists must be of same length, got 2 and 1"):
+        iso.update_mapping_list([0, 1], [2], MappingMode.NODE)
+
+
+def test_check_edge_compatibility():
+
+    g1 = create_hypergraph(test_graph_dir + "MA_Graph.json")
+    g2 = create_hypergraph(test_graph_dir + "MA_Graph.json")
+
+    iso = Isomorphism((g1, g2))
+
+    assert iso.check_edge_compatibility(None, None)
+    assert not iso.check_edge_compatibility(0, None)
+
+
+def test_traverse_from_node():
+
+    g1 = create_hypergraph(test_graph_dir + "MA_Graph.json")
+    g2 = create_hypergraph(test_graph_dir + "MA_Graph.json")
+
+    iso = Isomorphism((g1, g2))
+    iso.visited_nodes.append(0)
+    iso.node_mapping[0] = 2
+    assert not iso.traverse_from_nodes(g1.nodes[0], g2.nodes[1])
+
+
+def test_traverse_from_node_part_2():
+    g1 = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
+    g2 = create_hypergraph(test_graph_dir + "Acyclic_Reordered_Edge_Output.json")
+    iso = Isomorphism((g1, g2))
+
+    assert iso.mapping_valid
+    iso.traverse_from_nodes(g1.nodes[0], g2.nodes[4])
+    assert not iso.mapping_valid
+
+    iso = Isomorphism((g1, g2))
+    iso.traverse_from_nodes(g1.nodes[3], g2.nodes[2])
+    assert not iso.mapping_valid

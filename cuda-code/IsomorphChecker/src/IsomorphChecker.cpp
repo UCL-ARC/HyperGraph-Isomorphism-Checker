@@ -336,7 +336,7 @@ int main(int argc, char* argv[])
 
 
 	uint MaxNodesPerEdge = 0;  /* We assume max of 8 so that we can use faster sort methods */
-	auto Timer_Start = std::chrono::high_resolution_clock::now();	
+	auto Timer_Start = std::chrono::high_resolution_clock::now();
 
 	LoadGraphs    (argc, argv, m_IO_graphs, MaxNodesPerEdge); /* Open and process the json file or pass the arrays from another binary (RUST) */
 	SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); /* Sort Edges based on counts */

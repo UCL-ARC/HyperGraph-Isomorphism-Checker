@@ -1,6 +1,6 @@
 #[repr(C)]
 pub struct Slice {
-    ptr: *const f64,
+    ptr: *const u64,
     len: usize,
 }
 
@@ -9,7 +9,7 @@ extern "C" {
 }
 
 fn main() {
-    let data: [f64; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let data: [u64; 5] = [1, 2, 3, 4, 5];
 
     let slice = Slice {
         ptr: data.as_ptr(),

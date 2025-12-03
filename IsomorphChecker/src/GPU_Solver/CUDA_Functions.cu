@@ -12,7 +12,6 @@
 #include <device_launch_parameters.h>
 #include <iostream>
 #include <stdio.h>
-#include <string>
 #include <iomanip>    // <-- For std::setw and std::left
 #include <sstream>    // <-- For std::stringstream (which we also used)
 #include <vector>     // <-- For std::vector (which we also used)
@@ -30,8 +29,9 @@
 /* Node signatures Label, IO, numNexts, numPrevs, OPT NextEdgeLab, PrevEdgeLab */
 typedef thrust::tuple<uint, uint, uint, uint> NodeKeyTuple;
 
-// __constant__ NodeKeyTuple MAX_TUPLE = { UINT_MAX, 0, 0, 0 };
-// __constant__  NodeKeyTuple MAX_TUPLE;
+
+NodeKeyTuple MAX_TUPLEH = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+
 
 #include "CUDA_Kernels.cuh"
 /*-------------------------------------------------------------------------------------------------------------------*/
@@ -325,6 +325,9 @@ void InitGPUArrays( uint gIndex,
 	cudaDeviceSynchronize();
 	cudaCheckError();
 
+	//NodeKeyTuple MAX_TUPLEH	 = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+	//cudaMemcpyToSymbol( MAX_TUPLE, MAX_TUPLEH,     sizeof( NodeKeyTuple ) );
+
 }
 /*===================================================================================================================*/
 
@@ -332,7 +335,7 @@ void InitGPUArrays( uint gIndex,
 /*===================================================================================================================*/
 /* Free GPU Arrays */
 /*===================================================================================================================*/
-void FreeGPUArrays (uint gIndex, uint gpu)
+void GPU_FreeArrays (uint gIndex, uint gpu)
 {
 	cudaDeviceSynchronize();
 	cudaSetDevice(gpu);
@@ -380,11 +383,11 @@ void FreeGPUArrays (uint gIndex, uint gpu)
 /*===================================================================================================================*/
 /* Does the binning on the GPU for the counts of each edge and node */
 /*===================================================================================================================*/
-void CreateGraphBinsGPU()
+bool GPU_CompareSignatureCountsBetweenGraphs()
 {
+	bool isIsomorphic = true;
 
     /* We use the Thrust lib, you can also write a custom kernel for this binning if rust does not have a boost type lib equv */
-
 	/*===============================================================================================================*/
 	                                      /* Start Edge Histogram */
 	/*===============================================================================================================*/
@@ -393,8 +396,8 @@ void CreateGraphBinsGPU()
 
 	/* Output Histo */
 	EdgeKeyTuple *d_HistoEdgeKeys      [2]; /* Sorted keys array */
-	uint     *d_HistoEdgeKeyCounts [2]; /* Bin counts for sorted keys array */
-	int      numUniqueKeyBinsGraph [2]; /* Store Tot bins per graph*/
+	uint         *d_HistoEdgeKeyCounts [2]; /* Bin counts for sorted keys array */
+	int          numUniqueKeyBinsGraph [2]; /* Store Tot bins per graph*/
 
 	/* Create a histogram of edge signatures  */
 	for (int gIndex=0;gIndex<2;gIndex++)
@@ -406,8 +409,8 @@ void CreateGraphBinsGPU()
 		 std::cout<<"GPU GraphBins Memory "<<cudaGetErrorString(errormsg)<<std::endl;
 		 exit(1);
 		}
+		std::cout << "NumEdges" << numEdges[0] << std::endl; /* Debug print */
 
-		std::cout << "NumEdges" << numEdges[0] << std::endl;
 
 		cudaMalloc((void**)&d_HistoEdgeKeys      [gIndex], numEdges[gIndex]*sizeof(EdgeKeyTuple));
 		cudaMalloc((void**)&d_HistoEdgeKeyCounts [gIndex], numEdges[gIndex]*sizeof(uint));
@@ -440,17 +443,20 @@ void CreateGraphBinsGPU()
 		std::cout<<"Bins "<<numUniqueKeyBinsGraph[gIndex] <<std::endl;
 
 	}/* End Bin Creation for both graphs */
+	/*===============================================================================================================*/
+	                                      /* End Edge Histogram */
+	/*===============================================================================================================*/
 
-
+	/*----------------------------------------------------------------------------------*/
+    /* Compare Edge Histo counts between graphs  */
+	/*----------------------------------------------------------------------------------*/
 	std::cout << "GPU Binning Complete" << std::endl;
-	bool isIsomorphic = false;
-
 	std::cout << "Graph 0 unique bins: " << numUniqueKeyBinsGraph[0] << std::endl;
 	std::cout << "Graph 1 unique bins: " << numUniqueKeyBinsGraph[1] << std::endl;
 
 	if (numUniqueKeyBinsGraph[0] != numUniqueKeyBinsGraph[1])
 	{
-	    std::cout << "Result: NOT Isomorphic (Bin counts differ)" << std::endl;
+	    std::cout << "Result: NOT Isomorphic (Edge Bin counts differ)" << std::endl;
 	    isIsomorphic = false;
 	}
 	else
@@ -472,41 +478,41 @@ void CreateGraphBinsGPU()
 
 	    if (!areKeysEqual)
 	    {
-	        std::cout << "Result: NOT Isomorphic (Bin keys do not match)" << std::endl;
+	        std::cout << "Result: NOT Isomorphic (Edge Bin keys do not match)" << std::endl;
 	        isIsomorphic = false;
 	    }
 	    else/* Keys are the same so check counts */
 	    {
 	        /* GPU Check 2: Compare the Count arrays */
-	        std::cout << "Bin keys match. Comparing counts on GPU..." << std::endl;
+	        std::cout << "Bin keys match. Comparing Edge counts on GPU..." << std::endl;
 
 	        bool are_counts_equal = thrust::equal( counts_A, counts_A + num_bins,
 	        		                               counts_B );
 
 	        if (!are_counts_equal)
 	        {
-	            std::cout << "Result: NOT Isomorphic (Bin counts do not match)." << std::endl;
+	            std::cout << "Result:  NOT Isomorphic (Edge Bin counts do not match)." << std::endl;
 	            isIsomorphic = false;
 	        }
 	        else
 	        {
-	            std::cout << "Result: Possible Isomorphic (Keys and counts match)" << std::endl;
+	            std::cout << "Result:  Possible Isomorphic (Edge Keys and counts match)" << std::endl;
 	            isIsomorphic = true;
 	        }
 	    }
 	}/* End Loop over graphs */
-
 	std::cout << " Free GPU Memory " << std::endl;
 	for (int gIndex=0;gIndex<2;gIndex++)
 	{
 	  cudaFree(d_HistoEdgeKeys[gIndex]);
 	  cudaFree(d_HistoEdgeKeyCounts[gIndex]);
 	}
-	/*===============================================================================================================*/
-	                                      /* End Edge Histogram */
-	/*===============================================================================================================*/
+	/*----------------------------------------------------------------------------------*/
 
 
+	/* Only If Edges find possible Isomorphic */
+	if (isIsomorphic)
+	{
 	/*===============================================================================================================*/
 	                                      /* Start Node Histogram */
 	/*===============================================================================================================*/
@@ -603,52 +609,14 @@ void CreateGraphBinsGPU()
 	        cudaFree(d_temp_NextsEdge);
 
 	    }/* End Loop over graphs */
-
-	        /*----------------------------------------------------------------------------------*/
-	        /* DEBUG Print */
-	        /* We will store the host-side copies here */
-	        std::vector<NodeKeyTuple> h_keys[2];
-	        std::vector<uint> h_counts[2];
-
-	        for (int gIndex = 0; gIndex < 2; gIndex++)
-	        {
-	            std::cout << "\n--- Printing Results for Graph " << gIndex << " ---" << std::endl;
-
-	            int num_bins = numUniqueKeyBinsNodes[gIndex];
-	            std::cout << "  Found " << num_bins << " unique node bins." << std::endl;
-
-	            if (num_bins == 0)
-	            {
-	                continue; // Nothing to print
-	            }
+		/*===============================================================================================================*/
+		                                      /* End Node Histogram */
+		/*===============================================================================================================*/
 
 
-	            h_keys[gIndex].resize(num_bins);
-	            h_counts[gIndex].resize(num_bins);
-
-	            /* Copy histogram keys from Device (GPU) to Host (CPU) */
-	            cudaMemcpy( h_keys[gIndex].data(),   d_HistoNodeKeys[gIndex],      num_bins * sizeof(NodeKeyTuple), cudaMemcpyDeviceToHost);
-	            cudaMemcpy( h_counts[gIndex].data(), d_HistoNodeKeyCounts[gIndex], num_bins * sizeof(uint),         cudaMemcpyDeviceToHost );
-
-	            std::cout << "  " << std::setw(30) << std::left << "Signature (Lab, IO, Nexts, Prevs)" << " | Count" << std::endl;
-	            std::cout << "  ----------------------------------- | -----" << std::endl;
-
-	            for (int i = 0; i < num_bins; ++i)
-	            {
-	                NodeKeyTuple key   = h_keys[gIndex][i];
-	                uint         count = h_counts[gIndex][i];
-
-	                std::stringstream ss;
-	                ss << "( " << thrust::get<0>(key) << ", "
-	                           << thrust::get<1>(key) << ", "
-	                           << thrust::get<2>(key) << ", "
-	                           << thrust::get<3>(key) << ")";
-
-	                std::cout << "  " << std::setw(30) << std::left << ss.str() << " | " << count << std::endl;
-	            }
-	        }
-	        /*----------------------------------------------------------------------------------*/
-
+	    /*----------------------------------------------------------------------------------*/
+	    /* Compare Node Histo counts between graphs  */
+	    /*----------------------------------------------------------------------------------*/
 	    std::cout << "\n Node Histogram Comparison " << std::endl;
 		if (numUniqueKeyBinsNodes[0] != numUniqueKeyBinsNodes[1])
 		{
@@ -683,6 +651,53 @@ void CreateGraphBinsGPU()
 				}
 			}
 		}
+		/*----------------------------------------------------------------------------------*/
+
+
+        /*----------------------------------------------------------------------------------*/
+        /* DEBUG Print */
+        /* We will store the host-side copies here */
+//        std::vector<NodeKeyTuple> h_keys[2];
+//        std::vector<uint> h_counts[2];
+//
+//        for (int gIndex = 0; gIndex < 2; gIndex++)
+//        {
+//            std::cout << "\n Printing Results for Graph " << gIndex << "  " << std::endl;
+//
+//            int num_bins = numUniqueKeyBinsNodes[gIndex];
+//            std::cout << "  Found " << num_bins << " unique node bins." << std::endl;
+//
+//            if (num_bins == 0)
+//            {
+//                continue; // Nothing to print
+//            }
+//
+//
+//            h_keys[gIndex].resize(num_bins);
+//            h_counts[gIndex].resize(num_bins);
+//
+//            /* Copy histogram keys from Device (GPU) to Host (CPU) */
+//            cudaMemcpy( h_keys[gIndex].data(),   d_HistoNodeKeys[gIndex],      num_bins * sizeof(NodeKeyTuple), cudaMemcpyDeviceToHost);
+//            cudaMemcpy( h_counts[gIndex].data(), d_HistoNodeKeyCounts[gIndex], num_bins * sizeof(uint),         cudaMemcpyDeviceToHost );
+//
+//            std::cout << "  " << std::setw(30) << std::left << "Signature (Lab, IO, Nexts, Prevs)" << " | Count" << std::endl;
+//            std::cout << "  ----------------------------------- | -----" << std::endl;
+//
+//            for (int i = 0; i < num_bins; ++i)
+//            {
+//                NodeKeyTuple key   = h_keys[gIndex][i];
+//                uint         count = h_counts[gIndex][i];
+//
+//                std::stringstream ss;
+//                ss << "( " << thrust::get<0>(key) << ", "
+//                           << thrust::get<1>(key) << ", "
+//                           << thrust::get<2>(key) << ", "
+//                           << thrust::get<3>(key) << ")";
+//
+//                std::cout << "  " << std::setw(30) << std::left << ss.str() << " | " << count << std::endl;
+//            }
+//        }
+        /*----------------------------------------------------------------------------------*/
 
 	    std::cout << "Cleaning up final node histogram memory " << std::endl;
 		for (int gIndex=0;gIndex<2;gIndex++)
@@ -690,10 +705,10 @@ void CreateGraphBinsGPU()
 		  cudaFree(d_HistoNodeKeys[gIndex]);
 		  cudaFree(d_HistoNodeKeyCounts[gIndex]);
 		}
-		/*===============================================================================================================*/
-		                                      /* End Node Histogram */
-		/*===============================================================================================================*/
+	}
 
+
+   return isIsomorphic;
 }
 /*===================================================================================================================*/
 
@@ -702,11 +717,9 @@ void CreateGraphBinsGPU()
 /*===================================================================================================================*/
 /* Uses the Node Keys of an edge to create a hash assumes **max 8 nodes per edge target or source */
 /*===================================================================================================================*/
-void CompareEdgesGPU()
+bool GPU_CompareEdgesSignaturesBetweenGraphs()
 {
-
-	// NodeKeyTuple MAX_TUPLEH	 = thrust::make_tuple(UINT_MAX, 0, 0, 0);
-	// cudaMemcpyToSymbol( MAX_TUPLE, &MAX_TUPLEH,     sizeof( NodeKeyTuple ) );
+  bool isIsomorphic= true;
 
 	/* Hashes are stored here*/
   uint64_t  *d_temp_EdgeHashSources[2];
@@ -737,7 +750,7 @@ void CompareEdgesGPU()
 												dram_NodeKeys[gIndex],
 
 												d_temp_EdgeHashSources[gIndex],
-												numNodes[gIndex], edgeNodesSourceSize[gIndex] );
+												numNodes[gIndex], edgeNodesSourceSize[gIndex],MAX_TUPLEH );
 	 cudaDeviceSynchronize();
 	 cudaCheckError();
 
@@ -753,7 +766,7 @@ void CompareEdgesGPU()
 
 												dram_NodeKeys[gIndex],
 												d_temp_EdgeHashTargets[gIndex],
-												numNodes[gIndex], edgeNodesTargetSize[gIndex]);
+												numNodes[gIndex], edgeNodesTargetSize[gIndex],MAX_TUPLEH);
 	 cudaDeviceSynchronize();
 	 cudaCheckError();
 
@@ -761,39 +774,41 @@ void CompareEdgesGPU()
 	/*DD---------------------------------------------------------------------------------------------------------------------DD*/
 	/* Debug Printing */
 	/*DD---------------------------------------------------------------------------------------------------------------------DD*/
-//	std::cout << "\n Edge Neighborhood Hashes for Graph " << gIndex << std::endl;
-//	// 2. Debug Print Hash List on Host
-//	int num_edges = numEdges[gIndex];
-//	 uint64_t  *h_source_hashes;
-//	 h_source_hashes = new uint64_t [num_edges];
-//	cudaMemcpy(h_source_hashes, d_temp_EdgeHashSources[gIndex], num_edges * sizeof(uint64_t), cudaMemcpyDeviceToHost);
+	    /*DD---------------------------------------------------------------------------------------------------------------------DD*/
+//			std::cout << "\n Edge Neighborhood Hashes for Graph " << gIndex << std::endl;
+//			// 2. Debug Print Hash List on Host
+//			int num_edges = numEdges[gIndex];
+//			 uint64_t  *h_source_hashes;
+//			 h_source_hashes = new uint64_t [num_edges];
+//			cudaMemcpy(h_source_hashes, d_temp_EdgeHashSources[gIndex], num_edges * sizeof(uint64_t), cudaMemcpyDeviceToHost);
 //
-//	 uint64_t  *h_target_hashes;
-//	 h_target_hashes = new uint64_t [num_edges];
-//	cudaMemcpy( h_target_hashes, d_temp_EdgeHashTargets[gIndex], num_edges * sizeof(uint64_t), cudaMemcpyDeviceToHost);
+//			 uint64_t  *h_target_hashes;
+//			 h_target_hashes = new uint64_t [num_edges];
+//			cudaMemcpy( h_target_hashes, d_temp_EdgeHashTargets[gIndex], num_edges * sizeof(uint64_t), cudaMemcpyDeviceToHost);
 //
-//	cudaDeviceSynchronize();
-//	cudaCheckError();
+//			cudaDeviceSynchronize();
+//			cudaCheckError();
 //
-//    for (int i = 0; i < num_edges; i++)
-//    {
-//       printf(" %d HashSource 0x%016llx HashTarget 0x%016llx  \n",i, h_source_hashes[i], h_target_hashes[i]);
-//        PrintEdge<<<1,1 >>>(  i, dram_Edge_labelDBIndex[gIndex],
+//		    for (int i = 0; i < num_edges; i++)
+//		    {
+//		       printf(" %d HashSource 0x%016llx HashTarget 0x%016llx  \n",i, h_source_hashes[i], h_target_hashes[i]);
+//		        PrintEdge<<<1,1 >>>(  i, dram_Edge_labelDBIndex[gIndex],
 //
-//										dram_NodeKeys[gIndex],
-//										dram_Edge_nodeSources[gIndex],
-//                                        dram_Edge_nodeSourcesStart[gIndex],
-//										dram_Edge_nodeSourcesNum[gIndex],
+//												dram_NodeKeys[gIndex],
+//												dram_Edge_nodeSources[gIndex],
+//		                                        dram_Edge_nodeSourcesStart[gIndex],
+//												dram_Edge_nodeSourcesNum[gIndex],
 //
-//										dram_Edge_nodeTargets[gIndex],
-//										dram_Edge_nodeTargetsStart[gIndex],
-//										dram_Edge_nodeTargetsNum[gIndex]    );
-//  	    cudaDeviceSynchronize();
-//  	    cudaCheckError();
-//    }
-//    delete []h_source_hashes;
-//    delete []h_target_hashes;
-    /*DD---------------------------------------------------------------------------------------------------------------------DD*/
+//												dram_Edge_nodeTargets[gIndex],
+//												dram_Edge_nodeTargetsStart[gIndex],
+//												dram_Edge_nodeTargetsNum[gIndex],MAX_TUPLEH    );
+//		  	    cudaDeviceSynchronize();
+//		  	    cudaCheckError();
+//		    }
+//		    delete []h_source_hashes;
+//		    delete []h_target_hashes;
+		    /*DD---------------------------------------------------------------------------------------------------------------------DD*/
+
 
   } /* End Loop over graphs */
   /*=========================================================================*/
@@ -861,20 +876,25 @@ void CompareEdgesGPU()
 	/*=========================================================================*/
 	/* C] Compare Hashes if they don't match it is not isomorphic */
 	/*=========================================================================*/
-	bool source_hashes_match = thrust::equal( d_ptr_source_hash_A, d_ptr_source_hash_A + num_edges,d_ptr_source_hash_B  );
+	bool source_hashes_match = false;
+	bool target_hashes_match = false;
+
+
+	source_hashes_match = thrust::equal( d_ptr_source_hash_A, d_ptr_source_hash_A + num_edges,d_ptr_source_hash_B  );
+
 	if (!source_hashes_match)
 	{
-		  std::cout << "Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
+		  std::cout << "Result: NOT Isomorphic (Edge Source neighborhood hashes differ)" << std::endl;
 	}
 	else
 	{
 	  std::cout << "Source neighborhood hashes match " << std::endl;
 
-	  bool target_hashes_match = thrust::equal( d_ptr_target_hash_A, d_ptr_target_hash_A + num_edges, d_ptr_target_hash_B);
+	  target_hashes_match = thrust::equal( d_ptr_target_hash_A, d_ptr_target_hash_A + num_edges, d_ptr_target_hash_B);
 
 	  if (!target_hashes_match)
 	  {
-		  std::cout << "Result: NOT Isomorphic (Target neighborhood hashes differ) " << std::endl;
+		  std::cout << "Result: NOT Isomorphic (Edge Target neighborhood hashes differ) " << std::endl;
 	  }
 	}
 	/*=========================================================================*/
@@ -883,7 +903,9 @@ void CompareEdgesGPU()
 	/*DD---------------------------------------------------------------------------------------------------------------------DD*/
 	/* Debug print non matching */
 	/*DD---------------------------------------------------------------------------------------------------------------------DD*/
-    {
+
+    if (!source_hashes_match || !target_hashes_match)
+	{
 	  std::cout << "Result: NOT Isomorphic (Source neighborhood hashes differ)" << std::endl;
 	  std::cout << "\n  --- Printing Source Mismatches ---" << std::endl;
 	  std::cout << std::hex << std::setfill('0');
@@ -993,7 +1015,7 @@ void CompareEdgesGPU()
 		  std::cout << "Target neighborhood hashes match" << std::endl;
 	  }
 	}
-    /*DD---------------------------------------------------------------------------------------------------------------------DD*/
+
 
 
   for (int gIndex = 0; gIndex < 2; gIndex++)
@@ -1002,13 +1024,14 @@ void CompareEdgesGPU()
 	cudaFree(d_temp_EdgeHashSources[gIndex]);
 	cudaFree(d_temp_EdgeHashTargets[gIndex]);
   }
+
+  return isIsomorphic;
 }
+
+
 /*===================================================================================================================*/
 
 
-
-/*===================================================================================================================*/
-/* Compares the colors between iterations to determine if we reached the limit and can stop */
 /*===================================================================================================================*/
 bool CheckStability( int gIndex,
 		             int numNodes,
@@ -1016,165 +1039,202 @@ bool CheckStability( int gIndex,
 					 uint64_t *d_temp_sort_buffer,
 
 					 uint64_t *d_histo_keys,
-					 uint*     d_histo_counts,
+					 uint* d_histo_counts,
 					 int       &h_num_bins,
 
 					 uint64_t *d_histo_keysPrev,
 					 uint     *d_histo_countsPrev,
-					 int       &h_num_binsPrev       )
+					 int       &h_num_binsPrev
+)
 {
     std::cout << "  Checking for histogram stability " << std::endl;
 
-    /* 1. Copy new colors to a temporary buffer which gets sorted) */
-   cudaMemcpy(d_temp_sort_buffer, d_new_node_colors, numNodes * sizeof(uint64_t), cudaMemcpyDeviceToDevice);
+    /* 1. Copy new colors to temp buffer */
+    cudaMemcpy(d_temp_sort_buffer, d_new_node_colors, numNodes * sizeof(uint64_t), cudaMemcpyDeviceToDevice);
 
     /* 2. Wrap pointers */
     thrust::device_ptr<uint64_t> d_ptr_sort_buffer(d_temp_sort_buffer);
-    thrust::device_ptr<uint64_t> d_ptr_histo_keysPrev(d_histo_keysPrev);
-    thrust::device_ptr<uint> d_ptr_histo_countsPrev(d_histo_countsPrev);
+    thrust::device_ptr<uint64_t> d_ptr_histo_keys(d_histo_keys);
+    thrust::device_ptr<uint>     d_ptr_histo_counts(d_histo_counts);
 
-    /* Sort and Create Histo */
+    /* 3. Sort the colors to prepare for reduction */
     thrust::sort(d_ptr_sort_buffer, d_ptr_sort_buffer + numNodes);
-    auto new_end = thrust::reduce_by_key( d_ptr_sort_buffer,  d_ptr_sort_buffer + numNodes,
-										  thrust::make_constant_iterator(1u),
-										  d_ptr_histo_keysPrev, d_ptr_histo_countsPrev );
 
-    h_num_binsPrev = new_end.first - d_ptr_histo_keysPrev;
+    /* 4. Create the Histogram (Binning) */
+    auto new_end = thrust::reduce_by_key(   d_ptr_sort_buffer,
+											d_ptr_sort_buffer + numNodes,
+											thrust::make_constant_iterator(1u),
+											d_ptr_histo_keys,
+											d_ptr_histo_counts  );
 
-    std::cout << "  Bins (Prev: " << h_num_bins << ", Curr: " << h_num_binsPrev << ")" << std::endl;
+    /* 5. Update bin count */
+    h_num_bins = new_end.first - d_ptr_histo_keys;
+    std::cout << "  Bins [Prev: " << h_num_binsPrev << ", Curr: " << h_num_bins << "]" << std::endl;
 
-    /* 3.Check is total bins are the same */
+    /* Check 1: Bin Count Stability */
     if (h_num_bins != h_num_binsPrev)
     {
-        return false; // Not stable
+    	return false;
     }
-    if (h_num_bins == 0)
-    {
-        return true; // (Special case: 0 bins is stable)
-    }
-
-    /* 3.1 Bin Tot are the same so check the counts */
-    thrust::device_ptr<uint64_t> d_ptr_histo_keys  (d_histo_keys);
-    thrust::device_ptr<uint>     d_ptr_histo_counts(d_histo_counts);
-    bool keys_match = thrust::equal( d_ptr_histo_keys, d_ptr_histo_keys + h_num_bins, d_ptr_histo_keysPrev );
-    if (!keys_match)
+    if (h_num_bins == 0 || h_num_binsPrev == -1)
     {
     	return false;
     }
 
-    /* 3.2 Bin counts are the same so check the keys */
-    bool counts_match = thrust::equal( d_ptr_histo_counts, d_ptr_histo_counts + h_num_bins, d_ptr_histo_countsPrev );
+    /* We must sort the Current counts to make the check order-independent */
+    thrust::sort(d_ptr_histo_counts, d_ptr_histo_counts + h_num_bins);
 
-    return (keys_match && counts_match);
+
+    /* Check 2: Compare Sorted Counts */
+    thrust::device_ptr<uint> d_ptr_histo_countsPrev(d_histo_countsPrev);
+    bool counts_match = thrust::equal( d_ptr_histo_counts,
+									   d_ptr_histo_counts + h_num_bins,
+									   d_ptr_histo_countsPrev           );
+
+    return counts_match;
 }
 /*===================================================================================================================*/
 
 
 /*===================================================================================================================*/
-/* WL-1  Test update edge colors from node colors */
+/* WL-1 Test: Iterative Color Refinement returns a histogram of node colors  */
 /*===================================================================================================================*/
-void WL1_IT( int gIndex, int MAX_ITERATIONS )
+void GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
 {
 	int N = numNodes[gIndex];
 	int E = numEdges[gIndex];
 
-	/* 1] Colors(Hashes) updated each pass  */
+
+    /* 0] Initial base Colors */
+    uint64_t* d_node_Colors_Init;
+    uint64_t* d_edge_Colors_Init;
+
+	/* 1] Colors Updated each iteration */
 	uint64_t* d_node_Colors;
 	uint64_t* d_edge_Colors;
 
-	/* 2] Bins that we write into */
-	uint64_t *d_histo_keys;
-	uint     *d_histo_counts;
+	/* 2] Node Bins for Stability Check */
+	uint64_t *d_NodeHisto_keys;
+	uint     *d_NodeHisto_counts;
+	uint64_t *d_NodeHisto_keys_Prev;
+	uint     *d_NodeHisto_counts_Prev;
 
-	uint64_t *d_histo_keys_Prev;
-	uint     *d_histo_counts_Prev;
+    /* 2.1] Temp Array for sorting */
+    uint64_t *d_temp_sort_buffer;
 
-   /* Updated each step */
-   cudaMalloc((void**)&d_node_Colors, N * sizeof(uint64_t));
-   cudaMalloc((void**)&d_edge_Colors, E * sizeof(uint64_t));
+    /*-----------------------------------------------------------------*/
+    cudaMalloc((void**)&d_node_Colors_Init,  N*sizeof(uint64_t));
+    cudaMalloc((void**)&d_edge_Colors_Init,  E*sizeof(uint64_t));
 
-   /* Current Step Bins */
-   cudaMalloc((void**)&d_histo_keys,     N*sizeof(uint64_t));
-   cudaMalloc((void**)&d_histo_counts,   N*sizeof(uint));
+    cudaMalloc((void**)&d_node_Colors,       N*sizeof(uint64_t));
+    cudaMalloc((void**)&d_edge_Colors,       E*sizeof(uint64_t));
 
-   /* Prev Step Bins */
-   cudaMalloc((void**)&d_histo_keys_Prev,     N*sizeof(uint64_t));
-   cudaMalloc((void**)&d_histo_counts_Prev,   N*sizeof(uint));
-
-   /* Used When Swaping Curr and Prev */
-   uint64_t *d_temp_sort_buffer;
-   cudaMalloc((void**)&d_temp_sort_buffer, N*sizeof(uint64_t));
-
-   cudaDeviceSynchronize();
-   cudaCheckError();
+    cudaMalloc((void**)&d_NodeHisto_keys,        N*sizeof(uint64_t));
+    cudaMalloc((void**)&d_NodeHisto_counts,      N*sizeof(uint));
+    cudaMalloc((void**)&d_NodeHisto_keys_Prev,   N*sizeof(uint64_t));
+    cudaMalloc((void**)&d_NodeHisto_counts_Prev, N*sizeof(uint));
+    cudaMalloc((void**)&d_temp_sort_buffer,  N*sizeof(uint64_t));
+    cudaDeviceSynchronize();
+    cudaCheckError();
+    /*-----------------------------------------------------------------*/
 
 
-    std::cout << "WL1: Initial Coloring for gIndex " << gIndex<< std::endl;
-	Kernel_InitNodeColor<<<ThreadsAllNodes[0].dimGrid ,ThreadsAllNodes[0].dimBlock>>>(N, dram_NodeKeys[gIndex],  d_node_Colors);
-	cudaDeviceSynchronize();
+    std::cout << "WL1: Initial Coloring Node HashTuple for gIndex " << gIndex << std::endl;
+	Kernel_InitNodeColor<<<ThreadsAllNodes[0].dimGrid, ThreadsAllNodes[0].dimBlock>>>( N, dram_NodeKeys[gIndex], d_node_Colors_Init);
+
+    std::cout << "WL1: Initial Coloring Edge Label " << std::endl;
+	Kernel_InitEdgeColor<<<ThreadsAllEdges[0].dimGrid, ThreadsAllEdges[0].dimBlock>>>(E, dram_Edge_labelDBIndex[gIndex], d_edge_Colors_Init );
+
+    cudaDeviceSynchronize();
 	cudaCheckError();
 
-	Kernel_InitEdgeColor<<<ThreadsAllEdges[0].dimGrid ,ThreadsAllEdges[0].dimBlock>>>(E, dram_Edge_labelDBIndex[gIndex], d_edge_Colors );
-	cudaDeviceSynchronize();
-	cudaCheckError();
-	std::cout << "Initial coloring complete." << std::endl;
+    /* First Step current is Init */
+    cudaMemcpy(d_node_Colors, d_node_Colors_Init, N * sizeof(uint64_t), cudaMemcpyDeviceToDevice);
+    cudaMemcpy(d_edge_Colors, d_edge_Colors_Init, E * sizeof(uint64_t), cudaMemcpyDeviceToDevice);
 
 	int iteration       = 0;
 	bool is_stable      = false;
-	int h_num_bins      = -1; // -1 to fail first check
+	int h_num_bins      = -1;
 	int h_num_bins_Prev = -1;
 
-	/* Init Check */
+	/* Will Fail first step  */
 	is_stable = CheckStability(gIndex, N, d_node_Colors, d_temp_sort_buffer,
-							   d_histo_keys, d_histo_counts, h_num_bins,
-							   d_histo_keys_Prev, d_histo_counts_Prev, h_num_bins_Prev);
+							   d_NodeHisto_keys, d_NodeHisto_counts, h_num_bins,
+							   d_NodeHisto_keys_Prev, d_NodeHisto_counts_Prev, h_num_bins_Prev);
 
-	/* Swap GPU Pointers */
-	std::swap(d_histo_keys, d_histo_keys_Prev);
-	std::swap(d_histo_counts, d_histo_counts_Prev);
-	h_num_bins = h_num_bins_Prev;
+	/* Swap pointers so 'Prev' holds the valid histogram */
+	std::swap(d_NodeHisto_keys, d_NodeHisto_keys_Prev);
+	std::swap(d_NodeHisto_counts, d_NodeHisto_counts_Prev);
+	h_num_bins_Prev = h_num_bins;
 
+    /* Iteration Loop */
 	while (!is_stable && iteration < MAX_ITERATIONS)
 	{
 	  std::cout << "\n WL1 Iteration " << iteration << " (gIndex " << gIndex << ") " << std::endl;
 
-	  std::cout << "Updating edge colors" << std::endl;
-      Kernel_EdgeColors<<<ThreadsAllEdges[0].dimGrid ,ThreadsAllEdges[0].dimBlock>>>(   E,
-																						d_edge_Colors, // Output
+	  /* 1. Update Edge Colors */
+      Kernel_EdgeColors<<<ThreadsAllEdges[0].dimGrid, ThreadsAllEdges[0].dimBlock>>>(   E, /* Num Edges */
+																						d_edge_Colors,       // Output
+																						d_edge_Colors_Init,  // Input Init Value
 
+																						/* Edge Color comes from the node colors */
 																						dram_Edge_nodeSources      [gIndex],
 																						dram_Edge_nodeSourcesStart [gIndex],
 																						dram_Edge_nodeSourcesNum   [gIndex],
+																						d_node_Colors,         //Input (Current Node Colors)
 
-																						d_node_Colors,
-																						dram_Edge_nodeSources      [gIndex],
-																						dram_Edge_nodeSourcesStart [gIndex],
-																						dram_Edge_nodeSourcesNum   [gIndex],
+																						dram_Edge_nodeTargets[gIndex],
+																						dram_Edge_nodeTargetsStart[gIndex],
+																						dram_Edge_nodeTargetsNum[gIndex],
 
-																						N );
-	 cudaDeviceSynchronize();
-	 cudaCheckError();
+																						N /* Num Nodes */ );
+	  cudaDeviceSynchronize();
+	  cudaCheckError();
 
+	  /*DD---------------------------------------------------------------------------------------------------------------------DD*/
+	  /* Debug Printing */
+	  /*DD---------------------------------------------------------------------------------------------------------------------DD*/
 
-	 std::cout << "  Calculate node colors " << std::endl;
-	 Kernel_NodeColors<<<ThreadsAllNodes[0].dimGrid ,ThreadsAllNodes[0].dimBlock>>>(     N,
-																						d_node_Colors, //Output
-																						dram_Node_edgePrevs[gIndex],
-																						dram_Node_edgePrevsStart[gIndex],
-																						dram_Node_edgePrevsNum[gIndex],
+	  printf("\n");
+	  std::cout << "\n StartEdgeColors for Graph " << gIndex << std::endl;
+	  uint64_t *h_EdgeColors;
+	  h_EdgeColors = new uint64_t [E];
+
+	  cudaMemcpy(h_EdgeColors, d_edge_Colors, E*sizeof(uint64_t), cudaMemcpyDeviceToHost);
+	  cudaDeviceSynchronize();
+	  cudaCheckError();
+	  for (int i = 0; i < 4; i++)
+	  {
+	    printf(" %d EdgeColor 0x%016llx \n",i, h_EdgeColors[i]);
+	  }
+	  delete []h_EdgeColors;
+	  std::cout << "\n EndEdgeColors for Graph " << gIndex << std::endl;
+	  printf("\n");
+	  /* DD---------------------------------------------------------------------------------------------------------------------DD*/
+
+	  /*  2. Update Node Colors */
+	  Kernel_NodeColors<<<ThreadsAllNodes[0].dimGrid, ThreadsAllNodes[0].dimBlock>>>(   N,
+																						d_node_Colors,        // Output
+																						d_node_Colors_Init,   // Input Init Value
+
+																						dram_Node_edgePrevs      [gIndex],
+																						dram_Node_edgePrevsStart [gIndex],
+																						dram_Node_edgePrevsNum   [gIndex],
 
 																						dram_Node_edgeNexts[gIndex],
 																						dram_Node_edgeNextsStart[gIndex],
 																						dram_Node_edgeNextsNum[gIndex],
-																						d_edge_Colors,
-																						// Debug parameters
-																						E);
-	 cudaDeviceSynchronize();
-	 cudaCheckError();
-	  /*-----------------------------------------------------------------------------------------------------*/
-		is_stable = CheckStability(gIndex, N, d_node_Colors, d_temp_sort_buffer,
-								   d_histo_keys, d_histo_counts, h_num_bins,
-								   d_histo_keys_Prev, d_histo_counts_Prev, h_num_bins_Prev);
+
+																						d_edge_Colors,          // Input (Current Edge Colors)
+																						E  );
+	  cudaDeviceSynchronize();
+	  cudaCheckError();
+
+	  /* 3. Stability Check */
+      is_stable = CheckStability(gIndex, N, d_node_Colors, d_temp_sort_buffer,
+                               d_NodeHisto_keys, d_NodeHisto_counts, h_num_bins,
+                               d_NodeHisto_keys_Prev, d_NodeHisto_counts_Prev, h_num_bins_Prev);
+
 
 		if (is_stable)
 		{
@@ -1183,23 +1243,23 @@ void WL1_IT( int gIndex, int MAX_ITERATIONS )
 		else
 		{
 			/* Swap pointers for next iteration */
-			std::swap(d_histo_keys, d_histo_keys_Prev);
-			std::swap(d_histo_counts, d_histo_counts_Prev);
-			h_num_bins = h_num_bins_Prev;
+			std::swap(d_NodeHisto_keys, d_NodeHisto_keys_Prev);
+			std::swap(d_NodeHisto_counts, d_NodeHisto_counts_Prev);
+			h_num_bins_Prev = h_num_bins;
 			iteration++;
 		}
-	  /*-----------------------------------------------------------------------------------------------------*/
 
 	} /* End Loop over iterations */
 
+    /* Save Histo for the graph  */
 	 if (is_stable)
 	 {
 		std::cout << "WL-1 Stabilized after " << iteration << " iterations." << std::endl;
 
-		/* 1. Store the final size on the host */
+		/* Store the final size */
 		WL1_BinsSize[gIndex] = (uint)h_num_bins_Prev;
 
-		/* Check if there's data to copy */
+		/* Copy to permanent storage */
 		if (h_num_bins_Prev > 0)
 		{
 			size_t keys_bytes   = h_num_bins_Prev * sizeof(uint64_t);
@@ -1208,10 +1268,9 @@ void WL1_IT( int gIndex, int MAX_ITERATIONS )
 			cudaMalloc((void**)&dram_WL1_BinsKeys[gIndex],  keys_bytes);
 			cudaMalloc((void**)&dram_WL1_BinsCount[gIndex], counts_bytes);
 
-			/* 3. Copy the data from the temporary buffers to the permanent buffers */
 			std::cout << "Copy Color Histogram " << std::endl;
-	        cudaMemcpy( dram_WL1_BinsKeys[gIndex],  d_histo_keys_Prev,   keys_bytes,   cudaMemcpyDeviceToDevice );
-	        cudaMemcpy( dram_WL1_BinsCount[gIndex], d_histo_counts_Prev, counts_bytes, cudaMemcpyDeviceToDevice );
+	        cudaMemcpy( dram_WL1_BinsKeys[gIndex],  d_NodeHisto_keys_Prev,   keys_bytes,   cudaMemcpyDeviceToDevice );
+	        cudaMemcpy( dram_WL1_BinsCount[gIndex], d_NodeHisto_counts_Prev, counts_bytes, cudaMemcpyDeviceToDevice );
 
 	   	    cudaDeviceSynchronize();
 	        cudaCheckError();
@@ -1223,16 +1282,22 @@ void WL1_IT( int gIndex, int MAX_ITERATIONS )
 		WL1_BinsSize[gIndex] = 0;
 	 }
 
+     /* Cleanup */
 	 cudaFree(d_node_Colors);
 	 cudaFree(d_edge_Colors);
+     cudaFree(d_node_Colors_Init);
+     cudaFree(d_edge_Colors_Init);
 	 cudaFree(d_temp_sort_buffer);
-	 cudaFree(d_histo_keys);
-	 cudaFree(d_histo_counts);
-	 cudaFree(d_histo_keys_Prev);
-	 cudaFree(d_histo_counts_Prev);
+
+	 /* Free since  dram_WL1_BinsKeys and dram_WL1_BinsCount has the data */
+	 cudaFree(d_NodeHisto_keys);
+	 cudaFree(d_NodeHisto_counts);
+	 cudaFree(d_NodeHisto_keys_Prev);
+	 cudaFree(d_NodeHisto_counts_Prev);
 
 	 cudaDeviceSynchronize();
 	 cudaCheckError();
 }
+
 /*===================================================================================================================*/
 

@@ -9,7 +9,10 @@
 #define GPU_SOLVER_CUDA_KERNELS_CUH_
 #include <thrust/tuple.h>
 
-// __constant__ __device__ NodeKeyTuple MAX_TUPLE = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+
+//extern __constant__  NodeKeyTuple MAX_TUPLE;
+//__constant__ __device__ NodeKeyTuple MAX_TUPLE = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+
 #define FNV_OFFSET_BASIS 0xcbf29ce484222325ULL
 #define FNV_PRIME 0x100000001b3ULL
 
@@ -52,9 +55,18 @@ __global__ void PrintEdge(  int edge_id, const uint* d_edge_LabelA,
 
 									const uint* d_edge_TargetNodes,
 									const uint* d_edge_TargetsStart,
-									const uint* d_edge_TargetsNum )
+									const uint* d_edge_TargetsNum,
+									NodeKeyTuple MAX_TUPLE)
 {
 
+
+
+	 printf("MaxTupe %u %u %u %u \n",
+	        thrust::get<0>(MAX_TUPLE),
+	        thrust::get<1>(MAX_TUPLE),
+	        thrust::get<2>(MAX_TUPLE),
+	        thrust::get<3>(MAX_TUPLE)
+	 );
 				printf(" %d  LabelIndA %d \n", edge_id, d_edge_LabelA[edge_id]  );
 
 				printf(" SourceNodes \n");
@@ -86,6 +98,8 @@ __global__ void PrintEdge(  int edge_id, const uint* d_edge_LabelA,
 
 }
 /*-----------------------------------------------------------------------------------------------*/
+
+
 
 /*-----------------------------------------------------------------------------------------------*/
 /* Computes a 64bit hash */
@@ -171,13 +185,14 @@ __global__ void Kernel_EdgeHashesSorted(  int numEdges,
 										  const uint *d_edge_NodesStart, const uint *d_edge_NodesNum,
 										  const NodeKeyTuple *d_node_sig,
 
-										  uint64_t* d_edge_neighborHashes, uint numNodes, uint sizeNodeList    )
+										  uint64_t* d_edge_neighborHashes, uint numNodes, uint sizeNodeList, NodeKeyTuple MAX_TUPLE   )
 {
     /* One thread per edge */
     int edge_id = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (edge_id < numEdges)
     {
+
 		NodeKeyTuple NodeSigs [8]; /* Based on discussion with Paul we can use 8 as an upper bound */
 
 		/*---------------------------------------------------------------------------------------------------*/
@@ -193,7 +208,7 @@ __global__ void Kernel_EdgeHashesSorted(  int numEdges,
 			}
 			else
 			{
-			  NodeSigs[i] = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+			  NodeSigs[i] = MAX_TUPLE;
 			}
 		}
 
@@ -225,7 +240,7 @@ __global__ void Kernel_EdgeHashesSortedComb(    int numEdges, // Number of threa
 												const NodeKeyTuple* d_node_sig,
 
 												uint64_t* d_source_neighbor_hashes,
-												uint64_t* d_target_neighbor_hashes    )
+												uint64_t* d_target_neighbor_hashes , NodeKeyTuple MAX_TUPLE    )
 {
     // One thread per edge
     int edge_id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -246,7 +261,7 @@ __global__ void Kernel_EdgeHashesSortedComb(    int numEdges, // Number of threa
 			}
 			else
 			{
-				NodeSigs[i] = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+				NodeSigs[i] = MAX_TUPLE;
 			}
 		}
 
@@ -277,7 +292,7 @@ __global__ void Kernel_EdgeHashesSortedComb(    int numEdges, // Number of threa
 			}
 			else
 			{
-				NodeSigs[i] = thrust::make_tuple(UINT_MAX, 0, 0, 0);
+				NodeSigs[i] = MAX_TUPLE;
 			}
 		}
 
@@ -297,6 +312,8 @@ __global__ void Kernel_EdgeHashesSortedComb(    int numEdges, // Number of threa
     } /* Valid TID */
 }
 /*-----------------------------------------------------------------------------------------------*/
+
+
 
 
 /*-----------------------------------------------------------------------------------------------*/
@@ -325,33 +342,51 @@ __global__ void Kernel_InitEdgeColor( int numEdges, const uint* d_edge_labels, u
 /*-----------------------------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------*/
-/* Color Iteration for edges */
+/* (SplitMix64 variant) */
+/*-----------------------------------------------------------------------------------------------*/
+__device__ __forceinline__ uint64_t mix_color(uint64_t k)
+{
+    k ^= k >> 33;
+    k *= 0xff51afd7ed558ccdULL;
+    k ^= k >> 33;
+    k *= 0xc4ceb9fe1a85ec53ULL;
+    k ^= k >> 33;
+    return k;
+}
+/*-----------------------------------------------------------------------------------------------*/
+
+
+/*-----------------------------------------------------------------------------------------------*/
+/* Color Iteration for edges (Modified to Anchor) */
 /*-----------------------------------------------------------------------------------------------*/
 __global__ void Kernel_EdgeColors(  int numEdges,
-									uint64_t       *d_edge_Colors, // This is updated
-									const uint     *d_edge_SourceNodes,
+									uint64_t       *d_edge_Colors,         // Output
+                                    const uint64_t *d_edge_Colors_Initial, // The static C0 color
+
+                                    const uint     *d_edge_SourceNodes,
 									const uint     *d_edge_SourcesStart,
 									const uint     *d_edge_SourcesNum,
 
-									const uint64_t *d_node_Colors,
+									const uint64_t *d_node_Colors,         // Current neighbor colors
 									const uint     *d_edge_TargetNodes,
 									const uint     *d_edge_TargetsStart,
 									const uint     *d_edge_TargetsNum,
-									int numNodes)
+									int numNodes                                 )
 {
     int edge_id = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (edge_id < numEdges)
     {
-		uint64_t NodeNNColors[8]; /* Local Buffer */
+		uint64_t NodeNNColors[8];
 
-		/*---------------------------------------------------------------------------------------------------*/
 		/* A] Source Nodes Signatures */
 		int start_index      = d_edge_SourcesStart [edge_id];
 		int num_source_nodes = d_edge_SourcesNum   [edge_id];
+
+		/* Fixed Loop unrolling */
 		for (int i = 0; i < 8; i++)
 		{
-			if( i<num_source_nodes)
+			if( i < num_source_nodes)
 			{
 				NodeNNColors[i] = d_node_Colors[ d_edge_SourceNodes[start_index + i] ];
 			}
@@ -360,17 +395,16 @@ __global__ void Kernel_EdgeColors(  int numEdges,
 				NodeNNColors[i] = UINT64_MAX;
 			}
 		}
-		sorting_network_8(NodeNNColors); // Sort colors
-		uint64_t source_hash = fnv1a_hash_64(NodeNNColors, 8*sizeof(uint64_t));
-		/*---------------------------------------------------------------------------------------------------*/
+		sorting_network_8(NodeNNColors);
+		uint64_t source_hash = fnv1a_hash_64(NodeNNColors, num_source_nodes*sizeof(uint64_t));
 
-		/*---------------------------------------------------------------------------------------------------*/
 		/* B] Target Nodes Signatures */
 		int start_indexT     = d_edge_TargetsStart [edge_id];
 		int num_target_nodes = d_edge_TargetsNum   [edge_id];
+
 		for (int i = 0; i < 8; i++)
 		{
-			if( i<num_target_nodes)
+			if( i < num_target_nodes)
 			{
 				NodeNNColors[i] = d_node_Colors[ d_edge_TargetNodes[start_indexT + i] ];
 			}
@@ -379,20 +413,24 @@ __global__ void Kernel_EdgeColors(  int numEdges,
 				NodeNNColors[i] = UINT64_MAX;
 			}
 		}
-		sorting_network_8(NodeNNColors); // Sort colors
-		uint64_t target_hash = fnv1a_hash_64(NodeNNColors, 8*sizeof(uint64_t));
-		/*---------------------------------------------------------------------------------------------------*/
+		sorting_network_8(NodeNNColors);
+		uint64_t target_hash = fnv1a_hash_64(NodeNNColors, num_target_nodes*sizeof(uint64_t));
 
 		/* C] Combine and create new color for edge */
-		uint64_t combined_hash_data[3] = { d_edge_Colors[edge_id], source_hash, target_hash };
-		d_edge_Colors[edge_id] = fnv1a_hash_64(combined_hash_data, 3 * sizeof(uint64_t));
+		uint64_t combined_hash_data[3] = { d_edge_Colors_Initial[edge_id], source_hash, target_hash };
+        d_edge_Colors[edge_id] = fnv1a_hash_64(combined_hash_data, 3 * sizeof(uint64_t));
     }
 }
 /*-----------------------------------------------------------------------------------------------*/
 
+
+/*-----------------------------------------------------------------------------------------------*/
+/* WL-1 Node Color Update Kernel */
 /*-----------------------------------------------------------------------------------------------*/
 __global__ void Kernel_NodeColors(  int numNodes,
-									uint64_t   *d_node_Colors,
+									uint64_t   *d_node_Colors,             // Output
+                                    const uint64_t *d_node_Colors_Initial, // The static C0 color
+
 									const uint *d_node_edgePrevs,
 									const uint *d_node_edgePrevsStart,
 									const uint *d_node_edgePrevsNum,
@@ -401,40 +439,39 @@ __global__ void Kernel_NodeColors(  int numNodes,
 									const uint *d_node_edgeNextsStart,
 									const uint *d_node_edgeNextsNum,
 
-									const uint64_t *d_edge_Colors,
+									const uint64_t *d_edge_Colors, // Current neighbor colors
 									int numEdges                         )
 {
 	int node_id = blockIdx.x * blockDim.x + threadIdx.x;
 	if (node_id < numNodes)
 	{
 		/* A] Node Prevs */
-		int num_prev_edges = d_node_edgePrevsNum   [node_id];
-		int start_index    = d_node_edgePrevsStart [node_id];
+		int num_prev_edges = d_node_edgePrevsNum[node_id];
+		int start_index    = d_node_edgePrevsStart[node_id];
 
 		uint64_t prev_hash = 0;
 		for (int i = 0; i < num_prev_edges; i++)
 		{
-			/* Commutative XOR sum using edge colors */
-			prev_hash = prev_hash ^ d_edge_Colors[ d_node_edgePrevs[start_index + i] ];
+			uint64_t neighbor_col = d_edge_Colors[ d_node_edgePrevs[start_index + i] ];
+			prev_hash += mix_color(neighbor_col);
 		}
 
 		/* B] Node Nexts */
-		int num_next_edges = d_node_edgeNextsNum   [node_id];
-		int start_indexN   = d_node_edgeNextsStart [node_id];
+		int num_next_edges = d_node_edgeNextsNum[node_id];
+		int start_indexN   = d_node_edgeNextsStart[node_id];
 
 		uint64_t next_hash = 0;
 		for (int i = 0; i < num_next_edges; ++i)
 		{
-		    next_hash = next_hash ^ d_edge_Colors[ d_node_edgeNexts[start_indexN + i] ];
+			uint64_t neighbor_col = d_edge_Colors[ d_node_edgeNexts[start_indexN + i] ];
+		    next_hash += mix_color(neighbor_col);
 		}
 
 		/* C] Write New Color */
-		uint64_t combined_hash_data[3] = { d_node_Colors[node_id], prev_hash, next_hash };
-
+		uint64_t combined_hash_data[3] = { d_node_Colors_Initial[node_id], prev_hash, next_hash };
 		d_node_Colors[node_id] = fnv1a_hash_64(combined_hash_data, 3 * sizeof(uint64_t));
 	}
 }
 /*-----------------------------------------------------------------------------------------------*/
-
 
 #endif /* GPU_SOLVER_CUDA_KERNELS_CUH_ */

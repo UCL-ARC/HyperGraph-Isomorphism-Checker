@@ -37,13 +37,13 @@ void InitGPUArrays( uint gIndex,
 					uint *EdgeNodeCountH,
 					uint gpu               );
 
-void FreeGPUArrays (uint gIndex, uint gpu);
+void GPU_FreeArrays (uint gIndex, uint gpu);
 
-void CreateGraphBinsGPU();
+bool GPU_CompareSignatureCountsBetweenGraphs();
+bool GPU_CompareEdgesSignaturesBetweenGraphs();
 
-void CompareEdgesGPU();
+void GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS );
 
-void TakeNodeStep ();
 
 
 #endif /* GPU_SOLVER_CUDA_FUNCTIONS_H_ */

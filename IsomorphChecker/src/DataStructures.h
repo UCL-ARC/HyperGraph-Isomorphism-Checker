@@ -4,10 +4,42 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include "DebugHistogram.h"
 
-// Forward declaration for InputGraph structure
-struct InputGraph;
+/**
+ * @brief Structure representing a hyperedge in the input graph.
+ *
+ * A hyperedge connects multiple source nodes to multiple target nodes and has a label.
+ * Think of them as a function with multiple inputs and outputs. For example, a hyperedge
+ * f(x, y) -> (z1, z2) takes inputs x and y and produces outputs z1 and z2.
+ *
+ * @member labelIndex Index of the hyperedge label in the edge labels database. 'f' in the example above.
+ * @member sourceNodes Vector of source node indices (inputs). 'x' and 'y' in the example above.
+ * @member targetNodes Vector of target node indices (outputs). 'z1' and 'z2' in the example above.
+ */
+/*-------------------------------------------------------------------------------------------------------------------*/
+struct IO_hyperEdge
+{
+	int labelIndex;
+	std::vector<uint> sourceNodes;
+	std::vector<uint> targetNodes;
+};
+/*-------------------------------------------------------------------------------------------------------------------*/
+
+
+struct InputGraph
+{
+	std::vector<std::string>  nodeLabelsDB;      /* Unique node labels */
+	std::vector<uint>         nodeLabelIndex;    /* Label index for each node */
+
+	// std::vector<uint>         node_EdgeSources;  /* Node edge source connections */
+	// std::vector<uint>         node_EdgeTargets;  /* Node edge target connections */
+
+	std::vector<std::string>  edgeLabelsDB;      /* Unique edge labels */
+	std::vector<IO_hyperEdge> edges;             /* All hyperedges */
+
+	std::vector<uint>         globalInputs;      /* Global input node IDs */
+	std::vector<uint>         globalOutputs;     /* Global output node IDs */
+};
 
 /**
  * @brief GPU node data structure for Compressed Sparse Row (CSR) representation.
@@ -44,7 +76,7 @@ struct InputGraph;
  * **Metadata Tags:**
  * - ioTags: Input/Output classification (0=none, 1=input, 2=output, 3=both)
  */
-struct GPUNodeData
+struct CSR_NodeData
 {
 	uint numNodes;
 	uint numNodeLabelsDB;
@@ -93,7 +125,7 @@ struct GPUNodeData
  * **Combined Node Information:**
  * - totalNodes: Sum of source and target nodes per edge
  */
-struct GPUEdgeData
+struct CSR_EdgeData
 {
 	uint numEdges;
 	uint numEdgeLabelsDB;
@@ -126,55 +158,13 @@ struct GPUEdgeData
  * **Usage:** This structure is populated on the host side with all necessary graph
  * information in CSR format, then transferred to the GPU for kernel execution.
  */
-struct GPUGraphData
+struct CSR_Graph
 {
 	uint graphIndex;
-	GPUNodeData nodeData;
-	GPUEdgeData edgeData;
-	uint gpu;
+	CSR_NodeData nodeData;
+	CSR_EdgeData edgeData;
 };
 
-/**
- * @brief Wrapper function to transfer GPU graph data to GPU device.
- * 
- * Unpacks the organized GPUGraphData structure and calls the low-level GPU
- * initialization function with all necessary arrays and metadata.
- * 
- * @param gpuData Complete GPU graph data structure containing all node/edge arrays
- * 
- * @see GPUGraphData, InitGPUArrays
- */
-void TransferGraphToGPU(const GPUGraphData& gpuData);
 
-/**
- * @brief Initialize GPU graph data structure with allocated arrays.
- * 
- * Allocates all necessary GPU arrays for node and edge data based on the input graph
- * structure. Sets up metadata fields and initializes special arrays (prevsFirstEdge,
- * nextsFirstEdge) to -1.
- * 
- * @param gInd Graph index (0 or 1) for identification
- * @param graph Input graph containing topology information
- * @param gpuData Output GPU graph data structure to be populated
- * 
- * @post All pointer fields in gpuData are allocated and ready for population.
- * 
- * @see DeallocateGPUGraphData
- */
-void InitializeGPUGraphData(int gInd, const InputGraph& graph, GPUGraphData& gpuData);
-
-/**
- * @brief Deallocate GPU graph data structure.
- * 
- * Frees all dynamically allocated arrays in the GPU graph data structure.
- * Performs null-safe deletion of all pointer members.
- * 
- * @param gpuData GPU graph data structure to deallocate
- * 
- * @pre gpuData should have been initialized with InitializeGPUGraphData
- * 
- * @see InitializeGPUGraphData
- */
-void DeallocateGPUGraphData(GPUGraphData& gpuData);
 
 #endif // GPU_DATA_STRUCTURES_H

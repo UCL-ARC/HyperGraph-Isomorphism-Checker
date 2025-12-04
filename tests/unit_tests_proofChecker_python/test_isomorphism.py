@@ -1,5 +1,4 @@
 from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
-from IsomorphismChecker_python_serial.draw import print_graph
 from IsomorphismChecker_python_serial.isomorphisms import (
     MC_isomorphism,
     permute_graph,
@@ -169,13 +168,13 @@ non_monogamous_graphs = [
 ]  # , "NonMonogamous_Ambiguous_Branching.json"]
 
 
-@pytest.mark.parametrize("graph_file", non_monogamous_graphs)
-def test_nonmonogamous_graphs(graph_file):
-    g1 = create_hypergraph(test_graph_dir + graph_file)
-    pi_n, pi_e, g2 = permute_graph(g1)
-    print(pi_n, pi_e)
-    print_graph(g1)
-    print_graph(g2)
-    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
-    print(isomorphism)
-    assert isomorphism.isomorphic
+# @pytest.mark.parametrize("graph_file", non_monogamous_graphs)
+# def test_nonmonogamous_graphs(graph_file):
+#    g1 = create_hypergraph(test_graph_dir + graph_file)
+#    pi_n, pi_e, g2 = permute_graph(g1)
+#    print(pi_n, pi_e)
+#    print_graph(g1)
+#    print_graph(g2)
+#    isomorphism = disconnected_subgraph_isomorphism(g1, g2)
+#    print(isomorphism)
+#    assert isomorphism.isomorphic

@@ -631,15 +631,27 @@ def MC_isomorphism(
     return ret
 
 
+class ColourMap:
+    """
+    Holds colour information for a list of elements (node or edges)
+    The `colouring` maps indices to colours
+    The `colour_map` maps colours to lists of indices with that colour
+    """
+
+    def __init__(self, size):
+        self.colouring: list[int] = [-1] * size
+        self.colour_map: dict[int, list[int]] = {}
+
+
 class Colouring:
     def __init__(self, g1: OpenHypergraph, g2: OpenHypergraph):
         self.g1 = g1
         self.g2 = g2
         self.colour = 0
         self.n_nodes = len(g1.nodes)
-        self.node_colouring: list[int] = [0] * self.n_nodes
-        # self.node_colouring: tuple[list[int], list[int]] = ([0]*self.n_nodes, [0]*self.n_nodes)
-        self.colour_map: dict[int, list[int]] = {}
+        self.n_edges = len(g1.edges)
+        self.node_colouring = ColourMap(self.n_nodes)
+        self.edge_colouring = ColourMap(self.n_edges)
 
     def get_new_colour(self):
         self.colour += 1
@@ -652,21 +664,95 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
     # Need a dimension check
 
     # Colourings for nodes (do we also need to colour edges?)
-    c = Colouring(g1, g2)
+    colours = Colouring(g1, g2)
 
     # To start let's try to colour a single graph
 
-    # Initial colouring by immediate edges for each node
-    initial_key_colouring: dict[str, int] = {}
-    for v in g1.nodes:
-        key = construct_node_key(v)
-        if key in initial_key_colouring:
-            c.node_colouring[v.index] = initial_key_colouring[key]
-        else:
-            colour = c.get_new_colour()
-            c.node_colouring[v.index] = colour
-            initial_key_colouring[key] = colour
-
     # Unique colours for input/output nodes
+    c = 0
+    for v in g1.input_nodes + g1.output_nodes:
+        ## assign colour if unassigned: a node can appear as both input and output
+        ## and can also appear in the input/output list more than once
+        if colours.node_colouring.colouring[v] == -1:
+            colours.node_colouring.colouring[v] = c
+            colours.node_colouring.colour_map[c] = [
+                v
+            ]  ## every colour group should be a singleton
+            c += 1
 
-    return c
+    # Initial colouring of remaining nodes and edges by their labels
+    InitialiseColours(g1, colours, c)
+
+    # Updating egde and node colours by their labels
+    # Only need to update colours on nodes which are not uniquely coloured
+    for (colour, colour_group) in colours.node_colouring.colour_map.items():
+        if len(colour_group) > 1:
+            # attempt to split colour group
+            indexed_keys = [
+                (i, GetNodeColourKey(colours, g1.nodes[v]))
+                for (i, v) in enumerate(colour_group)
+            ]
+            # sort the indexed colour keys
+            indexed_keys.sort(key=lambda x: x[1])
+            # assign new colours
+            AssignColours(colours.node_colouring, colour, indexed_keys)
+
+    for (colour, colour_group) in colours.edge_colouring.colour_map.items():
+        if len(colour_group) > 1:
+            # attempt to split colour group
+            indexed_keys = [
+                (i, GetEdgeColourKey(colours, g1.edges[e]))
+                for (i, e) in enumerate(colour_group)
+            ]
+            # sort the indexed colour keys
+            indexed_keys.sort(key=lambda x: x[1])
+            # assign new colours
+            AssignColours(colours.edge_colouring, colour, indexed_keys)
+
+    return colours
+
+
+def AssignColours(
+    cmap: ColourMap, start_colour: int, indexed_keys: list[tuple[int, str]]
+):
+    c_running = start_colour
+    c = start_colour
+    key = ""
+    for (i, k) in indexed_keys:
+        if k == key:
+            cmap.colouring[i] = c_running
+            cmap.colour_map[c_running].append(i)
+        else:  # new key --> new colour
+            cmap.colouring[i] = c
+            cmap.colour_map[c] = [i]
+            c_running = c
+        c += 1
+
+
+def GetNodeColourKey(colours: Colouring, v: Node):
+    """Gather the colours of adjoining edges and convert it into a hashable key"""
+    prevs = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.prev]
+    prevs.sort()
+    nexts = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.next]
+    nexts.sort()
+    key = f"{prevs}:{nexts}"
+    return key
+
+
+def GetEdgeColourKey(colours: Colouring, e: HyperEdge):
+    """Gather the colours of source and target nodes and convert to hashable key"""
+    sources = [colours.node_colouring.colouring[v] for v in e.sources]
+    targets = [colours.node_colouring.colouring[v] for v in e.targets]
+    # Unlike nodes there is no sorting here because they are already ordered
+    key = f"{sources}:{targets}"
+    return key
+
+
+def InitialiseColours(g1: OpenHypergraph, colours: Colouring, start_colour: int):
+    node_type_list = [(i, v.label) for i, v in enumerate(g1.nodes)]
+    node_type_list.sort(key=lambda z: z[1])
+    AssignColours(colours.node_colouring, start_colour, node_type_list)
+
+    edge_type_list = [(i, e.label) for i, e in enumerate(g1.edges)]
+    edge_type_list.sort(key=lambda z: z[1])
+    AssignColours(colours.edge_colouring, start_colour, edge_type_list)

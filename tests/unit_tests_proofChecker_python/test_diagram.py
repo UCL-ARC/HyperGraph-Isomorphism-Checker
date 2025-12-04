@@ -76,3 +76,4 @@ def test_draw_invalid_hypergraph():
     invalid_hypergraph = OpenHypergraph()
     with pytest.raises(ValueError, match="The provided OpenHypergraph is not valid."):
         Diagram(openHyperGraph=invalid_hypergraph)
+    assert False

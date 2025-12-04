@@ -640,7 +640,7 @@ class ColourMap:
 
     def __init__(self, size):
         self.colouring: list[int] = [-1] * size
-        self.colour_map: dict[int, list[int]] = {}
+        self.colour_map: dict[int, set[int]] = {}
 
 
 class Colouring:
@@ -675,9 +675,9 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
         ## and can also appear in the input/output list more than once
         if colours.node_colouring.colouring[v] == -1:
             colours.node_colouring.colouring[v] = c
-            colours.node_colouring.colour_map[c] = [
-                v
-            ]  ## every colour group should be a singleton
+            colours.node_colouring.colour_map[c] = set(
+                [v]
+            )  ## every colour group should be a singleton
             c += 1
 
     # Initial colouring of remaining nodes and edges by their labels
@@ -685,29 +685,33 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
 
     # Updating egde and node colours by their labels
     # Only need to update colours on nodes which are not uniquely coloured
-    for (colour, colour_group) in colours.node_colouring.colour_map.items():
-        if len(colour_group) > 1:
-            # attempt to split colour group
-            indexed_keys = [
-                (i, GetNodeColourKey(colours, g1.nodes[v]))
-                for (i, v) in enumerate(colour_group)
-            ]
-            # sort the indexed colour keys
-            indexed_keys.sort(key=lambda x: x[1])
-            # assign new colours
-            AssignColours(colours.node_colouring, colour, indexed_keys)
+    static = False
+    while not static:
+        ## Update node colouring
+        for (colour, colour_group) in colours.node_colouring.colour_map.items():
+            if len(colour_group) > 1:
+                # attempt to split colour group
+                indexed_keys = [
+                    (i, GetNodeColourKey(colours, g1.nodes[v]))
+                    for (i, v) in enumerate(colour_group)
+                ]
+                # sort the indexed colour keys
+                indexed_keys.sort(key=lambda x: x[1])
+                # assign new colours
+                AssignColours(colours.node_colouring, colour, indexed_keys)
 
-    for (colour, colour_group) in colours.edge_colouring.colour_map.items():
-        if len(colour_group) > 1:
-            # attempt to split colour group
-            indexed_keys = [
-                (i, GetEdgeColourKey(colours, g1.edges[e]))
-                for (i, e) in enumerate(colour_group)
-            ]
-            # sort the indexed colour keys
-            indexed_keys.sort(key=lambda x: x[1])
-            # assign new colours
-            AssignColours(colours.edge_colouring, colour, indexed_keys)
+        ## Update edge colouring
+        for (colour, colour_group) in colours.edge_colouring.colour_map.items():
+            if len(colour_group) > 1:
+                # attempt to split colour group
+                indexed_keys = [
+                    (i, GetEdgeColourKey(colours, g1.edges[e]))
+                    for (i, e) in enumerate(colour_group)
+                ]
+                # sort the indexed colour keys
+                indexed_keys.sort(key=lambda x: x[1])
+                # assign new colours
+                AssignColours(colours.edge_colouring, colour, indexed_keys)
 
     return colours
 
@@ -715,17 +719,22 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
 def AssignColours(
     cmap: ColourMap, start_colour: int, indexed_keys: list[tuple[int, str]]
 ):
+    # static = True
     c_running = start_colour
     c = start_colour
     key = ""
     for (i, k) in indexed_keys:
         if k == key:
-            cmap.colouring[i] = c_running
-            cmap.colour_map[c_running].append(i)
+            if c_running != cmap.colouring[i]:
+                cmap.colour_map[cmap.colouring[i]].remove(i)
+                cmap.colouring[i] = c_running
+                cmap.colour_map[c_running].add(i)
         else:  # new key --> new colour
+            cmap.colour_map[cmap.colouring[i]].remove(i)
             cmap.colouring[i] = c
-            cmap.colour_map[c] = [i]
+            cmap.colour_map[c] = set([i])
             c_running = c
+            key = k
         c += 1
 
 

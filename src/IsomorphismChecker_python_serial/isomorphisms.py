@@ -698,7 +698,9 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
                 # sort the indexed colour keys
                 indexed_keys.sort(key=lambda x: x[1])
                 # assign new colours
-                AssignColours(colours.node_colouring, colour, indexed_keys)
+                static_nodes = AssignColours(
+                    colours.node_colouring, colour, indexed_keys
+                )
 
         ## Update edge colouring
         for (colour, colour_group) in colours.edge_colouring.colour_map.items():
@@ -711,7 +713,11 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
                 # sort the indexed colour keys
                 indexed_keys.sort(key=lambda x: x[1])
                 # assign new colours
-                AssignColours(colours.edge_colouring, colour, indexed_keys)
+                static_edges = AssignColours(
+                    colours.edge_colouring, colour, indexed_keys
+                )
+
+        static = static_nodes & static_edges
 
     return colours
 
@@ -719,23 +725,26 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
 def AssignColours(
     cmap: ColourMap, start_colour: int, indexed_keys: list[tuple[int, str]]
 ):
-    # static = True
+    static = True
     c_running = start_colour
     c = start_colour
     key = ""
     for (i, k) in indexed_keys:
         if k == key:
             if c_running != cmap.colouring[i]:
+                static = False
                 cmap.colour_map[cmap.colouring[i]].remove(i)
                 cmap.colouring[i] = c_running
                 cmap.colour_map[c_running].add(i)
         else:  # new key --> new colour
+            static = False
             cmap.colour_map[cmap.colouring[i]].remove(i)
             cmap.colouring[i] = c
             cmap.colour_map[c] = set([i])
             c_running = c
             key = k
         c += 1
+    return static
 
 
 def GetNodeColourKey(colours: Colouring, v: Node):

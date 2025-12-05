@@ -749,15 +749,12 @@ def AssignColours(
     c = start_colour
     key = ""
     for (i, k) in indexed_keys:
-        if k == key:
-            if c_running != cmap.colouring[i]:
-                static = False
-                if cmap.colouring[i] in cmap.update_map:
-                    cmap.update_map[cmap.colouring[i]].remove(i)
-                cmap.colouring[i] = c_running
-                cmap.update_map[c_running].add(i)
-        else:  # new key --> new colour
+        if c_running != cmap.colouring[i]:
             static = False
+        if k == key:
+            cmap.colouring[i] = c_running
+            cmap.update_map[c_running].add(i)
+        else:  # new key --> new colour
             cmap.colouring[i] = c
             cmap.update_map[c] = set([i])
             c_running = c

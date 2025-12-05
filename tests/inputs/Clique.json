@@ -14,18 +14,18 @@
     "hyperedges":
     [
       {"type_label": "F", "source_nodes": [0], "target_nodes": [1]},
-      {"type_label": "F", "source_nodes": [1], "target_nodes": [2]},
-      {"type_label": "F", "source_nodes": [2], "target_nodes": [3]},
-      {"type_label": "F", "source_nodes": [3], "target_nodes": [0]},
+      {"type_label": "F", "source_nodes": [0], "target_nodes": [2]},
       {"type_label": "F", "source_nodes": [0], "target_nodes": [3]},
-      {"type_label": "F", "source_nodes": [1], "target_nodes": [2]},
-
       {"type_label": "F", "source_nodes": [1], "target_nodes": [0]},
-      {"type_label": "F", "source_nodes": [2], "target_nodes": [1]},
-      {"type_label": "F", "source_nodes": [3], "target_nodes": [2]},
-      {"type_label": "F", "source_nodes": [0], "target_nodes": [3]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [0]},
       {"type_label": "F", "source_nodes": [3], "target_nodes": [0]},
-      {"type_label": "F", "source_nodes": [2], "target_nodes": [1]}
+
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [2]},
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [3]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [1]},
+      {"type_label": "F", "source_nodes": [3], "target_nodes": [1]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [3]},
+      {"type_label": "F", "source_nodes": [3], "target_nodes": [2]}
     ],
     "Inputs":
     [

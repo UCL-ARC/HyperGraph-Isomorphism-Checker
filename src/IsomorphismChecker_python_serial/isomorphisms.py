@@ -641,6 +641,11 @@ class ColourMap:
     def __init__(self, size):
         self.colouring: list[int] = [-1] * size
         self.colour_map: dict[int, set[int]] = {}
+        self.update_map: dict[int, set[int]] = {}
+
+    def mergeUpdates(self):
+        for (colour, group) in self.update_map.items():
+            self.colour_map[colour] = group
 
 
 class Colouring:
@@ -658,7 +663,9 @@ class Colouring:
         return self.colour
 
 
-def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
+def Colour_Graph_Pair(
+    g1: OpenHypergraph, g2: OpenHypergraph, d, filename: str
+) -> Colouring:
     # iso = Isomorphism((g1, g2))
 
     # Need a dimension check
@@ -683,6 +690,13 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
     # Initial colouring of remaining nodes and edges by their labels
     InitialiseColours(g1, colours, c)
 
+    ## Output initial colouring
+    iteration = 0
+    d.drawGraph(colours)
+    d.render(filename + str(iteration))
+
+    # initialise update maps to avoid dictionary changing size during iterations
+
     # Updating egde and node colours by their labels
     # Only need to update colours on nodes which are not uniquely coloured
     static = False
@@ -693,8 +707,7 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
             if len(colour_group) > 1:
                 # attempt to split colour group
                 indexed_keys = [
-                    (i, GetNodeColourKey(colours, g1.nodes[v]))
-                    for (i, v) in enumerate(colour_group)
+                    (v, GetNodeColourKey(colours, g1.nodes[v])) for v in colour_group
                 ]
                 # sort the indexed colour keys
                 indexed_keys.sort(key=lambda x: x[1])
@@ -702,6 +715,7 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
                 static_nodes = AssignColours(
                     colours.node_colouring, colour, indexed_keys
                 )
+        colours.node_colouring.mergeUpdates()
 
         ## Update edge colouring
         static_edges = True
@@ -709,8 +723,7 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
             if len(colour_group) > 1:
                 # attempt to split colour group
                 indexed_keys = [
-                    (i, GetEdgeColourKey(colours, g1.edges[e]))
-                    for (i, e) in enumerate(colour_group)
+                    (e, GetEdgeColourKey(colours, g1.edges[e])) for e in colour_group
                 ]
                 # sort the indexed colour keys
                 indexed_keys.sort(key=lambda x: x[1])
@@ -718,9 +731,12 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
                 static_edges = AssignColours(
                     colours.edge_colouring, colour, indexed_keys
                 )
+        colours.edge_colouring.mergeUpdates()
 
         static = static_nodes & static_edges
-
+        iteration += 1
+        d.drawGraph(colours)
+        d.render(filename + str(iteration))
     return colours
 
 
@@ -728,6 +744,7 @@ def AssignColours(
     cmap: ColourMap, start_colour: int, indexed_keys: list[tuple[int, str]]
 ):
     static = True
+    cmap.update_map.clear()
     c_running = start_colour
     c = start_colour
     key = ""
@@ -735,15 +752,14 @@ def AssignColours(
         if k == key:
             if c_running != cmap.colouring[i]:
                 static = False
-                cmap.colour_map[cmap.colouring[i]].remove(i)
+                if cmap.colouring[i] in cmap.update_map:
+                    cmap.update_map[cmap.colouring[i]].remove(i)
                 cmap.colouring[i] = c_running
-                cmap.colour_map[c_running].add(i)
+                cmap.update_map[c_running].add(i)
         else:  # new key --> new colour
             static = False
-            if cmap.colouring[i] in cmap.colour_map:
-                cmap.colour_map[cmap.colouring[i]].remove(i)
             cmap.colouring[i] = c
-            cmap.colour_map[c] = set([i])
+            cmap.update_map[c] = set([i])
             c_running = c
             key = k
         c += 1
@@ -777,7 +793,9 @@ def InitialiseColours(g1: OpenHypergraph, colours: Colouring, start_colour: int)
     ]
     node_type_list.sort(key=lambda z: z[1])
     AssignColours(colours.node_colouring, start_colour, node_type_list)
+    colours.node_colouring.mergeUpdates()
 
     edge_type_list = [(i, e.label) for i, e in enumerate(g1.edges)]
     edge_type_list.sort(key=lambda z: z[1])
     AssignColours(colours.edge_colouring, start_colour, edge_type_list)
+    colours.edge_colouring.mergeUpdates()

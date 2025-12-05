@@ -5,7 +5,15 @@ import pytest
 
 test_graph_dir = "tests/inputs/"
 
-graphs_to_colour: list[str] = ["Acyclic_Graph.json"]
+initial_step_graphs: list[str] = [
+    "Acyclic_Graph.json",
+    "Acyclic_Reordered_Edge_Output.json",
+    "Acyclic_Wrong_Input_Connectivity.json",
+    "Cyclic_Graph.json",
+]
+multi_step_graphs: list[str] = ["Multi_Step_Colouring.json"]
+
+graphs_to_colour = initial_step_graphs + multi_step_graphs
 
 
 @pytest.mark.parametrize("graph_file", graphs_to_colour)
@@ -18,8 +26,9 @@ def test_colouring(graph_file):
 
     d = Diagram(g)
 
-    colouring = Colour_Graph_Pair(g, g)
-    d.drawGraph(colouring=colouring)
-    d.render("hypergraph_colouring_test")
+    file_stub = graph_file[:-5]
+    colouring = Colour_Graph_Pair(g, g, d, file_stub + "_colouring")
+    print(f"Node colouring of {file_stub}: {colouring.node_colouring.colouring}")
+    print(f"Edge colouring of {file_stub}: {colouring.edge_colouring.colouring}")
     # print(colouring.node_colouring)
     # print(colouring.edge_colouring)

@@ -80,11 +80,9 @@ class Diagram:
                 color = "black"
 
             if colouring is not None:
-                print("Colouring nodes")
-                colour = "/set312/" + str(
+                colour = "/set19/" + str(
                     colouring.node_colouring.colouring[node.index] + 1
                 )
-                print(colour)
                 self.graphRep.node(
                     node_label, shape="circle", style="filled", fillcolor=colour
                 )
@@ -104,10 +102,9 @@ class Diagram:
             else:
                 color = "black"
             if colouring is not None:
-                colour = "/pastel19/" + str(
+                colour = "/set28/" + str(
                     colouring.edge_colouring.colouring[hyperEdge.index] + 1
                 )
-                print(colour)
                 self.graphRep.node(
                     edge_label, shape="box", style="filled", fillcolor=colour
                 )

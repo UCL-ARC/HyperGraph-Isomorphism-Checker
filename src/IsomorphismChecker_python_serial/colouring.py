@@ -20,12 +20,11 @@ class ColourMap:
 
 
 class Colouring:
-    def __init__(self, g1: OpenHypergraph, g2: OpenHypergraph):
-        self.g1 = g1
-        self.g2 = g2
+    def __init__(self, g: OpenHypergraph):
+        self.g1 = g
         self.colour = 0
-        self.n_nodes = len(g1.nodes)
-        self.n_edges = len(g1.edges)
+        self.n_nodes = len(g.nodes)
+        self.n_edges = len(g.edges)
         self.node_colouring = ColourMap(self.n_nodes)
         self.edge_colouring = ColourMap(self.n_edges)
 

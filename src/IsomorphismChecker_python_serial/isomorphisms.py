@@ -634,21 +634,19 @@ def MC_isomorphism(
     return ret
 
 
-def Colour_Graph_Pair(
-    g1: OpenHypergraph, g2: OpenHypergraph, filename: str
-) -> Colouring:
+def Get_Canonical_Graph_Colouring(g: OpenHypergraph, filename: str) -> Colouring:
     # iso = Isomorphism((g1, g2))
 
     # Need a dimension check
 
     # Colourings for nodes (do we also need to colour edges?)
-    colours = Colouring(g1, g2)
+    colours = Colouring(g)
 
     # To start let's try to colour a single graph
 
     # Unique colours for input/output nodes
     c = 0
-    for v in g1.input_nodes + g1.output_nodes:
+    for v in g.input_nodes + g.output_nodes:
         ## assign colour if unassigned: a node can appear as both input and output
         ## and can also appear in the input/output list more than once
         if colours.node_colouring.colouring[v] == -1:
@@ -659,18 +657,18 @@ def Colour_Graph_Pair(
             c += 1
 
     # Initial colouring of remaining nodes and edges by their labels
-    InitialiseColours(g1, colours, c)
+    InitialiseColours(g, colours, c)
 
     ## Output initial colouring
     iteration = 0
-    d = Diagram(g1, colouring=colours)
+    d = Diagram(g, colouring=colours)
     d.render(filename + str(iteration))
 
     # initialise update maps to avoid dictionary changing size during iterations
 
     # Updating egde and node colours by their labels
     # Only need to update colours on nodes which are not uniquely coloured
-    iteration = Update_Colourings(g1, filename, colours, iteration)
+    iteration = Update_Colourings(g, filename, colours, iteration)
 
     # After first update the graph should be uniquely coloured up to automorphism groups
     # Automorphism groups need to be broken manually to arrive at an isomorphism
@@ -684,7 +682,7 @@ def Colour_Graph_Pair(
         elif not edges_unique:
             break_symmetry(colours.edge_colouring, edge_symmetry)
 
-        iteration = Update_Colourings(g1, filename, colours, iteration)
+        iteration = Update_Colourings(g, filename, colours, iteration)
         (nodes_unique, node_symmetry), (
             edges_unique,
             edge_symmetry,

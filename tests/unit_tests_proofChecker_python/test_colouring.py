@@ -1,5 +1,8 @@
 from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
-from IsomorphismChecker_python_serial.isomorphisms import Colouring, Colour_Graph_Pair
+from IsomorphismChecker_python_serial.isomorphisms import (
+    Colouring,
+    Get_Canonical_Graph_Colouring,
+)
 import pytest
 
 test_graph_dir = "tests/inputs/"
@@ -28,11 +31,11 @@ graphs_to_colour = (
 def test_colouring(graph_file):
     g = create_hypergraph(test_graph_dir + graph_file)
 
-    colouring = Colouring(g, g)
+    colouring = Colouring(g)
     colouring.node_colouring.colouring = list(range(colouring.n_nodes))
     colouring.edge_colouring.colouring = list(range(colouring.n_edges))
 
     file_stub = graph_file[:-5]
-    colouring = Colour_Graph_Pair(g, g, file_stub + "_colouring")
+    colouring = Get_Canonical_Graph_Colouring(g, file_stub + "_colouring")
     print(f"Node colouring of {file_stub}: {colouring.node_colouring.colouring}")
     print(f"Edge colouring of {file_stub}: {colouring.edge_colouring.colouring}")

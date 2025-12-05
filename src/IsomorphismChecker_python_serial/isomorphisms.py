@@ -797,5 +797,5 @@ def InitialiseColours(g1: OpenHypergraph, colours: Colouring, start_colour: int)
 
     edge_type_list = [(i, e.label) for i, e in enumerate(g1.edges)]
     edge_type_list.sort(key=lambda z: z[1])
-    AssignColours(colours.edge_colouring, start_colour, edge_type_list)
+    AssignColours(colours.edge_colouring, 0, edge_type_list)
     colours.edge_colouring.mergeUpdates()

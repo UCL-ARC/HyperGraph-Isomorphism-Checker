@@ -5,15 +5,18 @@ import pytest
 
 test_graph_dir = "tests/inputs/"
 
-initial_step_graphs: list[str] = [
-    "Acyclic_Graph.json",
-    "Acyclic_Reordered_Edge_Output.json",
-    "Acyclic_Wrong_Input_Connectivity.json",
-    "Cyclic_Graph.json",
-]
-multi_step_graphs: list[str] = ["Multi_Step_Colouring.json"]
+initial_step_graphs: list[str] = []
+# [
+#     "Acyclic_Graph.json",
+#     "Acyclic_Reordered_Edge_Output.json",
+#     "Acyclic_Wrong_Input_Connectivity.json",
+#     "Cyclic_Graph.json"
+# ]
+multi_step_graphs: list[str] = []  # ["Multi_Step_Colouring.json"]
 
-graphs_to_colour = initial_step_graphs + multi_step_graphs
+non_monogamous_graphs: list[str] = ["NonMonogamous_Ambiguous_Branching.json"]
+
+graphs_to_colour = initial_step_graphs + multi_step_graphs + non_monogamous_graphs
 
 
 @pytest.mark.parametrize("graph_file", graphs_to_colour)

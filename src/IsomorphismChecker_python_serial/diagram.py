@@ -8,7 +8,7 @@ from graphviz import Digraph
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 from IsomorphismChecker_python_serial.hyperedge import HyperEdge
 from IsomorphismChecker_python_serial.node import Node
-from IsomorphismChecker_python_serial.isomorphisms import Colouring
+from IsomorphismChecker_python_serial.colouring import Colouring
 
 
 class ElementType(Enum):
@@ -33,6 +33,7 @@ class Diagram:
     orientation: Orientation = field(default=Orientation.TOP_TO_BOTTOM)
     highlighted_nodes: list[int] = field(default_factory=list)
     highlighted_edges: list[int] = field(default_factory=list)
+    colouring: Colouring | None = None
 
     @staticmethod
     def diagram_label(label: str, index: int, type: ElementType, hash: int = -1) -> str:
@@ -67,7 +68,7 @@ class Diagram:
                 self.diagram_label(self.nodes[t].label, t, ElementType.NODE),
             )
 
-    def drawGraph(self, colouring: Colouring | None = None):
+    def drawGraph(self):
 
         for node in self.nodes:
             node_label = self.diagram_label(
@@ -79,9 +80,9 @@ class Diagram:
             else:
                 color = "black"
 
-            if colouring is not None:
+            if self.colouring is not None:
                 colour = "/set19/" + str(
-                    colouring.node_colouring.colouring[node.index] + 1
+                    self.colouring.node_colouring.colouring[node.index] + 1
                 )
                 self.graphRep.node(
                     node_label, shape="circle", style="filled", fillcolor=colour
@@ -101,9 +102,9 @@ class Diagram:
                 color = "red"
             else:
                 color = "black"
-            if colouring is not None:
+            if self.colouring is not None:
                 colour = "/paired12/" + str(
-                    colouring.edge_colouring.colouring[hyperEdge.index] + 1
+                    self.colouring.edge_colouring.colouring[hyperEdge.index] + 1
                 )
                 self.graphRep.node(
                     edge_label, shape="box", style="filled", fillcolor=colour

@@ -7,6 +7,9 @@ from IsomorphismChecker_python_serial.hypergraph import (
 import random
 import logging
 
+from IsomorphismChecker_python_serial.diagram import Diagram
+from IsomorphismChecker_python_serial.colouring import Colouring, ColourMap
+
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -631,55 +634,8 @@ def MC_isomorphism(
     return ret
 
 
-class ColourMap:
-    """
-    Holds colour information for a list of elements (node or edges)
-    The `colouring` maps indices to colours
-    The `colour_map` maps colours to lists of indices with that colour
-    """
-
-    def __init__(self, size):
-        self.colouring: list[int] = [-1] * size
-        self.colour_map: dict[int, set[int]] = {}
-        self.update_map: dict[int, set[int]] = {}
-
-    def mergeUpdates(self):
-        for (colour, group) in self.update_map.items():
-            self.colour_map[colour] = group
-        self.update_map.clear()
-
-
-class Colouring:
-    def __init__(self, g1: OpenHypergraph, g2: OpenHypergraph):
-        self.g1 = g1
-        self.g2 = g2
-        self.colour = 0
-        self.n_nodes = len(g1.nodes)
-        self.n_edges = len(g1.edges)
-        self.node_colouring = ColourMap(self.n_nodes)
-        self.edge_colouring = ColourMap(self.n_edges)
-
-    def get_new_colour(self):
-        self.colour += 1
-        return self.colour
-
-    def check_uniqueness(self):
-        nodes_unique, edges_unique = (True, -1), (True, -1)
-        for colour, group in self.node_colouring.colour_map.items():
-            if len(group) > 1:
-                nodes_unique = (False, colour)
-                break
-
-        for colour, group in self.edge_colouring.colour_map.items():
-            if len(group) > 1:
-                edges_unique = (False, colour)
-                break
-
-        return nodes_unique, edges_unique
-
-
 def Colour_Graph_Pair(
-    g1: OpenHypergraph, g2: OpenHypergraph, d, filename: str
+    g1: OpenHypergraph, g2: OpenHypergraph, filename: str
 ) -> Colouring:
     # iso = Isomorphism((g1, g2))
 
@@ -707,14 +663,14 @@ def Colour_Graph_Pair(
 
     ## Output initial colouring
     iteration = 0
-    d.drawGraph(colours)
+    d = Diagram(g1, colouring=colours)
     d.render(filename + str(iteration))
 
     # initialise update maps to avoid dictionary changing size during iterations
 
     # Updating egde and node colours by their labels
     # Only need to update colours on nodes which are not uniquely coloured
-    iteration = Update_Colourings(g1, d, filename, colours, iteration)
+    iteration = Update_Colourings(g1, filename, colours, iteration)
 
     # After first up date the graph should be uniquely coloured up to automorphism groups
     # Automorphism groups need to be broken manually to arrive at an isomorphism
@@ -728,7 +684,7 @@ def Colour_Graph_Pair(
         elif not edges_unique:
             break_symmetry(colours.edge_colouring, edge_symmetry)
 
-        iteration = Update_Colourings(g1, d, filename, colours, iteration)
+        iteration = Update_Colourings(g1, filename, colours, iteration)
         (nodes_unique, node_symmetry), (
             edges_unique,
             edge_symmetry,
@@ -746,7 +702,7 @@ def break_symmetry(cmap: ColourMap, symmetry_colour: int):
     cmap.colour_map[new_colour] = set([break_idx])
 
 
-def Update_Colourings(g1, d, filename, colours, iteration):
+def Update_Colourings(g1, filename, colours, iteration):
     static = False
     while not static:
         ## Update node colouring
@@ -783,7 +739,7 @@ def Update_Colourings(g1, d, filename, colours, iteration):
 
         static = static_nodes & static_edges
         iteration += 1
-        d.drawGraph(colours)
+        d = Diagram(g1, colouring=colours)
         d.render(filename + str(iteration))
     return iteration
 

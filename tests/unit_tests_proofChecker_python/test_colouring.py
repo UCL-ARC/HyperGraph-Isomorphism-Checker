@@ -36,6 +36,11 @@ def test_colouring(graph_file):
     colouring.edge_colouring.colouring = list(range(colouring.n_edges))
 
     file_stub = graph_file[:-5]
-    colouring = Get_Canonical_Graph_Colouring(g, file_stub + "_colouring")
+    colouring = Get_Canonical_Graph_Colouring(
+        g, file_stub + "_colouring", draw_steps=False
+    )
     print(f"Node colouring of {file_stub}: {colouring.node_colouring.colouring}")
     print(f"Edge colouring of {file_stub}: {colouring.edge_colouring.colouring}")
+    (node_uniqueness, _), (edge_uniqueness, _) = colouring.check_uniqueness()
+    assert node_uniqueness
+    assert edge_uniqueness

@@ -634,7 +634,9 @@ def MC_isomorphism(
     return ret
 
 
-def Get_Canonical_Graph_Colouring(g: OpenHypergraph, filename: str) -> Colouring:
+def Get_Canonical_Graph_Colouring(
+    g: OpenHypergraph, filename: str, draw_steps=False
+) -> Colouring:
     # iso = Isomorphism((g1, g2))
 
     # Need a dimension check
@@ -661,14 +663,15 @@ def Get_Canonical_Graph_Colouring(g: OpenHypergraph, filename: str) -> Colouring
 
     ## Output initial colouring
     iteration = 0
-    d = Diagram(g, colouring=colours)
-    d.render(filename + str(iteration))
+    if draw_steps:
+        d = Diagram(g, colouring=colours)
+        d.render(filename + str(iteration))
 
     # initialise update maps to avoid dictionary changing size during iterations
 
     # Updating egde and node colours by their labels
     # Only need to update colours on nodes which are not uniquely coloured
-    iteration = Update_Colourings(g, filename, colours, iteration)
+    iteration = Update_Colourings(g, filename, colours, iteration, draw_steps)
 
     # After first update the graph should be uniquely coloured up to automorphism groups
     # Automorphism groups need to be broken manually to arrive at an isomorphism
@@ -682,7 +685,7 @@ def Get_Canonical_Graph_Colouring(g: OpenHypergraph, filename: str) -> Colouring
         elif not edges_unique:
             break_symmetry(colours.edge_colouring, edge_symmetry)
 
-        iteration = Update_Colourings(g, filename, colours, iteration)
+        iteration = Update_Colourings(g, filename, colours, iteration, draw_steps)
         (nodes_unique, node_symmetry), (
             edges_unique,
             edge_symmetry,
@@ -700,7 +703,7 @@ def break_symmetry(cmap: ColourMap, symmetry_colour: int):
     cmap.colour_map[new_colour] = set([break_idx])
 
 
-def Update_Colourings(g1, filename, colours, iteration):
+def Update_Colourings(g1, filename, colours, iteration, draw_steps=False):
     static = False
     while not static:
         ## Update node colouring
@@ -737,8 +740,9 @@ def Update_Colourings(g1, filename, colours, iteration):
 
         static = static_nodes & static_edges
         iteration += 1
-        d = Diagram(g1, colouring=colours)
-        d.render(filename + str(iteration))
+        if draw_steps:
+            d = Diagram(g1, colouring=colours)
+            d.render(filename + str(iteration))
     return iteration
 
 

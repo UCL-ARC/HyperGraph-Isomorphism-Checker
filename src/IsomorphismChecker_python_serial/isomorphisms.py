@@ -646,6 +646,7 @@ class ColourMap:
     def mergeUpdates(self):
         for (colour, group) in self.update_map.items():
             self.colour_map[colour] = group
+        self.update_map.clear()
 
 
 class Colouring:
@@ -744,7 +745,6 @@ def AssignColours(
     cmap: ColourMap, start_colour: int, indexed_keys: list[tuple[int, str]]
 ):
     static = True
-    cmap.update_map.clear()
     c_running = start_colour
     c = start_colour
     key = ""

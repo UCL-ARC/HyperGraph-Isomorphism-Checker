@@ -672,7 +672,7 @@ def Colour_Graph_Pair(
     # Only need to update colours on nodes which are not uniquely coloured
     iteration = Update_Colourings(g1, filename, colours, iteration)
 
-    # After first up date the graph should be uniquely coloured up to automorphism groups
+    # After first update the graph should be uniquely coloured up to automorphism groups
     # Automorphism groups need to be broken manually to arrive at an isomorphism
     (nodes_unique, node_symmetry), (
         edges_unique,

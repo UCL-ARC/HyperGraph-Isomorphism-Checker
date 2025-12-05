@@ -688,6 +688,7 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
     static = False
     while not static:
         ## Update node colouring
+        static_nodes = True
         for (colour, colour_group) in colours.node_colouring.colour_map.items():
             if len(colour_group) > 1:
                 # attempt to split colour group
@@ -703,6 +704,7 @@ def Colour_Graph_Pair(g1: OpenHypergraph, g2: OpenHypergraph) -> Colouring:
                 )
 
         ## Update edge colouring
+        static_edges = True
         for (colour, colour_group) in colours.edge_colouring.colour_map.items():
             if len(colour_group) > 1:
                 # attempt to split colour group
@@ -738,7 +740,8 @@ def AssignColours(
                 cmap.colour_map[c_running].add(i)
         else:  # new key --> new colour
             static = False
-            cmap.colour_map[cmap.colouring[i]].remove(i)
+            if cmap.colouring[i] in cmap.colour_map:
+                cmap.colour_map[cmap.colouring[i]].remove(i)
             cmap.colouring[i] = c
             cmap.colour_map[c] = set([i])
             c_running = c
@@ -767,7 +770,11 @@ def GetEdgeColourKey(colours: Colouring, e: HyperEdge):
 
 
 def InitialiseColours(g1: OpenHypergraph, colours: Colouring, start_colour: int):
-    node_type_list = [(i, v.label) for i, v in enumerate(g1.nodes)]
+    node_type_list = [
+        (i, v.label)
+        for i, v in enumerate(g1.nodes)
+        if colours.node_colouring.colouring[i] == -1
+    ]
     node_type_list.sort(key=lambda z: z[1])
     AssignColours(colours.node_colouring, start_colour, node_type_list)
 

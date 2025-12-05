@@ -1,7 +1,5 @@
 from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
-from IsomorphismChecker_python_serial.isomorphisms import (
-    Colouring,
-)
+from IsomorphismChecker_python_serial.isomorphisms import Colouring, Colour_Graph_Pair
 from IsomorphismChecker_python_serial.diagram import Diagram
 import pytest
 
@@ -19,8 +17,9 @@ def test_colouring(graph_file):
     colouring.edge_colouring.colouring = list(range(colouring.n_edges))
 
     d = Diagram(g)
+
+    colouring = Colour_Graph_Pair(g, g)
     d.drawGraph(colouring=colouring)
-    d.render("hypergraph_diagram_test")
-    # colouring = Colour_Graph_Pair(g, g)
+    d.render("hypergraph_colouring_test")
     # print(colouring.node_colouring)
     # print(colouring.edge_colouring)

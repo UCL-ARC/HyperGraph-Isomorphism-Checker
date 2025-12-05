@@ -10,7 +10,7 @@ initial_step_graphs: list[str] = [
     "Acyclic_Wrong_Input_Connectivity.json",
     "Cyclic_Graph.json",
 ]
-multi_step_graphs: list[str] = []  # ["Multi_Step_Colouring.json"]
+multi_step_graphs: list[str] = ["Multi_Step_Colouring.json"]
 
 non_monogamous_graphs: list[str] = [
     "NonMonogamous_Ambiguous_Branching.json",

@@ -48,7 +48,7 @@ For efficient parallel computing on the GPU, the object-based structures above a
 **Initialization Logic (`IsomorphsimChecker.cpp`):**
 ```cpp
 /* 1. Open and process the json file or pass arrays from binary (RUST) */
-LoadGraphs(argc, argv, m_IO_graphs, MaxNodesPerEdge); 
+LoadGraphs(argc, argv, m_IO_graphs, MaxNodesPerEdge);
 
 /* 2. Sort Edges based on counts for cache optimization */
 SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); 

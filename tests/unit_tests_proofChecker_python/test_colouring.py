@@ -18,7 +18,7 @@ non_monogamous_graphs: list[str] = [
     "Ring.json",
 ]
 
-symmetric_graphs: list[str] = ["Anonymous_Ring.json"]
+symmetric_graphs: list[str] = ["Anonymous_Ring.json", "Clique.json"]
 
 graphs_to_colour = (
     initial_step_graphs + multi_step_graphs + non_monogamous_graphs + symmetric_graphs

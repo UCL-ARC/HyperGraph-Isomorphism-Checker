@@ -102,7 +102,7 @@ class Diagram:
             else:
                 color = "black"
             if colouring is not None:
-                colour = "/set28/" + str(
+                colour = "/paired12/" + str(
                     colouring.edge_colouring.colouring[hyperEdge.index] + 1
                 )
                 self.graphRep.node(

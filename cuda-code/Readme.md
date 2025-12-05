@@ -51,7 +51,7 @@ For efficient parallel computing on the GPU, the object-based structures above a
 LoadGraphs(argc, argv, m_IO_graphs, MaxNodesPerEdge);
 
 /* 2. Sort Edges based on counts for cache optimization */
-SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); 
+SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg);
 
 /* 3. Create compact arrays and pass to the GPU */
 for (int gInd = 0; gInd < 2; gInd++)

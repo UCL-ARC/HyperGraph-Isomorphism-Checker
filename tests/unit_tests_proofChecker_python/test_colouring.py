@@ -18,7 +18,11 @@ non_monogamous_graphs: list[str] = [
     "Ring.json",
 ]
 
-graphs_to_colour = initial_step_graphs + multi_step_graphs + non_monogamous_graphs
+symmetric_graphs: list[str] = ["Anonymous_Ring.json"]
+
+graphs_to_colour = (
+    initial_step_graphs + multi_step_graphs + non_monogamous_graphs + symmetric_graphs
+)
 
 
 @pytest.mark.parametrize("graph_file", graphs_to_colour)
@@ -35,5 +39,3 @@ def test_colouring(graph_file):
     colouring = Colour_Graph_Pair(g, g, d, file_stub + "_colouring")
     print(f"Node colouring of {file_stub}: {colouring.node_colouring.colouring}")
     print(f"Edge colouring of {file_stub}: {colouring.edge_colouring.colouring}")
-    # print(colouring.node_colouring)
-    # print(colouring.edge_colouring)

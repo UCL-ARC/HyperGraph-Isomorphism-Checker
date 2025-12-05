@@ -663,6 +663,20 @@ class Colouring:
         self.colour += 1
         return self.colour
 
+    def check_uniqueness(self):
+        nodes_unique, edges_unique = (True, -1), (True, -1)
+        for colour, group in self.node_colouring.colour_map.items():
+            if len(group) > 1:
+                nodes_unique = (False, colour)
+                break
+
+        for colour, group in self.edge_colouring.colour_map.items():
+            if len(group) > 1:
+                edges_unique = (False, colour)
+                break
+
+        return nodes_unique, edges_unique
+
 
 def Colour_Graph_Pair(
     g1: OpenHypergraph, g2: OpenHypergraph, d, filename: str
@@ -700,6 +714,39 @@ def Colour_Graph_Pair(
 
     # Updating egde and node colours by their labels
     # Only need to update colours on nodes which are not uniquely coloured
+    iteration = Update_Colourings(g1, d, filename, colours, iteration)
+
+    # After first up date the graph should be uniquely coloured up to automorphism groups
+    # Automorphism groups need to be broken manually to arrive at an isomorphism
+    (nodes_unique, node_symmetry), (
+        edges_unique,
+        edge_symmetry,
+    ) = colours.check_uniqueness()
+    while (not nodes_unique) or (not edges_unique):
+        if not nodes_unique:
+            break_symmetry(colours.node_colouring, node_symmetry)
+        elif not edges_unique:
+            break_symmetry(colours.edge_colouring, edge_symmetry)
+
+        iteration = Update_Colourings(g1, d, filename, colours, iteration)
+        (nodes_unique, node_symmetry), (
+            edges_unique,
+            edge_symmetry,
+        ) = colours.check_uniqueness()
+
+    return colours
+
+
+def break_symmetry(cmap: ColourMap, symmetry_colour: int):
+    colour_group = cmap.colour_map[symmetry_colour]
+    n_group = len(colour_group)
+    break_idx = colour_group.pop()
+    new_colour = symmetry_colour + n_group - 1
+    cmap.colouring[break_idx] = new_colour
+    cmap.colour_map[new_colour] = set([break_idx])
+
+
+def Update_Colourings(g1, d, filename, colours, iteration):
     static = False
     while not static:
         ## Update node colouring
@@ -738,7 +785,7 @@ def Colour_Graph_Pair(
         iteration += 1
         d.drawGraph(colours)
         d.render(filename + str(iteration))
-    return colours
+    return iteration
 
 
 def AssignColours(

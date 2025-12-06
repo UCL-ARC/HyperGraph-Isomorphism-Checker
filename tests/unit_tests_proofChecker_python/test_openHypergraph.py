@@ -158,10 +158,9 @@ def test_hypergraph_multiple_sources_targets():
     edge1 = HyperEdge(sources=[0, 1], targets=[2, 3], label="f", index=0)
     edge2 = HyperEdge(sources=[1], targets=[3], label="g", index=1)
 
-    with pytest.warns(UserWarning):
-        hypergraph = OpenHypergraph(
-            nodes=[node1, node2, node3, node4], edges=[edge1, edge2]
-        )
+    hypergraph = OpenHypergraph(
+        nodes=[node1, node2, node3, node4], edges=[edge1, edge2]
+    )
 
     assert hypergraph.is_valid() is True
     assert hypergraph.edges[0].sources == [0, 1]

@@ -1,0 +1,35 @@
+{
+
+    "graph_name": "TestRing",
+    "comment": [
+      "Naming convention: type_label is a string,",
+      "lowercase strings for nodes,",
+      "uppercase strings for edges"
+    ],
+    "nodes":
+    [
+      {"type_label": "a"}, {"type_label": "a"},
+      {"type_label": "a"}, {"type_label": "a"}
+    ],
+    "hyperedges":
+    [
+      {"type_label": "F", "source_nodes": [0], "target_nodes": [1]},
+      {"type_label": "F", "source_nodes": [0], "target_nodes": [2]},
+      {"type_label": "F", "source_nodes": [0], "target_nodes": [3]},
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [0]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [0]},
+      {"type_label": "F", "source_nodes": [3], "target_nodes": [0]},
+
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [2]},
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [3]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [1]},
+      {"type_label": "F", "source_nodes": [3], "target_nodes": [1]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [3]},
+      {"type_label": "F", "source_nodes": [3], "target_nodes": [2]}
+    ],
+    "Inputs":
+    [
+    ],
+    "Outputs":
+    []
+  }

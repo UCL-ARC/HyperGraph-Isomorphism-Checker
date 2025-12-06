@@ -3,11 +3,8 @@ import json
 from pathlib import Path
 
 
-def create_hypergraph(filepath: str | Path) -> OpenHypergraph:
-    """Create a hypergraph from a JSON file."""
-    with open(filepath, "r") as f:
-        data = json.load(f)
-
+def create_hypergraph_from_data(data: dict) -> OpenHypergraph:
+    """Create a hypergraph from a data dictionary."""
     nodes = [
         Node(index=i, label=node["type_label"]) for i, node in enumerate(data["nodes"])
     ]
@@ -26,4 +23,14 @@ def create_hypergraph(filepath: str | Path) -> OpenHypergraph:
     hypergraph = OpenHypergraph(
         nodes=nodes, edges=edges, input_nodes=inputs, output_nodes=outputs
     )
+    return hypergraph
+
+
+def create_hypergraph(filepath: str | Path) -> OpenHypergraph:
+    """Create a hypergraph from a JSON file."""
+    with open(filepath, "r") as f:
+        data = json.load(f)
+
+    hypergraph = create_hypergraph_from_data(data)
+
     return hypergraph

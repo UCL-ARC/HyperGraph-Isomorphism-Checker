@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 from IsomorphismChecker_python_serial.hypergraph import (
     OpenHypergraph,
     Node,
@@ -26,8 +28,10 @@ class IsomorphismData:
 
 NonIso = IsomorphismData(False, [], [])
 
+T = TypeVar("T")
 
-def head(some_list: list):
+
+def head(some_list: list[T]) -> T | None:
     return None if not some_list else some_list[0]
 
 
@@ -307,10 +311,14 @@ class Isomorphism:
             # explore paths starting with the minimal branching
         else:
             next1, next2 = head(v1.next), head(v2.next)
+            if next1 is None or next2 is None:
+                raise RuntimeError("Traversing paths ended unexpectedly")
             if self.check_edges_for_continuation(next1, next2):
                 self.explore_edges(next1.index, next2.index)
 
             prev1, prev2 = head(v1.prev), head(v2.prev)
+            if prev1 is None or prev2 is None:
+                raise RuntimeError("Traversing paths ended unexpectedly")
             if self.check_edges_for_continuation(prev1, prev2):
                 self.explore_edges(prev1.index, prev2.index)
 
@@ -419,23 +427,19 @@ def get_connected_subgraphs(
         node_list.append(node_idx)
         node_subgraph_map[node_idx] = current_sub_graph
         added_nodes[node_idx] = True
-        next_edge = (
-            None
-            if head(g.nodes[node_idx].next) is None
-            else head(g.nodes[node_idx].next).index
-        )
+        next_node_head = head(g.nodes[node_idx].next)
+        next_edge = None if next_node_head is None else next_node_head.index
         if next_edge is not None:
             traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
 
-        prev_edge = (
-            None
-            if head(g.nodes[node_idx].prev) is None
-            else head(g.nodes[node_idx].prev).index
-        )
+        prev_node_head = head(g.nodes[node_idx].prev)
+        prev_edge = None if prev_node_head is None else prev_node_head.index
         if prev_edge is not None:
             traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
 
-    def traverse_connected_graph_from_edge(edge_idx, node_list, edge_list):
+    def traverse_connected_graph_from_edge(
+        edge_idx: int, node_list: list[int], edge_list: list[int]
+    ):
         if added_edges[edge_idx]:
             return
 
@@ -703,12 +707,18 @@ def break_symmetry(cmap: ColourMap, symmetry_colour: int):
     cmap.colour_map[new_colour] = set([break_idx])
 
 
-def Update_Colourings(g1, filename, colours, iteration, draw_steps=False):
+def Update_Colourings(
+    g1: OpenHypergraph,
+    filename: str,
+    colours: Colouring,
+    iteration: int,
+    draw_steps: bool = False,
+):
     static = False
     while not static:
         ## Update node colouring
         static_nodes = True
-        for (colour, colour_group) in colours.node_colouring.colour_map.items():
+        for colour, colour_group in colours.node_colouring.colour_map.items():
             if len(colour_group) > 1:
                 # attempt to split colour group
                 indexed_keys = [
@@ -724,7 +734,7 @@ def Update_Colourings(g1, filename, colours, iteration, draw_steps=False):
 
         ## Update edge colouring
         static_edges = True
-        for (colour, colour_group) in colours.edge_colouring.colour_map.items():
+        for colour, colour_group in colours.edge_colouring.colour_map.items():
             if len(colour_group) > 1:
                 # attempt to split colour group
                 indexed_keys = [
@@ -753,7 +763,7 @@ def AssignColours(
     c_running = start_colour
     c = start_colour
     key = ""
-    for (i, k) in indexed_keys:
+    for i, k in indexed_keys:
         if c_running != cmap.colouring[i]:
             static = False
         if k == key:

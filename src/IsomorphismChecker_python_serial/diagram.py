@@ -8,6 +8,7 @@ from graphviz import Digraph
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
 from IsomorphismChecker_python_serial.hyperedge import HyperEdge
 from IsomorphismChecker_python_serial.node import Node
+from IsomorphismChecker_python_serial.colouring import Colouring
 
 
 class ElementType(Enum):
@@ -32,6 +33,7 @@ class Diagram:
     orientation: Orientation = field(default=Orientation.TOP_TO_BOTTOM)
     highlighted_nodes: list[int] = field(default_factory=list)
     highlighted_edges: list[int] = field(default_factory=list)
+    colouring: Colouring | None = None
 
     @staticmethod
     def diagram_label(label: str, index: int, type: ElementType, hash: int = -1) -> str:
@@ -78,7 +80,15 @@ class Diagram:
             else:
                 color = "black"
 
-            self.graphRep.node(node_label, shape="circle", fontcolor=color)
+            if self.colouring is not None:
+                colour = "/set19/" + str(
+                    self.colouring.node_colouring.colouring[node.index] + 1
+                )
+                self.graphRep.node(
+                    node_label, shape="circle", style="filled", fillcolor=colour
+                )
+            else:
+                self.graphRep.node(node_label, shape="circle", fontcolor=color)
 
         for hyperEdge in self.hyperEdges:
             edge_label = self.diagram_label(
@@ -92,7 +102,15 @@ class Diagram:
                 color = "red"
             else:
                 color = "black"
-            self.graphRep.node(edge_label, shape="box", fontcolor=color)
+            if self.colouring is not None:
+                colour = "/paired12/" + str(
+                    self.colouring.edge_colouring.colouring[hyperEdge.index] + 1
+                )
+                self.graphRep.node(
+                    edge_label, shape="box", style="filled", fillcolor=colour
+                )
+            else:
+                self.graphRep.node(edge_label, shape="box", fontcolor=color)
 
             self.drawArrows(hyperEdge, edge_label, self.nodes)
 

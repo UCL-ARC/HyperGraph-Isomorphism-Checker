@@ -7,6 +7,9 @@ from IsomorphismChecker_python_serial.hypergraph import (
 import random
 import logging
 
+from IsomorphismChecker_python_serial.diagram import Diagram
+from IsomorphismChecker_python_serial.colouring import Colouring, ColourMap
+
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -22,6 +25,10 @@ class IsomorphismData:
 
 
 NonIso = IsomorphismData(False, [], [])
+
+
+def head(some_list: list):
+    return None if not some_list else some_list[0]
 
 
 def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergraph]:
@@ -190,7 +197,7 @@ class Isomorphism:
 
     def explore_edges(self, e1: int, e2: int):
         """Explore edges e1 and e2, updating mappings and traversing connected nodes."""
-
+        print(f"Traverse from edges {e1, e2}")
         logger.debug(f"Exploring edges {e1, e2}")
         if e1 in self.visited_edges:
             self.mapping_valid = (
@@ -246,6 +253,7 @@ class Isomorphism:
     def traverse_from_nodes(self, v1: Node, v2: Node):
         """Traverse the graph from nodes v1 and v2, exploring connected edges and nodes."""
 
+        print(f"Traverse from nodes {v1, v2}")
         logger.debug(f"Traversing {v1, v2}")
         if v1.index in self.visited_nodes:
             if v2.index != self.node_mapping[v1.index]:
@@ -258,26 +266,80 @@ class Isomorphism:
 
         self.visited_nodes.append(v1.index)
 
-        if (v1.next is None) or (v2.next is None):
-            if v1.next != v2.next:
-                self.mapping_valid = False
-                return
-        else:
-            self.explore_edges(v1.next.index, v2.next.index)
+        print("check splitting")
+        # nodes require the same amount of splitting in each directoin
+        if len(v1.next) != len(v2.next) or (len(v1.prev) != len(v2.prev)):
+            self.mapping_valid = False
+            return
 
-        if (v1.prev is None) or (v2.prev is None):
-            if v1.prev != v2.prev:
-                self.mapping_valid = False
-                return
+        # num_nexts = len(v1.next)
+        # matching_paths: list[list[int]] = [[] for i in range(num_nexts)]
+        # print(f"Nexts = {v1.next, v2.next}")
+        # eliminated_paths = {i: False for i in range(num_nexts)}
+        if len(v1.next) > 1:
+            raise RuntimeError("Branching paths algorithm in progress")
+            # for i, next1 in enumerate(v1.next):
+            #     # attempt to find a matching path in g2
+            #     for j, next2 in enumerate(v2.next):
+            #         valid_pair = self.check_edges_for_continuation(next1, next2)
+            #         print(f"Validity: {i, j, valid_pair}")
+            #         if valid_pair:
+            #             print(f"Update matching paths {i, j, matching_paths}")
+            #             matching_paths[i].append(j)
+            #             print(f"New matchin paths {matching_paths}")
+            # # sort the potential paths to eliminate the simplest decisions first
+            # matching_paths.sort(key=lambda x: len(x))
+            # print(matching_paths)
+            # for i, js in enumerate(matching_paths):
+            #     if len(js) == 0:
+            #         self.mapping_valid = False
+            #         return
+            #     elif len(js) == 1:
+            #         j = js[0]
+            #         self.explore_edges(v1.next[i].index, v2.next[j].index)
+            #     else:  # explore possible paths
+            #         # placeholder to allow for rollback: we don't want to do a huge copy every branch!
+            #         print("ended up here")
+            #         # node_map_copy = self.node_mapping.copy()
+            #         # edge_map_copy = self.edge_mapping.copy()
+            #         assert self.mapping_valid
+
+            # explore paths starting with the minimal branching
         else:
-            self.explore_edges(v1.prev.index, v2.prev.index)
+            next1, next2 = head(v1.next), head(v2.next)
+            if self.check_edges_for_continuation(next1, next2):
+                self.explore_edges(next1.index, next2.index)
+
+            prev1, prev2 = head(v1.prev), head(v2.prev)
+            if self.check_edges_for_continuation(prev1, prev2):
+                self.explore_edges(prev1.index, prev2.index)
+
+    def check_edges_for_continuation(self, next1, next2):
+        if next1 is None or next2 is None:
+            print(f"ONe of them is none: {next1, next2}")
+            if next1 != next2:
+                print(f"Only one of them was none: {next1, next2}")
+                self.mapping_valid = False
+            return False  # no need to continue path if edges are None or don't match
+
+        if next1.label != next2.label:
+            print(f"Label mismatch {next1, next2}")
+            self.mapping_valid = False
+            return False
+
+        if next1.port != next2.port:
+            print(f"Port mismatch {next1, next2}")
+            self.mapping_valid = False
+            return False  # no need to continue path if ports don't match
+
+        return True
 
     def check_subgraph_isomorphism(
         self, v1: int, v2: int, subgraph1: SubGraph, subgraph2: SubGraph
     ) -> IsomorphismData:
         """Check for disconnected subgraph isomorphism where no nodes connect
         to global inputs or outputs"""
-
+        print("Check subgraph isomorphism")
         g1, g2 = self.graphs
 
         if (v1 < 0 or v1 > max(subgraph1.nodes)) or (
@@ -357,13 +419,21 @@ def get_connected_subgraphs(
         node_list.append(node_idx)
         node_subgraph_map[node_idx] = current_sub_graph
         added_nodes[node_idx] = True
-        next_edge = g.nodes[node_idx].next
+        next_edge = (
+            None
+            if head(g.nodes[node_idx].next) is None
+            else head(g.nodes[node_idx].next).index
+        )
         if next_edge is not None:
-            traverse_connected_graph_from_edge(next_edge.index, node_list, edge_list)
+            traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
 
-        prev_edge = g.nodes[node_idx].prev
+        prev_edge = (
+            None
+            if head(g.nodes[node_idx].prev) is None
+            else head(g.nodes[node_idx].prev).index
+        )
         if prev_edge is not None:
-            traverse_connected_graph_from_edge(prev_edge.index, node_list, edge_list)
+            traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
 
     def traverse_connected_graph_from_edge(edge_idx, node_list, edge_list):
         if added_edges[edge_idx]:
@@ -402,11 +472,13 @@ def get_connected_subgraphs(
 def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
     """Compares two monogamous subgraph isomorphism candidates (g1, g2) which
     have no paths to global inputs and outputs, and checks for ismorphism."""
+    print("disconnected graph isomorphism")
 
     g1_subgraphs, subgraph_map_1 = get_connected_subgraphs(g1)
     g2_subgraphs, subgraph_map_2 = get_connected_subgraphs(g2)
 
     ## Check basic sizes to begin with
+    print("size check")
     num_nodes = len(g1.nodes)
     num_edges = len(g1.edges)
     if (num_nodes != len(g2.nodes)) or (num_edges != len(g2.edges)):
@@ -419,6 +491,7 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         return NonIso
 
     ## Start by eliminating all graphs that are connected to global interface
+    print("interface check")
     if (len(g1.input_nodes) != len(g2.input_nodes)) | (
         len(g1.output_nodes) != len(g2.output_nodes)
     ):
@@ -462,8 +535,8 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
             return NonIso  # these can't be isomorphic if sizes don't match
 
         # # Find most unique nodes by local neighbourhood (next/previous)
-        neighbour_map1 = construct_neighbour_map(sg1, g1)
-        neighbour_map2 = construct_neighbour_map(sg2, g2)
+        neighbour_map1 = construct_neighbour_map(g1, sg1)
+        neighbour_map2 = construct_neighbour_map(g2, sg2)
         if neighbour_map1 != neighbour_map2:
             return NonIso
 
@@ -472,10 +545,10 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         ]  # optimal key has the fewest matching nodes
         logger.debug(optimal_key)
         starters_1 = list(
-            filter(lambda x: construct_node_key(x, g1) == optimal_key, sg1.nodes)
+            filter(lambda x: construct_node_key(g1.nodes[x]) == optimal_key, sg1.nodes)
         )
         starters_2 = list(
-            filter(lambda x: construct_node_key(x, g2) == optimal_key, sg2.nodes)
+            filter(lambda x: construct_node_key(g2.nodes[x]) == optimal_key, sg2.nodes)
         )
 
         v1 = starters_1[0]
@@ -488,30 +561,6 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
                 else:
                     return sub_isomorphic
         return NonIso
-
-    def construct_neighbour_map(sg: SubGraph, g: OpenHypergraph) -> dict[str, int]:
-        neighbour_map: dict[str, int] = {}
-        for v in sg.nodes:
-
-            key = construct_node_key(v, g)
-            if key in neighbour_map:
-                neighbour_map[key] += 1
-            else:
-                neighbour_map[key] = 1
-        return neighbour_map
-
-    def construct_node_key(v: int, g: OpenHypergraph):
-        e_n = g.nodes[v].next
-        e_p = g.nodes[v].prev
-
-        def edge_sig(e):
-            if e is None:
-                return "___"
-            else:
-                return e.label + str(e.port)
-
-        key = "i:" + edge_sig(e_n) + "_o:" + edge_sig(e_p)
-        return key
 
     for i, sg1 in enumerate(g1_subgraphs):
         if i not in paired_subgraphs.map:
@@ -527,6 +576,32 @@ def disconnected_subgraph_isomorphism(g1: OpenHypergraph, g2: OpenHypergraph):
         return NonIso
     else:
         return isomorphic
+
+
+def construct_neighbour_map(g: OpenHypergraph, sg: SubGraph | None = None):
+    neighbour_map: dict[str, int] = {}
+    nodes = g.nodes if sg is None else [g.nodes[v] for v in sg.nodes]
+    for v in nodes:
+        key = construct_node_key(v)
+        if key in neighbour_map:
+            neighbour_map[key] += 1
+        else:
+            neighbour_map[key] = 1
+    return neighbour_map
+
+
+def construct_node_key(v: Node):
+    e_n = head(v.next)  # TODO: Update to handle non-monogamous?
+    e_p = head(v.prev)
+
+    def edge_sig(e):
+        if e is None:
+            return "___"
+        else:
+            return e.label + str(e.port)
+
+    key = "i:" + edge_sig(e_n) + "_o:" + edge_sig(e_p)
+    return key
 
 
 def merge_isomorphism(iso_main: IsomorphismData, iso_contribution: IsomorphismData):
@@ -557,3 +632,172 @@ def MC_isomorphism(
     logger.info(f"Visited nodes: {iso.visited_nodes}")
 
     return ret
+
+
+def Get_Canonical_Graph_Colouring(
+    g: OpenHypergraph, filename: str, draw_steps=False
+) -> Colouring:
+    # iso = Isomorphism((g1, g2))
+
+    # Need a dimension check
+
+    # Colourings for nodes (do we also need to colour edges?)
+    colours = Colouring(g)
+
+    # To start let's try to colour a single graph
+
+    # Unique colours for input/output nodes
+    c = 0
+    for v in g.input_nodes + g.output_nodes:
+        ## assign colour if unassigned: a node can appear as both input and output
+        ## and can also appear in the input/output list more than once
+        if colours.node_colouring.colouring[v] == -1:
+            colours.node_colouring.colouring[v] = c
+            colours.node_colouring.colour_map[c] = set(
+                [v]
+            )  ## every colour group should be a singleton
+            c += 1
+
+    # Initial colouring of remaining nodes and edges by their labels
+    InitialiseColours(g, colours, c)
+
+    ## Output initial colouring
+    iteration = 0
+    if draw_steps:
+        d = Diagram(g, colouring=colours)
+        d.render(filename + str(iteration))
+
+    # initialise update maps to avoid dictionary changing size during iterations
+
+    # Updating egde and node colours by their labels
+    # Only need to update colours on nodes which are not uniquely coloured
+    iteration = Update_Colourings(g, filename, colours, iteration, draw_steps)
+
+    # After first update the graph should be uniquely coloured up to automorphism groups
+    # Automorphism groups need to be broken manually to arrive at an isomorphism
+    (nodes_unique, node_symmetry), (
+        edges_unique,
+        edge_symmetry,
+    ) = colours.check_uniqueness()
+    while (not nodes_unique) or (not edges_unique):
+        if not nodes_unique:
+            break_symmetry(colours.node_colouring, node_symmetry)
+        elif not edges_unique:
+            break_symmetry(colours.edge_colouring, edge_symmetry)
+
+        iteration = Update_Colourings(g, filename, colours, iteration, draw_steps)
+        (nodes_unique, node_symmetry), (
+            edges_unique,
+            edge_symmetry,
+        ) = colours.check_uniqueness()
+
+    return colours
+
+
+def break_symmetry(cmap: ColourMap, symmetry_colour: int):
+    colour_group = cmap.colour_map[symmetry_colour]
+    n_group = len(colour_group)
+    break_idx = colour_group.pop()
+    new_colour = symmetry_colour + n_group - 1
+    cmap.colouring[break_idx] = new_colour
+    cmap.colour_map[new_colour] = set([break_idx])
+
+
+def Update_Colourings(g1, filename, colours, iteration, draw_steps=False):
+    static = False
+    while not static:
+        ## Update node colouring
+        static_nodes = True
+        for (colour, colour_group) in colours.node_colouring.colour_map.items():
+            if len(colour_group) > 1:
+                # attempt to split colour group
+                indexed_keys = [
+                    (v, GetNodeColourKey(colours, g1.nodes[v])) for v in colour_group
+                ]
+                # sort the indexed colour keys
+                indexed_keys.sort(key=lambda x: x[1])
+                # assign new colours
+                static_nodes = AssignColours(
+                    colours.node_colouring, colour, indexed_keys
+                )
+        colours.node_colouring.mergeUpdates()
+
+        ## Update edge colouring
+        static_edges = True
+        for (colour, colour_group) in colours.edge_colouring.colour_map.items():
+            if len(colour_group) > 1:
+                # attempt to split colour group
+                indexed_keys = [
+                    (e, GetEdgeColourKey(colours, g1.edges[e])) for e in colour_group
+                ]
+                # sort the indexed colour keys
+                indexed_keys.sort(key=lambda x: x[1])
+                # assign new colours
+                static_edges = AssignColours(
+                    colours.edge_colouring, colour, indexed_keys
+                )
+        colours.edge_colouring.mergeUpdates()
+
+        static = static_nodes & static_edges
+        iteration += 1
+        if draw_steps:
+            d = Diagram(g1, colouring=colours)
+            d.render(filename + str(iteration))
+    return iteration
+
+
+def AssignColours(
+    cmap: ColourMap, start_colour: int, indexed_keys: list[tuple[int, str]]
+):
+    static = True
+    c_running = start_colour
+    c = start_colour
+    key = ""
+    for (i, k) in indexed_keys:
+        if c_running != cmap.colouring[i]:
+            static = False
+        if k == key:
+            cmap.colouring[i] = c_running
+            cmap.update_map[c_running].add(i)
+        else:  # new key --> new colour
+            cmap.colouring[i] = c
+            cmap.update_map[c] = set([i])
+            c_running = c
+            key = k
+        c += 1
+    return static
+
+
+def GetNodeColourKey(colours: Colouring, v: Node):
+    """Gather the colours of adjoining edges and convert it into a hashable key"""
+    prevs = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.prev]
+    prevs.sort()
+    nexts = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.next]
+    nexts.sort()
+    key = f"{prevs}:{nexts}"
+    return key
+
+
+def GetEdgeColourKey(colours: Colouring, e: HyperEdge):
+    """Gather the colours of source and target nodes and convert to hashable key"""
+    sources = [colours.node_colouring.colouring[v] for v in e.sources]
+    targets = [colours.node_colouring.colouring[v] for v in e.targets]
+    # Unlike nodes there is no sorting here because they are already ordered
+    key = f"{sources}:{targets}"
+    return key
+
+
+def InitialiseColours(g1: OpenHypergraph, colours: Colouring, start_colour: int):
+    node_type_list = [
+        (i, v.label)
+        for i, v in enumerate(g1.nodes)
+        if colours.node_colouring.colouring[i] == -1
+    ]
+    node_type_list.sort(key=lambda z: z[1])
+    AssignColours(colours.node_colouring, start_colour, node_type_list)
+    colours.node_colouring.mergeUpdates()
+
+    edge_type_list = [(i, e.label) for i, e in enumerate(g1.edges)]
+    edge_type_list.sort(key=lambda z: z[1])
+    AssignColours(colours.edge_colouring, 0, edge_type_list)
+    colours.edge_colouring.mergeUpdates()

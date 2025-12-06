@@ -6,10 +6,16 @@ def draw_graph(
     hypergraph: OpenHypergraph,
     filename: str = "hypergraph_diagram",
     verbose: bool = False,
+    highlighted_nodes: list[int] = [],
+    highlighted_edges: list[int] = [],
 ) -> None:
     """Demonstrate hypergraph creation and rendering."""
 
-    diagram = Diagram(openHyperGraph=hypergraph)
+    diagram = Diagram(
+        openHyperGraph=hypergraph,
+        highlighted_nodes=highlighted_nodes,
+        highlighted_edges=highlighted_edges,
+    )
     diagram.render(filename)
     source = diagram.source()
     if verbose:

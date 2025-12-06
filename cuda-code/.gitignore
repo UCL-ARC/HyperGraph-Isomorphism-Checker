@@ -1,0 +1,86 @@
+# --- Build directories ---
+/build/
+build/
+[Bb]uild*/
+cmake-build-*/
+
+IsomorphChecker/Debug/
+IsomorphChecker/Release/
+IsomorphChecker/.clang-format
+IsomorphChecker/.cproject
+IsomorphChecker/.gitignore
+IsomorphChecker/.project
+IsomorphChecker/.settings/
+RemoteSystemsTempFiles/
+
+
+# --- CMake in-source artifacts ---
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Makefile
+
+# Compilation database (usually generated; keep ignored by default)
+compile_commands.json
+
+# --- Object and binary outputs ---
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+
+# Dependency and debug files
+*.d
+*.pdb
+*.dSYM/
+
+# --- CUDA-specific intermediates ---
+*.cubin
+*.fatbin
+*.ptx
+*.reg.c
+*.gpu
+*.cudafe*
+*.module_id
+*.dlink.*
+*.sm_*.cubin
+
+# --- Profiling and tracing ---
+*.nvvp
+*.nvprof
+*.nsys-rep
+*.nsight-*
+
+# --- Coverage ---
+*.gcno
+*.gcda
+*.gcov
+lcov.info
+coverage/
+
+# --- IDE/editor ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- OS/user junk ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.tmp
+.cache/
+/.metadata/

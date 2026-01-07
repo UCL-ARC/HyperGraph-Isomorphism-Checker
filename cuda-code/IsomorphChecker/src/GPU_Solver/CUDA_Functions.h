@@ -1,4 +1,4 @@
-/*
+/**
  * hyperGraph.h
  *
  *  Created on: Oct 23, 2025
@@ -10,6 +10,7 @@
 
 typedef unsigned int uint;
 
+/** Entry point of the GPU Solver, Sets the memory of GPU and the thread configuration  */
 void InitGPUArrays( uint gIndex,
 					uint numNodesH,
 					uint *NodeLabelIndexH,
@@ -37,12 +38,13 @@ void InitGPUArrays( uint gIndex,
 					uint *EdgeNodeCountH,
 					uint gpu               );
 
-void GPU_FreeArrays (uint gIndex, uint gpu);
 
-bool GPU_CompareSignatureCountsBetweenGraphs();
-bool GPU_CompareEdgesSignaturesBetweenGraphs();
+void GPU_FreeArrays (uint gIndex, uint gpu); /** Free Allocation memory on the GPU */
 
-void GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS );
+bool GPU_CompareSignatureCountsBetweenGraphs(); /** Does the binning on the GPU for the feature counts of each edge and node */
+bool GPU_CompareEdgesSignaturesBetweenGraphs(); /** Compare edge signatures based on direct feature hashing  */
+
+void GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS ); /** Iterative Color based on hashing of edge and nodes  */
 
 
 

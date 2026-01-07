@@ -17,7 +17,7 @@ using namespace std;
 
 
 /*===================================================================================================================*/
-/* A] Counts edge nodes, computes CSR offsets, and assigns IO tags
+/** A] Counts edge nodes, computes CSR offsets, and assigns IO tags
  * Returns the computed sizes needed for allocation Compute compact array metadata (A0 + A1 + A2 phases)
  */
 static inline void ComputeCompactArrayMetadata( int gInd,
@@ -26,7 +26,7 @@ static inline void ComputeCompactArrayMetadata( int gInd,
 												DebugHistogram   *debugHist)
 {
 	/*---------------------------------------------------------------------------------*/
-	/* Edge Loop: A0] Count edge nodes to determine CSR array sizes */
+	/** Edge Loop: A0] Count edge nodes to determine CSR array sizes */
 	for (uint e = 0; e < CSRGraphDataOut.edgeData.numEdges; e++)
 	{
 		/* Each edge will increment its source nodes as a Next */
@@ -50,7 +50,7 @@ static inline void ComputeCompactArrayMetadata( int gInd,
 	/*---------------------------------------------------------------------------------*/
 
 	/*---------------------------------------------------------------------------------*/
-	/* Node Loop: A1] Compute CSR offsets and total edges per node using prefix sum */
+	/** Node Loop: A1] Compute CSR offsets and total edges per node using prefix sum */
 	for (uint n = 0; n < CSRGraphDataOut.nodeData.numNodes; n++)
 	{
 		CSRGraphDataOut.nodeData.labelIndex[n] = graphIO.nodeLabelIndex.at(n);
@@ -76,14 +76,14 @@ static inline void ComputeCompactArrayMetadata( int gInd,
 
 
 	/*---------------------------------------------------------------------------------*/
-	/* Global Input: Loop A2] Assign IO tags for global input/output nodes */
+	/** Global Input: Loop A2] Assign IO tags for global input/output nodes */
 	for (uint n = 0; n < graphIO.globalInputs.size(); n++)
 	{
 		CSRGraphDataOut.nodeData.ioTags[graphIO.globalInputs.at(n)] = 1;
 	}
 
 	/*---------------------------------------------------------------------------------*/
-	/* Global Output Loop */
+	/** Global Output Loop */
 	for (uint n = 0; n < graphIO.globalOutputs.size(); n++)
 	{
 		if (CSRGraphDataOut.nodeData.ioTags[graphIO.globalOutputs.at(n)] == 0)
@@ -109,7 +109,7 @@ static inline void ComputeCompactArrayMetadata( int gInd,
 
 
 /*===================================================================================================================*/
-/* B] Allocate and populate compact CSR arrays (B phase)
+/** B] Allocate and populate compact CSR arrays (B phase)
  * Takes computed sizes from ComputeCompactArrayMetadata as parameters
  * Populates all edge-node and node-edge relationship arrays
  */
@@ -117,13 +117,13 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
 													 CSR_Graph        &CSRGraphDataOut,
 													 DebugHistogram   *debugHisto)
 {
-    /* 1. Allocate node and edge CSR arrays using pre-computed sizes */
+    /** 1. Allocate node and edge CSR arrays using pre-computed sizes */
     CSRGraphDataOut.nodeData.edgePrevs     = new uint[CSRGraphDataOut.nodeData.nodeEdgesPrevsSize]();
     CSRGraphDataOut.nodeData.edgeNexts     = new uint[CSRGraphDataOut.nodeData.nodeEdgesNextsSize]();
     CSRGraphDataOut.nodeData.edgePrevsPort = new int [CSRGraphDataOut.nodeData.nodeEdgesPrevsSize]();
     CSRGraphDataOut.nodeData.edgeNextsPort = new int [CSRGraphDataOut.nodeData.nodeEdgesNextsSize]();
 
-    /* Initialize Port arrays to -1 */
+    /** Initialize Port arrays to -1 */
     std::fill_n(CSRGraphDataOut.nodeData.edgeNextsPort, CSRGraphDataOut.nodeData.nodeEdgesNextsSize, -1);
     std::fill_n(CSRGraphDataOut.nodeData.edgePrevsPort, CSRGraphDataOut.nodeData.nodeEdgesPrevsSize, -1);
 
@@ -131,14 +131,14 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
     CSRGraphDataOut.edgeData.nodesSources = new uint[CSRGraphDataOut.edgeData.edgeNodesSourceSize]();
     CSRGraphDataOut.edgeData.nodesTargets = new uint[CSRGraphDataOut.edgeData.edgeNodesTargetSize]();
 
-    /* Allocate Temp Debug Counters */
+    /** Allocate Temp Debug Counters */
     uint *DEBUGnode_CountSources = new uint[CSRGraphDataOut.nodeData.numNodes]();
     uint *DEBUGnode_CountTargets = new uint[CSRGraphDataOut.nodeData.numNodes]();
     int DEBUGedgeCounterSources = 0;
     int DEBUGedgeCounterTargets = 0;
     debugHisto->edge.maxNodesSize = 0;
 
-    /* 2. Loop over sorted edges and populate CSR arrays */
+    /** 2. Loop over sorted edges and populate CSR arrays */
     for (uint e = 0; e < CSRGraphDataOut.edgeData.numEdges; e++)
     {
         CSRGraphDataOut.edgeData.labelIndex[e] = IOgraph.edges.at(e).labelIndex;
@@ -160,7 +160,7 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
         /*-------------------------------------------------------------------------------------*/
 
         /*-------------------------------------------------------------------------------------*/
-        /* B. Process Target Nodes */
+        /** B. Process Target Nodes */
         CSRGraphDataOut.edgeData.nodeStartTargetsStart[e] = DEBUGedgeCounterTargets;
         CSRGraphDataOut.edgeData.nodeStartTargetsNum[e] = IOgraph.edges.at(e).targetNodes.size();
 
@@ -176,7 +176,7 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
         /*-------------------------------------------------------------------------------------*/
 
         /*-------------------------------------------------------------------------------------*/
-        /* Metadata updates */
+        /** Metadata updates */
         CSRGraphDataOut.edgeData.totalNodes[e] = CSRGraphDataOut.edgeData.nodeStartSourcesNum[e] + CSRGraphDataOut.edgeData.nodeStartTargetsNum[e];
         if ((IOgraph.edges.at(e).sourceNodes.size() + IOgraph.edges.at(e).targetNodes.size()) > debugHisto->edge.maxNodesSize)
         {
@@ -187,7 +187,7 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
 
     // cout << " DEBUG: EdgeSourceCountCSR " << DEBUGedgeCounterSources << " EdgeTargetCountCSR " << DEBUGedgeCounterTargets << endl;
 
-    /* 4. Error Checking */
+    /** 4. Error Checking */
     for (uint n = 0; n < CSRGraphDataOut.nodeData.numNodes; n++)
     {
         if (CSRGraphDataOut.nodeData.edgeStartPrevsNum[n] != DEBUGnode_CountSources[n])
@@ -203,7 +203,7 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
         }
     }
 
-    /* Cleanup temp counter arrays */
+    /** Cleanup temp counter arrays */
     delete[] DEBUGnode_CountSources;
     delete[] DEBUGnode_CountTargets;
 }
@@ -245,7 +245,7 @@ void TransferGraphToGPU(const CSR_Graph& data, int gpuIndex)
 
 
 /*===================================================================================================================*/
-/* Allocates the Compact (CSR) arrays that will be used for compute * @see DeallocateGPUGraphData*/
+/** Allocates the Compact (CSR) arrays that will be used for compute * @see DeallocateGPUGraphData*/
 void AllocateCSRGraphData(int gInd, const InputGraph& graph, CSR_Graph& data)
 {
 	data.graphIndex = gInd;
@@ -290,7 +290,7 @@ void AllocateCSRGraphData(int gInd, const InputGraph& graph, CSR_Graph& data)
 
 
 /*===================================================================================================================*/
-/* Deallocate CSR Data @see InitializeGPUGraphData */
+/** Deallocate CSR Data @see InitializeGPUGraphData */
 void DeallocateCSRGraphData(CSR_Graph& data)
 {
 	delete[] data.nodeData.labelIndex;
@@ -320,48 +320,48 @@ void DeallocateCSRGraphData(CSR_Graph& data)
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
-/* Processed Arrays to be stored on the heap */
-InputGraph     m_IO_graphs[2] = {};  /* Raw IO */
-CSR_Graph      m_CSRGraphs[2] = {};  /* Processed Graphs */
+/** Processed Arrays to be stored on the heap */
+InputGraph     m_IO_graphs[2] = {};  /** Raw IO */
+CSR_Graph      m_CSRGraphs[2] = {};  /** Processed Graphs */
 
-uint          *m_DebugEdge_LabelDBIndexOrg [2] = {};  /* Since we sort edges this allows us to map back to the IO Order */
-DebugHistogram m_DebugHist                 [2] = {};  /* Stats counter for the graph to check input was processed correct*/
+uint          *m_DebugEdge_LabelDBIndexOrg [2] = {};  /** Since we sort edges this allows us to map back to the IO Order   */
+DebugHistogram m_DebugHist                 [2] = {};  /** Stats counter for the graph to check input was processed correct */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
 
 
 int main(int argc, char* argv[])
 {
-	int targetGPU = 0; /* User provided GPU to run on */
+	int targetGPU = 0; /** User provided GPU to run on */
 
 
-	uint MaxNodesPerEdge = 0;  /* We assume max of 8 so that we can use faster sort methods */
+	uint MaxNodesPerEdge = 0;  /** We assume max of 8 so that we can use faster sort methods */
 	auto Timer_Start = std::chrono::high_resolution_clock::now();
 
-	LoadGraphs    (argc, argv, m_IO_graphs, MaxNodesPerEdge); /* Open and process the json file or pass the arrays from another binary (RUST) */
-	SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); /* Sort Edges based on counts */
+	LoadGraphs    (argc, argv, m_IO_graphs, MaxNodesPerEdge); /** Open and process the json file or pass the arrays from another binary (RUST) */
+	SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); /** Sort Edges based on counts */
 
 
 
  	/*===========================================================================================*/
- 				          /* Start Create compact arrays and pass to the GPU */
+ 				          /** Start Create compact arrays and pass to the GPU */
  	/*===========================================================================================*/
 	auto Timer_CSR = std::chrono::high_resolution_clock::now();
 	for (int gInd = 0;gInd<2;gInd++ )
 	 {
     	 cout<<" Create Compact Arrays " <<gInd<<endl;
 
-		/* Initialize GPU graph data structure */
+		/** Initialize GPU graph data structure */
 		AllocateCSRGraphData(gInd, m_IO_graphs[gInd],  m_CSRGraphs[gInd]);
 		m_DebugHist[gInd].node.maxEdgesSize = 0; /* Debug host variable for histo on CPU */
 
-		/* Compute metadata: edge counts, CSR offsets, and IO tags (A0 + A1 + A2) */
+		/** Compute metadata: edge counts, CSR offsets, and IO tags (A0 + A1 + A2) */
 		ComputeCompactArrayMetadata(gInd, m_IO_graphs[gInd],  m_CSRGraphs[gInd], m_DebugHist);
 
 		cout<<" EdgeSourceCSR: "<< m_CSRGraphs[gInd].edgeData.edgeNodesSourceSize<<"  EdgeTargetCSR: "<< m_CSRGraphs[gInd].edgeData.edgeNodesTargetSize
 			<<" NodePrevsCSR:  "<< m_CSRGraphs[gInd].nodeData.nodeEdgesPrevsSize <<"  NodeNextsCSR:  "<< m_CSRGraphs[gInd].nodeData.nodeEdgesNextsSize<<endl;
 
-		/* Allocate and populate compact arrays using computed metadata (B phase) */
+		/** Allocate and populate compact arrays using computed metadata (B phase) */
 		cout<<" Create Edge Compact Arrays " <<gInd<<endl;
 		AllocateAndPopulateCompactArrays(m_IO_graphs[gInd],  m_CSRGraphs[gInd],  m_DebugHist);
     }
@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
 
 
 	auto start_gpu = std::chrono::high_resolution_clock::now();
-    /* Transfer GPU data to device */
+    /** Transfer GPU data to device */
     for (int gInd = 0; gInd<2; gInd++ )
 	{
     	/* Transfer graph to GPU using organized struct */
@@ -389,14 +389,14 @@ int main(int argc, char* argv[])
 	std::cout << "GPU initialization time: " << gpu_init_time << " ms" << std::endl;
 
 	/*===========================================================================================*/
-	/* GPU Multi-Step Calculation */
+	/** GPU Multi-Step Calculation */
 	/*===========================================================================================*/
 	auto start_gpu_compute = std::chrono::high_resolution_clock::now();
 
-	/* 1] CUDA Kernel to Create Bins for each graphs based on node/edge signatures and compare */
+	/** 1] CUDA Kernel to Create Bins for each graphs based on node/edge signatures and compare */
     bool isPossibleIso = GPU_CompareSignatureCountsBetweenGraphs();
 
-	/* 2] CUDA Kernel to Compare Edge Signatures */
+	/** 2] CUDA Kernel to Compare Edge Signatures */
     if (isPossibleIso)
     {
 		if(MaxNodesPerEdge<8)
@@ -410,14 +410,14 @@ int main(int argc, char* argv[])
 		}
     }
 
-    /* 3] WL-1 Test Coloring  */
+    /** 3] WL-1 Test Coloring  */
     if(isPossibleIso)
     {
     	GPU_WL1GraphColorHashIT(0, 100 );
     }
 
 
-    /* 4] TODO WL-2/Tuple Test Coloring  */
+    /** 4] TODO WL-2/Tuple Test Coloring  */
     if(isPossibleIso)
     {
 

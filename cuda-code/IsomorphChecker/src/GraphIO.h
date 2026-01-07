@@ -82,7 +82,7 @@ static inline bool HyperEdgeLessThanCompare(const IO_hyperEdge& a, const IO_hype
 
 
 /*===================================================================================================================*/
-/* Debug helper: builds a permutation index for edges and prints the mapping.
+/** Debug helper: builds a permutation index for edges and prints the mapping.
  * NOTE: If called after graph edges are sorted, permutation will be identity.
  * To get original->sorted positions, invoke before sorting or capture the original order. */
 
@@ -243,7 +243,7 @@ static inline bool HyperEdgeLessThanCompare(const IO_hyperEdge& a, const IO_hype
  }
 
 /*===================================================================================================================*/
-/* Parse command-line arguments for input filenames, with fallback to defaults */
+/** Parse command-line arguments for input filenames, with fallback to defaults */
 /*===================================================================================================================*/
 static void ParseInputFilenames(int argc, char* argv[], string filenames[2])
 {
@@ -269,7 +269,7 @@ static void ParseInputFilenames(int argc, char* argv[], string filenames[2])
 /*===================================================================================================================*/
 
 /*===================================================================================================================*/
-/* IO Mimic by reading a JSON file and creating the compact lists for node and edges */
+/** IO Mimic by reading a JSON file and creating the compact lists for node and edges */
 /*===================================================================================================================*/
 void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& maxNodesPerEdge)
 {
@@ -296,7 +296,7 @@ void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& m
 		json_stream >> j;
 
 		/*-----------------------------------------------------------------------------*/
-		/* 1. Read Node and extract unique labels */
+		/** 1. Read Node and extract unique labels */
 		for (const auto& node_obj : j["nodes"])
 		{
 			std::string label = node_obj["type_label"];
@@ -320,7 +320,7 @@ void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& m
 
 
 		/*-----------------------------------------------------------------------------*/
-		/* 2. Extract Hyperedges */
+		/** 2. Extract Hyperedges */
 		for (const auto& edge_obj : j["hyperedges"])
 		{
 			IO_hyperEdge edge;
@@ -342,7 +342,7 @@ void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& m
 			edge.labelIndex = index;
 
 
-			/* Debug not used on GPU */
+			/** Debug not used on GPU */
 			edge.sourceNodes = edge_obj["source_nodes"].get<std::vector<uint>>();
 			edge.targetNodes = edge_obj["target_nodes"].get<std::vector<uint>>();
 
@@ -362,12 +362,12 @@ void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& m
 
 
 		/*-----------------------------------------------------------------------------*/
-		/* 3. Extract Global Inputs Nodes */
+		/** 3. Extract Global Inputs Nodes */
 		graph.globalInputs = j["Inputs"].get<std::vector<uint>>();
 		/*-----------------------------------------------------------------------------*/
 
 		/*-----------------------------------------------------------------------------*/
-		/* 4. Extract Global Output Nodes */
+		/** 4. Extract Global Output Nodes */
 		graph.globalOutputs = j["Outputs"].get<std::vector<uint>>();
 		/*-----------------------------------------------------------------------------*/
 
@@ -389,7 +389,7 @@ void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& m
 
 
 /*===================================================================================================================*/
-/* Load input graphs from user input files or the default files we provide for unit test */
+/** Load input graphs from user input files or the default files we provide for unit test */
 static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs, uint& maxNodesPerEdge)
 {
 	string filenames[2];
@@ -423,13 +423,13 @@ static inline long long LoadGraphs(int argc, char* argv[], InputGraph* graphs, u
 /*===================================================================================================================*/
 
 /*===================================================================================================================*/
-/* Sort edges in input graphs */
+/** Sort edges in input graphs */
 static inline void SortGraphEdges(InputGraph* graphs, uint** edgeLabelIndexOrg)
 {
     for (int gInd = 0;gInd<2;gInd++ )
 	{
 		/*-------------------------------------------------------------------------------------------*/
-						/* Edge Sorting by key */
+						/** Edge Sorting by key */
 		auto start_sort = std::chrono::high_resolution_clock::now();
 		std::sort(
 			graphs[gInd].edges.begin(),
@@ -443,7 +443,7 @@ static inline void SortGraphEdges(InputGraph* graphs, uint** edgeLabelIndexOrg)
 		std::cout<<std::endl;
 		/*-------------------------------------------------------------------------------------------*/
 
-	    /* Debug edge index mapping */
+	    /** Debug edge index mapping */
 		if (m_PrintDebugSortEID){ DebugEdgeIndexMappingPrint(graphs[gInd], edgeLabelIndexOrg[gInd]); }
 	}
 }
@@ -451,7 +451,7 @@ static inline void SortGraphEdges(InputGraph* graphs, uint** edgeLabelIndexOrg)
 
 
 /*===================================================================================================================*/
-/* Process edge nodes (source or target) to create its connections that is not in the input json */
+/** Process edge nodes (source or target) to create its connections that is not in the input json */
 static inline void ProcessEdgeNodes(    uint e,
 										const std::vector<uint>& nodeList,
 										uint* edgeNodeArray,        // Where we write the nodes involved in this edge
@@ -466,7 +466,7 @@ static inline void ProcessEdgeNodes(    uint e,
     {
         uint nID = nodeList[i];
 
-        /* Write node into compact array */
+        /** Write node into compact array */
         edgeNodeArray[edgeCounter] = nID;
         edgeCounter++;
 
@@ -476,7 +476,7 @@ static inline void ProcessEdgeNodes(    uint e,
         nodeEdgeList[debugNodeCount[nID]] = e;
         nodeEdgePorts[debugNodeCount[nID]] = i;
 
-        /* Store first port label */
+        /** Store first port label */
         if (debugNodeCount[nID] == 0)
         {
             nodeFirstEdge[nID] = edgeLabelIndex;
@@ -489,7 +489,7 @@ static inline void ProcessEdgeNodes(    uint e,
 
 
 /*===================================================================================================================*/
-/* Debug Print Stats IO */
+/** Debug Print Stats IO */
 /*===================================================================================================================*/
 void printGraphStats(   // Node Info
 						unsigned int numNodes,
@@ -531,7 +531,7 @@ void printGraphStats(   // Node Info
 
 
     /*--------------------------------------------------------------------------------*/
-    /* Build Histo for edge props */
+    /** Build Histo for edge props */
     for (unsigned int i = 0; i < numEdges; ++i)
     {
     	debugHist.edge.sourceNodeCount[ edge_NodeStartSourcesNum[i] ]++;
@@ -637,7 +637,7 @@ void printGraphStatsConn(const InputGraph* graphs, const CSR_Graph* gpuGraphs, D
 	bool isIso = true;
 
 	/*-------------------------------------------------------------------------------------------*/
-	 /* Construct Histogram */
+	/** Construct Histogram */
 	for (int gInd = 0;gInd<2;gInd++ )
 	{
 		std::cout <<" HistMaxEdgeBins "<< debugHist[gInd].edge.maxNodesSize<<" HistMaxNodeBins "<< debugHist[gInd].node.maxEdgesSize<<endl;

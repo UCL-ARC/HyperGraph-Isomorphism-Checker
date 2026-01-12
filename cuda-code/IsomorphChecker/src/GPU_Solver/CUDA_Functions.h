@@ -42,9 +42,10 @@ void InitGPUArrays( uint gIndex,
 void GPU_FreeArrays (uint gIndex, uint gpu); /** Free Allocation memory on the GPU */
 
 bool GPU_CompareSignatureCountsBetweenGraphs(); /** Does the binning on the GPU for the feature counts of each edge and node */
-bool GPU_CompareEdgesSignaturesBetweenGraphs(); /** Compare edge signatures based on direct feature hashing  */
+bool GPU_CompareEdgesSignaturesBetweenGraphs(int MaxNodesPerEdge); /** Compare edge signatures based on direct feature hashing  */
 
-void GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS ); /** Iterative Color based on hashing of edge and nodes  */
+bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS ); /** Iterative Color based on hashing of edge and nodes  */
+bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS);
 
 
 

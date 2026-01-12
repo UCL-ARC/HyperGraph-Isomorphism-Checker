@@ -396,32 +396,54 @@ int main(int argc, char* argv[])
 	/** 1] CUDA Kernel to Create Bins for each graphs based on node/edge signatures and compare */
     bool isPossibleIso = GPU_CompareSignatureCountsBetweenGraphs();
 
-	/** 2] CUDA Kernel to Compare Edge Signatures */
+	/** 2] CUDA Kernel to Compare Edge Signatures between graphs  */
     if (isPossibleIso)
     {
-		if(MaxNodesPerEdge<8)
-		{
-		  printf(" Check EdgeNodes %d \n", MaxNodesPerEdge);
-		  isPossibleIso = GPU_CompareEdgesSignaturesBetweenGraphs();
-		}
-		else
-		{
-			printf(" Cannot use NetworkSort on GPU 8 Exceeded \n");
-		}
+		  isPossibleIso = GPU_CompareEdgesSignaturesBetweenGraphs(MaxNodesPerEdge);
     }
 
     /** 3] WL-1 Test Coloring  */
     if(isPossibleIso)
     {
-    	GPU_WL1GraphColorHashIT(0, 100 );
+    	isPossibleIso = GPU_WL1GraphColorHashIT(0, 100 );
+    	if (isPossibleIso)
+    	{
+    	 isPossibleIso =GPU_WL1GraphColorHashIT(1, 100 );
+    	}
+
+    	if (isPossibleIso)
+    	{
+           /* TODO Call AreGraphsPossibleIsomorphic*/
+    	}
     }
 
 
-    /** 4] TODO WL-2/Tuple Test Coloring  */
+    /** 4] WL-2/Tuple Test Coloring uses the NodeColors from WL1  */
     if(isPossibleIso)
     {
+    	if (isPossibleIso)
+    	{
+    	  GPU_WL2GraphPairColoring(0, 100 );
+    	}
 
+    	if (isPossibleIso)
+    	{
+    	  GPU_WL2GraphPairColoring(1, 100 );
+    	}
+
+    	if (isPossibleIso)
+		{
+		   /* TODO Call AreGraphsPossibleIsomorphic*/
+		}
     }
+
+    /* TODO Full Check using WL2 Color Matrix */
+	if (isPossibleIso)
+	{
+	   /* TODO Call AreGraphsIsomorphic*/
+	}
+
+
 
 	auto end_gpu_compute = std::chrono::high_resolution_clock::now();
 	auto gpu_compute_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_gpu_compute - start_gpu_compute).count();

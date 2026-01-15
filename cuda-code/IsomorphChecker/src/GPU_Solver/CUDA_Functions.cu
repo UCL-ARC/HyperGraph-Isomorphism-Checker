@@ -94,21 +94,18 @@ NodeKeyTuple *dram_NodeColorHashes    [2];/** Node Signature (Color) that we cre
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /** ISOMorph: WL-1 Test */
-bool  m_isWL1Alloc[2] = {0,0};
-uint       m_WL1_BinsSize     [2] = {0,0};
-uint64_t  *dram_WL1_BinsKeys  [2]; /** Pointers to the final WL Histogram Keys (Hashes) in GPU Memory */
-uint      *dram_WL1_BinsCount [2]; /** Pointers to the final WL Histogram Counts in GPU Memory */
+bool  m_isWL1Alloc [2] = {0,0};
+bool  m_isWL2Alloc [2] = {0,0};
+
+uint       m_WL_BinCount          [2] = {0,0}; /* Number of Bins for each graph */
+uint64_t  *dram_WL_BinsColorKeys  [2]; /** Pointers to the final WL Histogram Keys (Hashes) in GPU Memory */
+uint      *dram_WL_BinsNumCount   [2]; /** Pointers to the final WL Histogram Counts in GPU Memory */
 /*-------------------------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /** ISOMorph: WL-2 Test */
 /* We store pairs of nodes so NNode*NNodes matrix */
 /** Stores the size (number of bins) of the WL-2 histogram for each graph */
-bool  m_isWL2Alloc [2] = {0,0};
-uint      m_WL2_BinsSize     [2] = {0, 0};
-uint64_t *dram_WL2_BinsColorsHashKeys  [2] = {NULL, NULL};
-uint     *dram_WL2_BinsCount [2] = {NULL, NULL};
-
 uint64_t *dram_WL2_MatrixColors  [2] = {NULL, NULL};
 /*-------------------------------------------------------------------------------------------------------------------*/
 
@@ -406,6 +403,7 @@ void GPU_FreeArrays (uint gIndex, uint gpu)
 	cudaFree (dram_Edge_nodeSources[gIndex]);
 	cudaFree (dram_Edge_nodeTargets[gIndex]);
 
+
 	/* Colors Created on GPU */
 	if (m_isWL1Alloc[gIndex])
 	{
@@ -426,6 +424,16 @@ void GPU_FreeArrays (uint gIndex, uint gpu)
 	}
 
 }
+
+void GPU_FreeWLBins ()
+{
+	for (int gIndex=0;gIndex<2;gIndex++)
+	{
+		std::cout<<"GPU Free WL Bins "<<gIndex<<std::endl;
+		cudaFree (dram_WL_BinsColorKeys[gIndex]);
+		cudaFree (dram_WL_BinsNumCount[gIndex]);
+	}
+}
 /*===================================================================================================================*/
 
 
@@ -435,7 +443,9 @@ void GPU_FreeArrays (uint gIndex, uint gpu)
 /*===================================================================================================================*/
 bool GPU_CompareSignatureCountsBetweenGraphs()
 {
-	bool isIsomorphic = true;
+	bool isDebug = true;
+
+	bool isPossibleIsomorphic = true; /* Assume True */
 
     /** We use the Thrust lib, you can also write a custom kernel for this binning if rust does not have a boost type lib equv */
 	/*===============================================================================================================*/
@@ -443,6 +453,11 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 	/*===============================================================================================================*/
 	/** Edge Signature key source,target,tot,label */
 	typedef thrust::tuple<uint, uint, uint, uint> EdgeKeyTuple;
+
+
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<"GPU Bulk Test 0 Signature counts "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
 	/** Output Histo */
 	EdgeKeyTuple *d_HistoEdgeKeys      [2]; /** Sorted keys array */
@@ -508,7 +523,11 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 	if (numUniqueKeyBinsGraph[0] != numUniqueKeyBinsGraph[1])
 	{
 	    std::cout << "Result: NOT Isomorphic (Edge Bin counts differ)" << std::endl;
-	    isIsomorphic = false;
+	    isPossibleIsomorphic = false;
+	    if (!isDebug)
+	    {
+	    	return false;
+	    }
 	}
 	else
 	{
@@ -530,7 +549,11 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 	    if (!areKeysEqual)
 	    {
 	        std::cout << "Result: NOT Isomorphic (Edge Bin keys do not match)" << std::endl;
-	        isIsomorphic = false;
+	        isPossibleIsomorphic = false;
+	        if (!isDebug)
+			{
+				return false;
+			}
 	    }
 	    else/** Keys are the same so check counts */
 	    {
@@ -543,16 +566,24 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 	        if (!are_counts_equal)
 	        {
 	            std::cout << "Result:  NOT Isomorphic (Edge Bin counts do not match) " << std::endl;
-	            isIsomorphic = false;
+	            isPossibleIsomorphic = false;
+	            if (!isDebug)
+				{
+					return false;
+				}
 	        }
 	        else
 	        {
 	            std::cout << "Result:  Possible Isomorphic (Edge Keys and counts match)" << std::endl;
-	            isIsomorphic = true;
+	            isPossibleIsomorphic = true;
+	            if (!isDebug)
+				{
+					return true;
+				}
 	        }
 	    }
 	}/** End Loop over graphs */
-	std::cout << " Free GPU Memory " << std::endl;
+	std::cout << " Free GPU Memory HistoEdgeCounts " << std::endl;
 	for (int gIndex=0;gIndex<2;gIndex++)
 	{
 	  cudaFree(d_HistoEdgeKeys[gIndex]);
@@ -561,8 +592,8 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 	/*----------------------------------------------------------------------------------*/
 
 
-	/** Only If Edges find possible Isomorphic */
-	if (isIsomorphic)
+	/** Only If Edges find possible Isomorphic do we count bins  */
+	if (isPossibleIsomorphic)
 	{
 	/*===============================================================================================================*/
 	                                      /** Start Node Histogram */
@@ -673,6 +704,11 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 		if (numUniqueKeyBinsNodes[0] != numUniqueKeyBinsNodes[1])
 		{
 			std::cout << "Result: NOT Isomorphic (Node bin counts differ) " << std::endl;
+			isPossibleIsomorphic = false;
+            if (!isDebug)
+			{
+				return false;
+			}
 		}
 		else
 		{
@@ -686,6 +722,11 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 			if (!keys_match)
 			{
 				std::cout << "Result: NOT Isomorphic (Node keys differ)" << std::endl;
+				isPossibleIsomorphic = false;
+	            if (!isDebug)
+				{
+					return false;
+				}
 			}
 			else
 			{
@@ -696,10 +737,20 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 				if (counts_match)
 				{
 					std::cout << "Result: Node histograms are Isomorphic" << std::endl;
+					isPossibleIsomorphic = true;
+		            if (!isDebug)
+					{
+						return true;
+					}
 				}
 				else
 				{
 					std::cout << "Result: NOT Isomorphic (Node counts differ)" << std::endl;
+					isPossibleIsomorphic = false;
+		            if (!isDebug)
+					{
+						return false;
+					}
 				}
 			}
 		}
@@ -759,8 +810,11 @@ bool GPU_CompareSignatureCountsBetweenGraphs()
 		}
 	}
 
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<""<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
-   return isIsomorphic;
+   return isPossibleIsomorphic;
 }
 /*===================================================================================================================*/
 
@@ -777,6 +831,10 @@ bool GPU_CompareEdgesSignaturesBetweenGraphs(int MaxNodesPerEdge)
   /** Hashes are stored here*/
   uint64_t  *d_temp_EdgeHashSources[2];
   uint64_t  *d_temp_EdgeHashTargets[2];
+
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<"GPU Structure Test 1 Edge Colors "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
   /*=========================================================================*/
   /** A]  Create Hashes for the edges */
@@ -1111,6 +1169,10 @@ bool GPU_CompareEdgesSignaturesBetweenGraphs(int MaxNodesPerEdge)
 	cudaFree(d_temp_EdgeHashTargets[gIndex]);
   }
 
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<""<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+
   return isPossibleIsomorphic;
 }
 /*===================================================================================================================*/
@@ -1172,8 +1234,7 @@ bool CheckStability( size_t    num_elements,       /** Total size*/
     h_num_bins_curr = new_end.first - d_ptr_histo_ColorHashKeys;
 
      // Optional: Print status for debugging
-     std::cout << "  Refinement Step -> Bins [Prev: " << h_num_bins_prev
-               << ", Curr: " << h_num_bins_curr << "]" << std::endl;
+     std::cout << "  Refinement Step -> Bins [Prev: " << h_num_bins_prev<< ", Curr: " << h_num_bins_curr << "]" << std::endl;
 
 
     // Case A: First Run (Prev is -1) or Empty Graph
@@ -1210,55 +1271,60 @@ bool CheckStability( size_t    num_elements,       /** Total size*/
  *  Returns TRUE if graphs are structurally identical ( Possible Isomorphic)
  */
 /*===================================================================================================================*/
-bool AreGraphsPossibleIsomorphic(
-    uint      numBins_A,             // Number of Bins in Graph A
-    uint      numBins_B,             // Number of Bins in Graph B
-
-    uint64_t *d_ColorHashKeys_A,           // Device Pointer: Graph A Keys
-    uint     *d_counts_A,         // Device Pointer: Graph A Counts
-
-    uint64_t *d_ColorHashKeys_B,
-    uint     *d_counts_B          )
+bool GPU_AreGraphsPossibleIsomorphic()
 {
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<"GPU Structure Test Between Graphs "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
     /* Fail Fast: Bin Count Mismatch */
-    if (numBins_A != numBins_B)
+    if (m_WL_BinCount[0] != m_WL_BinCount[1])
     {
         std::cout << "Mismatch: Graphs have different complexity (Bins: "
-                  << numBins_A << " vs " << numBins_B << ")" << std::endl;
+                  << m_WL_BinCount[0] << " vs " <<m_WL_BinCount[1] << ")" << std::endl;
+        GPU_FreeWLBins ();
         return false;
     }
 
+   /* Wrap th*/
+    thrust::device_ptr<uint64_t> th_keys_A(dram_WL_BinsColorKeys[0]);
+    thrust::device_ptr<uint>     th_counts_A(dram_WL_BinsNumCount[0]);
 
-    thrust::device_ptr<uint64_t> th_keys_A(d_ColorHashKeys_A);
-    thrust::device_ptr<uint64_t> th_keys_B(d_ColorHashKeys_B);
-    thrust::device_ptr<uint>     th_counts_A(d_counts_A);
-    thrust::device_ptr<uint>     th_counts_B(d_counts_B);
+    thrust::device_ptr<uint64_t> th_keys_B(dram_WL_BinsColorKeys[1]);
+    thrust::device_ptr<uint>     th_counts_B(dram_WL_BinsNumCount[1]);
 
 
     /** Compare Keys (Structure Types): Do both graphs contain the same connections? */
     bool keys_match = thrust::equal(thrust::device,
                                     th_keys_A,
-                                    th_keys_A + numBins_A,
+                                    th_keys_A + m_WL_BinCount[0],
                                     th_keys_B);
 
     if (!keys_match)
     {
-        std::cout << "Mismatch: Graphs contain different structural shapes (Keys differ)." << std::endl;
+        std::cout << "Mismatch: Graphs contain different structural shapes (Keys differ)!" << std::endl;
+        GPU_FreeWLBins ();
         return false;
     }
 
     /** Compare Counts */
     bool counts_match = thrust::equal(thrust::device,
                                       th_counts_A,
-                                      th_counts_A + numBins_A,
+                                      th_counts_A + m_WL_BinCount[0],
                                       th_counts_B);
 
     if (!counts_match)
     {
-        std::cout << "Mismatch: Structures appear with different frequencies (Counts differ)." << std::endl;
+        std::cout << "Mismatch: Structures appear with different frequencies (Counts differ)!" << std::endl;
+        GPU_FreeWLBins ();
         return false;
     }
+
+    GPU_FreeWLBins ();
+
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<" "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
     return true; /** Both are the same possible isomorphic */
 }
@@ -1302,6 +1368,10 @@ bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
     cudaDeviceSynchronize();
     cudaCheckError();
     /*-----------------------------------------------------------------*/
+
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<"GPU WL1 Class 1st NN Structure Test "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
     /*===================================================================================================================*/
     std::cout << "WL1: Initial Coloring Node HashTuple for gIndex " << gIndex << std::endl;
@@ -1432,7 +1502,7 @@ bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
 		std::cout << "WL-1 Stabilized after " << iteration << " iterations." << std::endl;
 
 		/** Store the final size */
-		m_WL1_BinsSize[gIndex] = (uint)h_num_bins_Prev;
+		m_WL_BinCount[gIndex] = (uint)h_num_bins_Prev;
 
 		/** Copy to permanent storage */
 		if (h_num_bins_Prev > 0)
@@ -1440,12 +1510,12 @@ bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
 			size_t keys_bytes   = h_num_bins_Prev * sizeof(uint64_t);
 			size_t counts_bytes = h_num_bins_Prev * sizeof(uint);
 
-			cudaMalloc((void**)&dram_WL1_BinsKeys[gIndex],  keys_bytes);
-			cudaMalloc((void**)&dram_WL1_BinsCount[gIndex], counts_bytes);
+			cudaMalloc((void**)&dram_WL_BinsColorKeys[gIndex],  keys_bytes);
+			cudaMalloc((void**)&dram_WL_BinsNumCount[gIndex], counts_bytes);
 
 			std::cout << "Copy Color Histogram " << std::endl;
-	        cudaMemcpy( dram_WL1_BinsKeys[gIndex],  d_NodeHisto_keys,   keys_bytes,   cudaMemcpyDeviceToDevice );
-	        cudaMemcpy( dram_WL1_BinsCount[gIndex], d_NodeHisto_counts, counts_bytes, cudaMemcpyDeviceToDevice );
+	        cudaMemcpy( dram_WL_BinsColorKeys[gIndex],  d_NodeHisto_keys,  keys_bytes,   cudaMemcpyDeviceToDevice );
+	        cudaMemcpy( dram_WL_BinsNumCount[gIndex],  d_NodeHisto_counts, counts_bytes, cudaMemcpyDeviceToDevice );
 
 	   	    cudaDeviceSynchronize();
 	        cudaCheckError();
@@ -1454,7 +1524,7 @@ bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
 	 else
 	 {
 		std::cout << "WL-1 FAILED TO STABILIZE after " << MAX_ITERATIONS << std::endl;
-		m_WL1_BinsSize[gIndex] = 0;
+		m_WL_BinCount[gIndex] = 0;
 		return false;
 	 }
 
@@ -1472,6 +1542,10 @@ bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
 	 cudaDeviceSynchronize();
 	 cudaCheckError();
 
+	 std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	 std::cout<<" "<<std::endl;
+	 std::cout<<"------------------------------------------------------------------------"<<std::endl;
+
 	 return true;
 }
 /*===================================================================================================================*/
@@ -1483,6 +1557,10 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
 {
     int nodeSizeN = m_numNodes[gIndex];
     int edgeSizeN = m_numEdges[gIndex];
+
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<"GPU WL2 Class Pair Coloring "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 
     /*-----------------------------------------------------------------*/
     /* WL-2 operates on N*N pairs. We use size_t to prevent overflow for large N */
@@ -1496,7 +1574,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
     if (required_MB > 0.75*m_MaxGPUMemoryMB )
     {
         std::cout << "WL-2 Skipped: Graph too large (" << nodeSizeN << " nodes)." << std::endl;
-        m_WL2_BinsSize[gIndex] = 0;
+        m_WL_BinCount[gIndex] = 0;
         return false;
     }
 
@@ -1637,6 +1715,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
 			uint64_t* temp = d_MatrixEleColors;
 			d_MatrixEleColors = d_MatrixEleColorsStepUpdate;
 			d_MatrixEleColorsStepUpdate = temp;
+			h_num_bins_Prev = h_num_bins;
 			iteration++;
          }
     }
@@ -1650,18 +1729,18 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
         std::cout << "WL-2 Stabilized after " << iteration << " iterations." << std::endl;
 
         /* Store WL2 Histogram Size */
-        m_WL2_BinsSize[gIndex] = (uint)h_num_bins_Prev;
+        m_WL_BinCount[gIndex] = (uint)h_num_bins_Prev;
 
         /* Copy to permanent storage */
         size_t keys_bytes   = h_num_bins_Prev * sizeof(uint64_t);
         size_t counts_bytes = h_num_bins_Prev * sizeof(uint);
 
-        cudaMalloc((void**)&dram_WL2_BinsColorsHashKeys[gIndex],  keys_bytes);
-        cudaMalloc((void**)&dram_WL2_BinsCount[gIndex], counts_bytes);
+        cudaMalloc((void**)&dram_WL_BinsColorKeys[gIndex],  keys_bytes);
+        cudaMalloc((void**)&dram_WL_BinsNumCount[gIndex], counts_bytes);
 
         std::cout << "Copy WL-2 Color Histogram " << std::endl;
-        cudaMemcpy( dram_WL2_BinsColorsHashKeys[gIndex],  d_Histo_keys,   keys_bytes,   cudaMemcpyDeviceToDevice );
-        cudaMemcpy( dram_WL2_BinsCount[gIndex], d_Histo_counts, counts_bytes, cudaMemcpyDeviceToDevice );
+        cudaMemcpy( dram_WL_BinsColorKeys[gIndex],  d_Histo_keys,   keys_bytes,   cudaMemcpyDeviceToDevice );
+        cudaMemcpy( dram_WL_BinsNumCount[gIndex], d_Histo_counts, counts_bytes, cudaMemcpyDeviceToDevice );
 
         dram_WL2_MatrixColors[gIndex] = d_MatrixEleColors;
         m_isWL2Alloc[gIndex] = true;
@@ -1672,7 +1751,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
     else
     {
         std::cout << "WL-2 FAILED TO STABILIZE after " << MAX_ITERATIONS << std::endl;
-        m_WL2_BinsSize[gIndex] = 0;
+        m_WL_BinCount[gIndex] = 0;
         return false;
     }
 
@@ -1684,7 +1763,13 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
     cudaDeviceSynchronize();
     cudaCheckError();
 
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+	std::cout<<" "<<std::endl;
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+
+
     return true;
 }
 /*===================================================================================================================*/
+
 

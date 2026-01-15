@@ -1108,7 +1108,7 @@ __global__ void Kernel_WL2_UpdatePairs_Tiled(int numNodes,
 
             /** Hash Combination:
              *  If we do u->w (color c1) and w->v (color c2), what does that path look like ?
-             *  hash with  XOR/Mix this into the accumulator.
+             *  hash with  XOR/Mix this into the accumulator!
             /*  Note: if it is a valid 2nd degree connection then but c1 and C2 must be non-zero however for the WL2 test it just wants structure so 0 (missing element} gets hashed */
 
             if (c1 != 0 || c2 != 0) // Optimization: Skip empty space/padding
@@ -1135,7 +1135,7 @@ __global__ void Kernel_WL2_UpdatePairs_Tiled(int numNodes,
 
 /*===================================================================================================================*/
 /* Helper 1: Extract Node Colors from WL-2 Matrix Diagonal */
-/* WL-2 stores Pair colors. The color of Node 'u' is stored at Matrix[u][u] */
+/* WL-2 stores Pair colors: The color of Node 'u' is stored at Matrix[u][u] */
 /*===================================================================================================================*/
 __global__ void Kernel_Extract_Diagonals(int numNodes,
 		                                 const  __restrict__  uint64_t* MatrixEleColor,
@@ -1147,6 +1147,200 @@ __global__ void Kernel_Extract_Diagonals(int numNodes,
         /* Diagonal index: Row u, Col u */
         size_t diag_idx = (size_t)u * numNodes + u;
         MatrixEleColorWrite[u] = MatrixEleColor[diag_idx];
+    }
+}
+/*===================================================================================================================*/
+
+/*===================================================================================================================*/
+/* TODO NG WIP: Helper 2: Definite Permutation Verification */
+/* Checks: "For every edge (u, v) in G1, does edge (Map[u], Map[v]) exist in G2?" */
+/* Returns: 0 if mismatch found, 1 if exact match. */
+/*===================================================================================================================*/
+__global__ void Kernel_Verify_Isomorphism(int numEdges1,
+                                          const uint* __restrict__ d_src1,
+                                          const uint* __restrict__ d_tgt1,
+                                          const int* __restrict__  d_map_G1_to_G2,
+                                          const uint* __restrict__ d_row_ptr2,
+                                          const uint* __restrict__ d_col_ind2,
+                                          int* d_is_isomorphic)
+{
+    int edgeIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Check flag at the start to skip work if another block already failed
+    if (edgeIdx < numEdges1 && *d_is_isomorphic == 1)
+    {
+
+        int u1 = d_src1[edgeIdx];
+        int v1 = d_tgt1[edgeIdx];
+
+        /** 1] Translate to G2 Nodes */
+        int u2 = d_map_G1_to_G2[u1];
+        int v2 = d_map_G1_to_G2[v1];
+
+        /** 2] Scan neighbors of u2 in G2 */
+        bool found = false;
+        int start = d_row_ptr2[u2];
+        int end   = d_row_ptr2[u2 + 1];
+
+        for (int i = start; i < end; i++)
+        {
+            // Optional: If neighbor lists are sorted, we can stop early
+            // if (d_col_ind2[i] > v2) break;
+
+            if (d_col_ind2[i] == v2)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        /** 3] Update Flag safely */
+        if (!found)
+        {
+            // Only write if the flag hasn't been flipped yet
+            if (*d_is_isomorphic == 1) *d_is_isomorphic = 0;
+        }
+    }
+}
+
+
+
+
+
+/*===================================================================================================================*/
+/*TODO NG WIP:  GPU Helper: Permute G1 Edges using the Map */
+/* Logic: Converts edge (u, v) -> (Map[u], Map[v]) so it matches G2's numbering */
+/*===================================================================================================================*/
+__global__ void Kernel_Permute_Edges(size_t total_pairs,
+                                     uint64_t* d_edges,
+                                     const int* d_map)
+{
+    size_t tid = (size_t)blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < total_pairs)
+    {
+        uint64_t packed = d_edges[tid];
+
+        // Unpack High 32 (u) and Low 32 (v)
+        uint u = (uint)(packed >> 32);
+        uint v = (uint)(packed & 0xFFFFFFFF);
+
+        // Apply Map P[u] -> u'
+        // If map is -1 (error case), this will crash or produce garbage,
+        // but our host code ensures map is valid before calling this.
+        uint u_prime = (uint)d_map[u];
+        uint v_prime = (uint)d_map[v];
+
+        // Repack
+        d_edges[tid] = ((uint64_t)u_prime << 32) | (uint64_t)v_prime;
+    }
+}
+
+/*===================================================================================================================*/
+/* TODO NG WIP: Optimized Expansion Kernel: Warp-Centric Tiling */
+/* Logic: 1 Warp (32 threads) processes 1 Hyperedge */
+/* Uses Shared Memory to cache Sources/Targets */
+/* Writes (u,v) pairs into the flat array in parallel (Coalesced) */
+/*===================================================================================================================*/
+
+#define WARP_SIZE 32
+#define WARPS_PER_BLOCK 8     // 256 threads / 32 = 8 warps
+#define MAX_S_T_CACHE 64      // Typical Limit
+
+__global__ void Kernel_Expand_HyperEdges_WarpOptimized(
+                                         int numEdges,
+                                         const uint* __restrict__ d_src_start,
+                                         const uint* __restrict__ d_src_num,
+                                         const uint* __restrict__ d_src_data,
+                                         const uint* __restrict__ d_tgt_start,
+                                         const uint* __restrict__ d_tgt_num,
+                                         const uint* __restrict__ d_tgt_data,
+                                         const uint* __restrict__ d_edge_write_offsets, // Calculated Prefix Sum
+                                         uint64_t* d_flat_edges)                        // Output Array
+{
+    // 1. Identify Warp and Edge ID
+    int warpInBlockIdx = threadIdx.x / WARP_SIZE;
+    int warpThreadIdx  = threadIdx.x % WARP_SIZE;
+
+    // Global Edge Index
+    int edgeIdx = blockIdx.x * WARPS_PER_BLOCK + warpInBlockIdx;
+
+    // 2. Shared Memory Tiling (Per Warp)
+    __shared__ int smem_src[WARPS_PER_BLOCK][MAX_S_T_CACHE];
+    __shared__ int smem_tgt[WARPS_PER_BLOCK][MAX_S_T_CACHE];
+
+    if (edgeIdx < numEdges)
+    {
+
+    	/*--------------------------------------------------------------------*/
+        /* 1st Thread Load limits for the warp */
+        uint s_start, s_num, t_start, t_num, write_start_idx;
+        if (warpThreadIdx == 0)
+        {
+            s_start         = d_src_start[edgeIdx];
+            s_num           = d_src_num[edgeIdx];
+            t_start         = d_tgt_start[edgeIdx];
+            t_num           = d_tgt_num[edgeIdx];
+            write_start_idx = d_edge_write_offsets[edgeIdx];
+        }
+
+        /* 1st Thread Send to others  */
+        s_start         = __shfl_sync(0xFFFFFFFF, s_start, 0);
+        s_num           = __shfl_sync(0xFFFFFFFF, s_num, 0);
+        t_start         = __shfl_sync(0xFFFFFFFF, t_start, 0);
+        t_num           = __shfl_sync(0xFFFFFFFF, t_num, 0);
+        write_start_idx = __shfl_sync(0xFFFFFFFF, write_start_idx, 0);
+        /*--------------------------------------------------------------------*/
+
+        /*--------------------------------------------------------------------*/
+        /* Everyone Load Data (Max 64) */
+        for (int i = warpThreadIdx; i < s_num && i < MAX_S_T_CACHE; i += WARP_SIZE)
+        {
+            smem_src[warpInBlockIdx][i] = d_src_data[s_start + i];
+        }
+
+        for (int i = warpThreadIdx; i < t_num && i < MAX_S_T_CACHE; i += WARP_SIZE)
+        {
+            smem_tgt[warpInBlockIdx][i] = d_tgt_data[t_start + i];
+        }
+        __syncwarp();
+       /*--------------------------------------------------------------------*/
+
+        /*--------------------------------------------------------------------*/
+        /* Write Back */
+        int total_pairs = s_num * t_num;
+        // Stride loop over the Cartesian Product
+        for (int i = warpThreadIdx; i < total_pairs; i += WARP_SIZE)
+        {
+        	/* A] Decode 1D index -> 2D (s, t)*/
+            int s_idx = i / t_num;
+            int t_idx = i % t_num;
+
+            int u, v;
+
+            /* B] Fetch Source u (Hybrid Read: Cache vs Global) */
+            if (s_idx < MAX_S_T_CACHE)
+            {
+            	u = smem_src[warpInBlockIdx][s_idx];
+            }
+            else
+            {
+            	u = d_src_data[s_start + s_idx];
+            }
+
+            /* C] Fetch Target v (Hybrid Read: Cache or Global) */
+            if (t_idx < MAX_S_T_CACHE)
+            {
+            	v = smem_tgt[warpInBlockIdx][t_idx];
+            }
+            else
+            {
+            	v = d_tgt_data[t_start + t_idx];
+            }
+            /* D] Write to Output (Perfectly Coalesced) Per Wrap  write to sequential addresses */
+            uint64_t packed = ((uint64_t)u << 32) | (uint64_t)v;
+            d_flat_edges[write_start_idx + i] = packed;
+        }
+        /*--------------------------------------------------------------------*/
     }
 }
 

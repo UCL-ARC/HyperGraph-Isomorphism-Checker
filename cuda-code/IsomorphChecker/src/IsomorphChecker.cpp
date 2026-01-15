@@ -402,7 +402,7 @@ int main(int argc, char* argv[])
 		  isPossibleIso = GPU_CompareEdgesSignaturesBetweenGraphs(MaxNodesPerEdge);
     }
 
-    /** 3] WL-1 Test Coloring  */
+    /** 3] NN Coloring (WL1 Type)  */
     if(isPossibleIso)
     {
     	isPossibleIso = GPU_WL1GraphColorHashIT(0, 100 );
@@ -411,29 +411,31 @@ int main(int argc, char* argv[])
     	 isPossibleIso =GPU_WL1GraphColorHashIT(1, 100 );
     	}
 
-    	if (isPossibleIso)
-    	{
-           /* TODO Call AreGraphsPossibleIsomorphic*/
-    	}
+    	/* If both graphs stabilize then check if they match  */
+	   if(isPossibleIso)
+	   {
+	     GPU_AreGraphsPossibleIsomorphic();
+	   }
     }
 
 
-    /** 4] WL-2/Tuple Test Coloring uses the NodeColors from WL1  */
+    /** 4]  2NN Coloring (WL2 Class) uses the NodeColors from WL1  */
     if(isPossibleIso)
     {
     	if (isPossibleIso)
     	{
-    	  GPU_WL2GraphPairColoring(0, 100 );
-    	}
+    	  isPossibleIso = GPU_WL2GraphPairColoring(0, 100 );
 
-    	if (isPossibleIso)
-    	{
-    	  GPU_WL2GraphPairColoring(1, 100 );
-    	}
+    	  if(isPossibleIso)
+    	  {
+    		  isPossibleIso = GPU_WL2GraphPairColoring(1, 100 );
+    	  }
 
-    	if (isPossibleIso)
-		{
-		   /* TODO Call AreGraphsPossibleIsomorphic*/
+    	  /* If both graphs stabilize then check if they match  */
+          if(isPossibleIso)
+          {
+		   GPU_AreGraphsPossibleIsomorphic();
+          }
 		}
     }
 
@@ -442,8 +444,6 @@ int main(int argc, char* argv[])
 	{
 	   /* TODO Call AreGraphsIsomorphic*/
 	}
-
-
 
 	auto end_gpu_compute = std::chrono::high_resolution_clock::now();
 	auto gpu_compute_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_gpu_compute - start_gpu_compute).count();

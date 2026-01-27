@@ -1320,13 +1320,60 @@ bool GPU_AreGraphsPossibleIsomorphic()
         return false;
     }
 
-    GPU_FreeWLBins ();
+        /*--------------------------------------------------------------------------------*/
+        /* Bin Quality & Complexity Report                              */
+        /*--------------------------------------------------------------------------------*/
+        /* To see "Quality", we copy the histogram counts to CPU
+         * Ideally, we want many bins with Size=1 (Solved Nodes)
+         * Large bins imply high symmetry and harder isomorphism checks */
+        {
+            std::vector<uint> h_counts(m_WL_BinCount[0]);
+            cudaMemcpy(h_counts.data(), dram_WL_BinsNumCount[0], m_WL_BinCount[0] * sizeof(uint), cudaMemcpyDeviceToHost);
 
-	std::cout<<"------------------------------------------------------------------------"<<std::endl;
-	std::cout<<" "<<std::endl;
-	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+            int total_nodes = 0;
+            int fixed_nodes = 0;     // Bins with size 1
+            int ambiguous_nodes = 0; // Bins with size > 1
+            int max_bin_size = 0;
 
-    return true; /** Both are the same possible isomorphic */
+            for (uint count : h_counts)
+            {
+                total_nodes += count;
+                if (count == 1)
+                {
+                    fixed_nodes++;
+                }
+                else
+                {
+                    ambiguous_nodes += count;
+                }
+                if (count > max_bin_size)
+                {
+                	max_bin_size = count;
+                }
+            }
+
+            double solved_pct = (total_nodes > 0) ? (100.0 * fixed_nodes / total_nodes) : 0.0;
+
+            std::cout << "  [Refinement Quality]" << std::endl;
+            std::cout << "   - Total Bins:       " << m_WL_BinCount[0] << std::endl;
+            std::cout << "   - Solved Nodes:     " << fixed_nodes << " (" << solved_pct << "% Fixed)" << std::endl;
+            std::cout << "   - Ambiguous Nodes:  " << ambiguous_nodes << " (Need Backtracking)" << std::endl;
+            std::cout << "   - Max Bin Size:     " << max_bin_size << " (Worst-Case Factorial Basis)" << std::endl;
+
+            if (max_bin_size > 16)
+            {
+                 std::cout << "   ! WARNING: Max Bin Size " << max_bin_size << " is very high. Isomorphism check may be slow" << std::endl;
+            }
+        }
+        /*--------------------------------------------------------------------------------*/
+
+        GPU_FreeWLBins ();
+
+        std::cout<<"------------------------------------------------------------------------"<<std::endl;
+        std::cout<<" Match: Graphs have identical structural histograms."<<std::endl;
+        std::cout<<"------------------------------------------------------------------------"<<std::endl;
+
+        return true; /** Both are the same possible isomorphic */
 }
 /*===================================================================================================================*/
 
@@ -1551,7 +1598,8 @@ bool GPU_WL1GraphColorHashIT( int gIndex, int MAX_ITERATIONS )
 /*===================================================================================================================*/
 
 /*===================================================================================================================*/
-/** WL-2 Test: Iterative Pair Color Refinement (N^2 Complexity): Assumes SignatureCounts was called that created this as input: dram_NodeKeys[gIndex] */
+/** WL-2 Test: Iterative Pair Color Refinement (N^2 Complexity): Assumes SignatureCounts was called that created this as input: dram_NodeKeys[gIndex]
+ *  @MM Each elements color is updated based on its edge connectivity as a combined hash */
 /*===================================================================================================================*/
 bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
 {
@@ -1578,7 +1626,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
         return false;
     }
 
-    /* 1] One 64Bit color per element pair */
+    /* 1] One 64Bit color per matrix element  */
     uint64_t *d_MatrixEleColors;
     cudaMalloc((void**)&d_MatrixEleColors,    NodeMatrixSize * sizeof(uint64_t));
     cudaDeviceSynchronize();
@@ -1592,7 +1640,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    /** A1] Thread Per Node: Init Diagonals of d_pair_Colors_In which are the same node using dram_NodeKeys    */
+    /** A1] Thread Per Node: Init Diagonals of d_pair_Colors_In which are the same as the node using dram_NodeKeys    */
     std::cout << "WL-2 Init: Diagonals " << std::endl;
     Kernel_WL2_Init_Diagonal<<<ThreadsAllNodes[0].dimGrid, ThreadsAllNodes[0].dimBlock>>>(  nodeSizeN,
 																							dram_NodeColorHashes[gIndex],
@@ -1650,7 +1698,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
 
 
     /*-----------------------------------------------------------------*/
-    /* B0] Temp Array for sorting and Writing colors  */
+    /* B0] Temp Array for sorting and Writing colors size N^2 */
     uint64_t *d_MatrixEleColorsStepUpdate;
     cudaMalloc((void**)&d_MatrixEleColorsStepUpdate,   NodeMatrixSize * sizeof(uint64_t));
     /*-----------------------------------------------------------------*/
@@ -1691,7 +1739,7 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
 
         /** Read From d_MatrixEleColors and then Write to  d_MatrixEleColorsStepUpdate:
          *  Each element checks if by scanning its row/col if it can find a non zero location this tells use if we can do
-         *  A->B->C  if both are true then we can do C->B->A also and it is a triple (discarded for now) */
+         *  A->B->C  if both are true then we can do C->B->A. We use this as a connection feature even if it is not a complete triple */
         Kernel_WL2_UpdatePairs_Tiled<<<dimGrid2D, dimBlock2D>>>(nodeSizeN, d_MatrixEleColors, d_MatrixEleColorsStepUpdate);
         cudaDeviceSynchronize();
         cudaCheckError();
@@ -1772,4 +1820,285 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS)
 }
 /*===================================================================================================================*/
 
+/*===================================================================================================================*/
+/* Host Function: Check Definite Isomorphism (Backtracking & Sort Method) */
+/* Returns TRUE if Graph 1 (permuted) is structurally identical to Graph 2 */
+/*===================================================================================================================*/
+bool GPU_CheckDefiniteIsomorphism()
+{
+    /* GPU Arrays */
+    uint64_t *d_nodeDiagColors0         = nullptr;
+    uint64_t *d_nodeDiagColors1         = nullptr;
+    uint64_t *d_edgeConnectionsFlat0    = nullptr; /* Graph 0 (Will be Permuted: "The Query") */
+    uint64_t *d_edgeC0nnectionsFlat1Ref = nullptr; /* Graph 1 (Fixed Reference: "The Target") */
+    int      *d_mapNodes0To1            = nullptr; /* Mapping: G0 Node ID -> G1 Node ID */
 
+    bool is_isomorphic = false;
+
+    /*-----------------------------------------------------------------------------------------*/
+    /* Dummy loop so that in case of an early exit it will do the memory free */
+    do
+    {
+        std::cout<<"------------------------------------------------------------------------"<<std::endl;
+        std::cout<<"GPU Starting Definite Isomorphism Verification "<<std::endl;
+        std::cout<<"------------------------------------------------------------------------"<<std::endl;
+
+        /* Sanity Check 0: Node Counts must be identical */
+        if (m_numNodes[0] != m_numNodes[1]) break;
+
+        /*-----------------------------------------------------------------------------------------*/
+        /* Phase A: Extract Node Colors from GPU (Optimized Linear Launch) */
+        /*-----------------------------------------------------------------------------------------*/
+        cudaMalloc(&d_nodeDiagColors0, m_numNodes[0] * sizeof(uint64_t));
+        cudaMalloc(&d_nodeDiagColors1, m_numNodes[1] * sizeof(uint64_t));
+
+        Kernel_ExtractNodePairDiagonals<<<ThreadsAllNodes[0].dimGrid, ThreadsAllNodes[0].dimBlock>>>(m_numNodes[0], dram_WL2_MatrixColors[0], d_nodeDiagColors0);
+        Kernel_ExtractNodePairDiagonals<<<ThreadsAllNodes[0].dimGrid, ThreadsAllNodes[0].dimBlock>>>(m_numNodes[1], dram_WL2_MatrixColors[1], d_nodeDiagColors1);
+        cudaDeviceSynchronize();
+
+        /* Copy to CPU */
+        std::vector<uint64_t> h_nodeDiagColors0(m_numNodes[0]);
+        std::vector<uint64_t> h_nodeDiagColors1(m_numNodes[1]);
+        cudaMemcpy(h_nodeDiagColors0.data(), d_nodeDiagColors0, m_numNodes[0] * sizeof(uint64_t), cudaMemcpyDeviceToHost);
+        cudaMemcpy(h_nodeDiagColors1.data(), d_nodeDiagColors1, m_numNodes[1] * sizeof(uint64_t), cudaMemcpyDeviceToHost);
+        /*-----------------------------------------------------------------------------------------*/
+
+
+        /*-----------------------------------------------------------------------------------------*/
+        /* Phase B: Bin Analysis (Host Side) */
+        /*-----------------------------------------------------------------------------------------*/
+        std::map<uint64_t, std::vector<int>> bins_G0;
+        std::map<uint64_t, std::vector<int>> bins_G1;
+
+        /* Optimized Single Pass Loop */
+        for(int i=0; i<m_numNodes[0]; i++)
+        {
+            bins_G0[h_nodeDiagColors0[i]].push_back(i);
+            bins_G1[h_nodeDiagColors1[i]].push_back(i);
+        }
+
+        /* Fast Fail 1: Different number of unique colors */
+        if (bins_G0.size() != bins_G1.size()) break;
+
+        std::vector<uint64_t> ambiguous_colors;
+        bool is_hierarchyMatch = true;
+
+        for (auto const& [color, nodes0] : bins_G0)
+        {
+            /* Fast Fail 2: Color mismatch */
+            if (bins_G1.find(color) == bins_G1.end()) { is_hierarchyMatch = false; break; }
+
+            const auto& nodes1 = bins_G1[color];
+
+            /* Fast Fail 3: Node count mismatch for this color */
+            if (nodes0.size() != nodes1.size()) { is_hierarchyMatch = false; break; }
+
+            /* Identify Ambiguous Bins */
+            if (nodes0.size() > 1) {
+                ambiguous_colors.push_back(color);
+            }
+        }
+        if (!is_hierarchyMatch) break;
+        /*-----------------------------------------------------------------------------------------*/
+
+
+        /*-----------------------------------------------------------------------------------------*/
+        /* Phase C: Prepare GPU Hyperedge Data */
+        /*-----------------------------------------------------------------------------------------*/
+        size_t numPairs0 = 0;
+        size_t numPairs1 = 0;
+
+        /* Scope for Thrust vectors */
+        {
+            /* Graph 0 Offsets */
+            thrust::device_ptr<uint>    d_src0     (dram_Edge_nodeSourcesNum[0]);
+            thrust::device_ptr<uint>    d_tgt0     (dram_Edge_nodeTargetsNum[0]);
+            thrust::device_vector<uint> d_sizes0   (m_numEdges[0]);
+            thrust::device_vector<uint> d_offsets0 (m_numEdges[0]);
+
+            thrust::transform(d_src0, d_src0 + m_numEdges[0], d_tgt0, d_sizes0.begin(), thrust::multiplies<uint>());
+            thrust::exclusive_scan(d_sizes0.begin(), d_sizes0.end(), d_offsets0.begin());
+            numPairs0 = (size_t)d_offsets0.back() + d_sizes0.back();
+
+            /* Graph 1 Offsets */
+            thrust::device_ptr<uint> d_src1(dram_Edge_nodeSourcesNum[1]);
+            thrust::device_ptr<uint> d_tgt1(dram_Edge_nodeTargetsNum[1]);
+            thrust::device_vector<uint> d_sizes1(m_numEdges[1]);
+            thrust::device_vector<uint> d_offsets1(m_numEdges[1]);
+
+            thrust::transform(d_src1, d_src1 + m_numEdges[1], d_tgt1, d_sizes1.begin(), thrust::multiplies<uint>());
+            thrust::exclusive_scan(d_sizes1.begin(), d_sizes1.end(), d_offsets1.begin());
+            numPairs1 = (size_t)d_offsets1.back() + d_sizes1.back();
+
+            /* Fast Fail 4: Structure Size Mismatch */
+            if (numPairs0 != numPairs1)
+            {
+                 // Breaks after scope
+            }
+            else if (numPairs0 == 0)
+            {
+                is_isomorphic = true; // 0 edges == 0 edges -> Match
+                // Will break after scope via logic check below
+            }
+            else
+            {
+                /* Memory Check */
+                size_t needed_bytes = (numPairs0 * 2 * sizeof(uint64_t)) + (m_numNodes[0] * sizeof(int));
+                size_t free_byte, total_byte;
+                cudaMemGetInfo(&free_byte, &total_byte);
+
+                if (needed_bytes > (free_byte - 50 * 1024 * 1024))
+                {
+                    std::cout << "GPU ERROR: Not enough VRAM." << std::endl;
+                    numPairs0 = 0;
+                }
+                else
+                {
+                    /* Allocations */
+                    cudaMalloc(&d_edgeConnectionsFlat0,    numPairs0 * sizeof(uint64_t));
+                    cudaMalloc(&d_edgeC0nnectionsFlat1Ref, numPairs1 * sizeof(uint64_t));
+                    cudaMalloc(&d_mapNodes0To1,            m_numNodes[0] * sizeof(int));
+
+                    int threadsPerBlock = 256;
+                    int warpsPerBlock = threadsPerBlock / 32;
+
+                    /* Expand G0 */
+                    int numBlocks = (m_numEdges[0] + warpsPerBlock - 1) / warpsPerBlock;
+                    Kernel_Expand_HyperEdges_WarpOptimized<<<numBlocks, threadsPerBlock>>>(
+                        m_numEdges[0],
+                        dram_Edge_nodeSourcesStart[0], dram_Edge_nodeSourcesNum[0], dram_Edge_nodeSources[0],
+                        dram_Edge_nodeTargetsStart[0], dram_Edge_nodeTargetsNum[0], dram_Edge_nodeTargets[0],
+                        thrust::raw_pointer_cast(d_offsets0.data()),
+                        d_edgeConnectionsFlat0
+                    );
+
+                    /* Expand G1 */
+                    numBlocks = (m_numEdges[1] + warpsPerBlock - 1) / warpsPerBlock;
+                    Kernel_Expand_HyperEdges_WarpOptimized<<<numBlocks, threadsPerBlock>>>(
+                        m_numEdges[1],
+                        dram_Edge_nodeSourcesStart[1], dram_Edge_nodeSourcesNum[1], dram_Edge_nodeSources[1],
+                        dram_Edge_nodeTargetsStart[1], dram_Edge_nodeTargetsNum[1], dram_Edge_nodeTargets[1],
+                        thrust::raw_pointer_cast(d_offsets1.data()),
+                        d_edgeC0nnectionsFlat1Ref
+                    );
+
+                    /* Sort G1 */
+                    thrust::device_ptr<uint64_t> t_flat1(d_edgeC0nnectionsFlat1Ref);
+                    thrust::sort(t_flat1, t_flat1 + numPairs1);
+
+                    /* Must wait for kernels to read 'd_offsets' before vectors die at } */
+                    cudaStreamSynchronize(0);
+                }
+            }
+        } // End Scope (Thrust vectors freed)
+        /*-----------------------------------------------------------------------------------------*/
+
+
+        /* Logic Check: Break if sizes mismatched OR if we already found they are 0-size match */
+        if (numPairs0 != numPairs1) break;
+        if (numPairs0 == 0 && is_isomorphic) break; // Success (Empty Graphs)
+
+        /*-----------------------------------------------------------------------------------------*/
+        /* Phase D: Backtracking Solver */
+        /*-----------------------------------------------------------------------------------------*/
+        long long max_iterations = 1000;
+        long long iter = 0;
+        bool finished_permutations = false;
+
+        std::vector<int> current_map(m_numNodes[0]);
+
+        /* Pre-fill Fixed Singletons */
+        for (auto const& [color, nodes0] : bins_G0)
+        {
+            if (nodes0.size() == 1) {
+                current_map[nodes0[0]] = bins_G1[color][0];
+            }
+        }
+
+        while (!finished_permutations && iter < max_iterations)
+        {
+            /* Update Map for Ambiguous Bins */
+            for (uint64_t color : ambiguous_colors)
+            {
+                const auto& nodes0 = bins_G0[color];
+                const auto& nodes1 = bins_G1[color];
+                for (size_t i = 0; i < nodes0.size(); i++)
+                {
+                    current_map[nodes0[i]] = nodes1[i];
+                }
+            }
+            cudaMemcpy(d_mapNodes0To1, current_map.data(), m_numNodes[0] * sizeof(int), cudaMemcpyHostToDevice);
+
+            /* Recalc Offsets and Re-Expand G0 */
+            {
+                thrust::device_ptr<uint> t_src0(dram_Edge_nodeSourcesNum[0]);
+                thrust::device_ptr<uint> t_tgt0(dram_Edge_nodeTargetsNum[0]);
+                thrust::device_vector<uint> d_sizes0(m_numEdges[0]);
+                thrust::device_vector<uint> d_offsets0(m_numEdges[0]);
+
+                thrust::transform(t_src0, t_src0 + m_numEdges[0], t_tgt0, d_sizes0.begin(), thrust::multiplies<uint>());
+                thrust::exclusive_scan(d_sizes0.begin(), d_sizes0.end(), d_offsets0.begin());
+
+                int threadsPerBlock = 256;
+                int warpsPerBlock = threadsPerBlock / 32;
+                int numBlocks = (m_numEdges[0] + warpsPerBlock - 1) / warpsPerBlock;
+
+                Kernel_Expand_HyperEdges_WarpOptimized<<<numBlocks, threadsPerBlock>>>(
+                    m_numEdges[0],
+                    dram_Edge_nodeSourcesStart[0], dram_Edge_nodeSourcesNum[0], dram_Edge_nodeSources[0],
+                    dram_Edge_nodeTargetsStart[0], dram_Edge_nodeTargetsNum[0], dram_Edge_nodeTargets[0],
+                    thrust::raw_pointer_cast(d_offsets0.data()),
+                    d_edgeConnectionsFlat0
+                );
+                cudaStreamSynchronize(0);
+            }
+
+            /* Apply Permutation */
+            int threadsPerBlock = 256;
+            int numBlocks = (numPairs0 + threadsPerBlock-1) / threadsPerBlock;
+            Kernel_Permute_Edges<<<numBlocks, threadsPerBlock>>>(numPairs0, d_edgeConnectionsFlat0, d_mapNodes0To1);
+
+            /* Sort G0 */
+            thrust::device_ptr<uint64_t> t_flat0(d_edgeConnectionsFlat0);
+            thrust::sort(t_flat0, t_flat0 + numPairs0);
+
+            /* Compare */
+            thrust::device_ptr<uint64_t> t_flat1(d_edgeC0nnectionsFlat1Ref);
+            if (thrust::equal(t_flat0, t_flat0 + numPairs0, t_flat1))
+            {
+                is_isomorphic = true;
+                break;
+            }
+
+            /* Advance Permutations */
+            if (ambiguous_colors.empty())
+            {
+                finished_permutations = true;
+            }
+            else
+            {
+                bool carried = true;
+                for (int i = 0; i < ambiguous_colors.size(); i++)
+                {
+                    uint64_t c = ambiguous_colors[i];
+                    if (std::next_permutation(bins_G1[c].begin(), bins_G1[c].end())) {
+                        carried = false;
+                        break;
+                    }
+                }
+                if (carried) finished_permutations = true;
+            }
+            iter++;
+        }
+        /*-----------------------------------------------------------------------------------------*/
+
+    } while(0); /* End Dummy while for safe exit */
+
+    if (d_nodeDiagColors0)         cudaFree(d_nodeDiagColors0);
+    if (d_nodeDiagColors1)         cudaFree(d_nodeDiagColors1);
+    if (d_mapNodes0To1)            cudaFree(d_mapNodes0To1);
+    if (d_edgeConnectionsFlat0)    cudaFree(d_edgeConnectionsFlat0);
+    if (d_edgeC0nnectionsFlat1Ref) cudaFree(d_edgeC0nnectionsFlat1Ref);
+
+    return is_isomorphic;
+}

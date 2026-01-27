@@ -442,7 +442,15 @@ int main(int argc, char* argv[])
     /* TODO Full Check using WL2 Color Matrix */
 	if (isPossibleIso)
 	{
-	   /* TODO Call AreGraphsIsomorphic*/
+		bool isIso = GPU_CheckDefiniteIsomorphism();
+		if (isIso)
+		{
+			std::cerr<<" Graphs are Isomorphic "<<std::endl;
+		}
+		else
+		{
+			std::cerr<<" Graphs are NOT Isomorphic!! "<<std::endl;
+		}
 	}
 
 	auto end_gpu_compute = std::chrono::high_resolution_clock::now();

@@ -1137,7 +1137,7 @@ __global__ void Kernel_WL2_UpdatePairs_Tiled(int numNodes,
 /* Helper 1: Extract Node Colors from WL-2 Matrix Diagonal */
 /* WL-2 stores Pair colors: The color of Node 'u' is stored at Matrix[u][u] */
 /*===================================================================================================================*/
-__global__ void Kernel_Extract_Diagonals(int numNodes,
+__global__ void Kernel_ExtractNodePairDiagonals(int numNodes,
 		                                 const  __restrict__  uint64_t* MatrixEleColor,
                                          uint64_t* MatrixEleColorWrite)
 {
@@ -1202,7 +1202,7 @@ __global__ void Kernel_Verify_Isomorphism(int numEdges1,
         }
     }
 }
-
+/*===================================================================================================================*/
 
 
 
@@ -1234,6 +1234,8 @@ __global__ void Kernel_Permute_Edges(size_t total_pairs,
         d_edges[tid] = ((uint64_t)u_prime << 32) | (uint64_t)v_prime;
     }
 }
+/*===================================================================================================================*/
+
 
 /*===================================================================================================================*/
 /* TODO NG WIP: Optimized Expansion Kernel: Warp-Centric Tiling */
@@ -1245,7 +1247,6 @@ __global__ void Kernel_Permute_Edges(size_t total_pairs,
 #define WARP_SIZE 32
 #define WARPS_PER_BLOCK 8     // 256 threads / 32 = 8 warps
 #define MAX_S_T_CACHE 64      // Typical Limit
-
 __global__ void Kernel_Expand_HyperEdges_WarpOptimized(
                                          int numEdges,
                                          const uint* __restrict__ d_src_start,
@@ -1343,6 +1344,6 @@ __global__ void Kernel_Expand_HyperEdges_WarpOptimized(
         /*--------------------------------------------------------------------*/
     }
 }
-
+/*===================================================================================================================*/
 
 #endif /* GPU_SOLVER_CUDA_KERNELS_CUH_ */

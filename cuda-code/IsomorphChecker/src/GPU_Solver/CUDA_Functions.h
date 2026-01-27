@@ -50,5 +50,6 @@ bool GPU_WL2GraphPairColoring(int gIndex, int MAX_ITERATIONS);
 
 bool GPU_AreGraphsPossibleIsomorphic();
 
+bool GPU_CheckDefiniteIsomorphism();
 
 #endif /* GPU_SOLVER_CUDA_FUNCTIONS_H_ */

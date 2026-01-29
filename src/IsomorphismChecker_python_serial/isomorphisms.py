@@ -9,9 +9,9 @@ import logging
 
 from IsomorphismChecker_python_serial.diagram import Diagram
 from IsomorphismChecker_python_serial.colouring import Colouring, ColourMap
+from IsomorphismChecker_python_serial.util import MappingMode
 
 from dataclasses import dataclass, field
-from enum import Enum
 
 # Set up logger for this module
 logger = logging.getLogger(__name__)
@@ -61,11 +61,6 @@ def permute_graph(g: OpenHypergraph) -> tuple[list[int], list[int], OpenHypergra
 
     permuted_graph = OpenHypergraph(nodes, edges, input_nodes, output_nodes)
     return node_permutation, edge_permutation, permuted_graph
-
-
-class MappingMode(Enum):
-    NODE = "node"
-    EDGE = "edge"
 
 
 class BiMap:
@@ -278,31 +273,6 @@ class Isomorphism:
         # eliminated_paths = {i: False for i in range(num_nexts)}
         if len(v1.next) > 1:
             raise RuntimeError("Branching paths algorithm in progress")
-            # for i, next1 in enumerate(v1.next):
-            #     # attempt to find a matching path in g2
-            #     for j, next2 in enumerate(v2.next):
-            #         valid_pair = self.check_edges_for_continuation(next1, next2)
-            #         print(f"Validity: {i, j, valid_pair}")
-            #         if valid_pair:
-            #             print(f"Update matching paths {i, j, matching_paths}")
-            #             matching_paths[i].append(j)
-            #             print(f"New matchin paths {matching_paths}")
-            # # sort the potential paths to eliminate the simplest decisions first
-            # matching_paths.sort(key=lambda x: len(x))
-            # print(matching_paths)
-            # for i, js in enumerate(matching_paths):
-            #     if len(js) == 0:
-            #         self.mapping_valid = False
-            #         return
-            #     elif len(js) == 1:
-            #         j = js[0]
-            #         self.explore_edges(v1.next[i].index, v2.next[j].index)
-            #     else:  # explore possible paths
-            #         # placeholder to allow for rollback: we don't want to do a huge copy every branch!
-            #         print("ended up here")
-            #         # node_map_copy = self.node_mapping.copy()
-            #         # edge_map_copy = self.edge_mapping.copy()
-            #         assert self.mapping_valid
 
             # explore paths starting with the minimal branching
         else:
@@ -634,6 +604,280 @@ def MC_isomorphism(
     return ret
 
 
+def Comparative_Graph_Colouring(
+    g1: OpenHypergraph, g2: OpenHypergraph, filename: str = "", draw_steps=False
+):
+    n_nodes = len(g1.nodes)
+    n_edges = len(g2.edges)
+
+    if len(g2.nodes) != n_nodes:
+        return NonIso
+    if len(g2.edges) != n_edges:
+        return NonIso
+
+    colours1, colours2 = Colouring(g1), Colouring(g2)
+
+    if len(g1.input_nodes) != len(g2.input_nodes):
+        return NonIso
+
+    if len(g1.output_nodes) != len(g2.output_nodes):
+        return NonIso
+
+    # Unique colours for input/output nodes
+    # Sorting is not strictly necessary but I think will make the
+    # parallelisation easier later on
+    c_running = 0  # current colour to apply to updated nodes
+    for (i1, i2) in zip(
+        g1.input_nodes + g1.output_nodes, g2.input_nodes + g2.output_nodes
+    ):
+        # v1 and v2 must be a viable match
+        v1, v2 = g1.nodes[i1], g2.nodes[i2]
+        if v1.label != v2.label:
+            return NonIso
+        if len(v1.next) != len(v2.next):
+            return NonIso
+        if len(v1.prev) != len(v2.prev):
+            return NonIso
+
+        # c1, c2 give current colourings for v1, v2
+        c1 = colours1.node_colouring.colouring[i1]
+        c2 = colours2.node_colouring.colouring[i2]
+        if (c1 == -1) and (c2 == -1):
+            colours1.set_colour(i1, c_running, MappingMode.NODE)
+            colours2.set_colour(i2, c_running, MappingMode.NODE)
+            c_running += 1
+        elif c1 != c2:
+            # contradiction if existing node colours don't match
+            return NonIso
+
+    # Initial node and edge colourings
+    if not set_initial_label_map(g1, g2, colours1, colours2, c_running):
+        return NonIso
+
+    if draw_steps:
+        d = Diagram(g1, colouring=colours1)
+        d.render(filename + "_g1_" + "0")
+        d = Diagram(g2, colouring=colours2)
+        d.render(filename + "_g2_" + "0")
+
+    # Initial colouring complete, begin iterative updates
+    viable, iteration = Update_Colouring_Pair(
+        g1, g2, filename, colours1, colours2, 1, draw_steps
+    )
+    if not viable:
+        return NonIso
+
+    # Symmetry breaking
+    (nodes_unique, node_symmetry), (
+        edges_unique,
+        edge_symmetry,
+    ) = colours1.check_uniqueness()
+    while (not nodes_unique) or (not edges_unique):
+        if not nodes_unique:
+            # check colour sets match across graphs
+            cset1 = colours1.node_colouring.colour_map[node_symmetry]
+            cset2 = colours2.node_colouring.colour_map[node_symmetry]
+            if len(cset1) != len(cset2):
+                return NonIso
+            break_symmetry(colours1.node_colouring, node_symmetry)
+            break_symmetry(colours2.node_colouring, node_symmetry)
+        elif not edges_unique:
+            cset1 = colours1.edge_colouring.colour_map[edge_symmetry]
+            cset2 = colours2.edge_colouring.colour_map[edge_symmetry]
+            if len(cset1) != len(cset2):
+                return NonIso
+            break_symmetry(colours1.edge_colouring, edge_symmetry)
+            break_symmetry(colours2.node_colouring, node_symmetry)
+
+        viable, iteration = Update_Colouring_Pair(
+            g1, g2, filename, colours1, colours2, iteration, draw_steps
+        )
+        if not viable:
+            return NonIso
+        (nodes_unique, node_symmetry), (
+            edges_unique,
+            edge_symmetry,
+        ) = colours1.check_uniqueness()
+
+    # check that g2 has also be coloured uniquely
+    (nodes_unique, node_symmetry), (
+        edges_unique,
+        edge_symmetry,
+    ) = colours2.check_uniqueness()
+    if not (nodes_unique and edges_unique):
+        return NonIso
+
+    # Construct isomorphism from colouring
+    # Map from g1 -> g2; get the colours of node/edge i and then find the node/edge with that colour in g2
+    node_map = [
+        colours2.node_colouring.colour_map[colours1.node_colouring.colouring[i]].pop()
+        for i in range(n_nodes)
+    ]
+    edge_map = [
+        colours2.edge_colouring.colour_map[colours1.edge_colouring.colouring[i]].pop()
+        for i in range(n_edges)
+    ]
+    return IsomorphismData(True, node_map, edge_map)
+
+
+def break_symmetry_pair(cmap1: ColourMap, cmap2: ColourMap, symmetry_colour: int):
+    cgroup1 = cmap1.colour_map[symmetry_colour]  # nodes in g1 with symm colour
+    cgroup2 = cmap2.colour_map[symmetry_colour]  # and for g2
+
+    n_group = len(cgroup1)
+    if len(cgroup2) != n_group:
+        # This should not be possible unless there is a bug
+        raise Exception("Colour groups are different sizes.")
+
+
+def Update_Colouring_Pair(
+    g1: OpenHypergraph,
+    g2: OpenHypergraph,
+    filename: str,
+    colours1: Colouring,
+    colours2: Colouring,
+    iteration: int,
+    draw_steps=False,
+):
+    static = False
+    while not static:
+        ## Update node colourings
+        static_nodes = True
+        for c in colours1.node_colouring.colour_map.keys():
+            viable, static_set = refine_colour_set(
+                c, g1, g2, colours1, colours2, MappingMode.NODE
+            )
+            if not viable:
+                return False, iteration
+            static_nodes = static_nodes and static_set
+
+        colours1.node_colouring.mergeUpdates()
+        colours2.node_colouring.mergeUpdates()
+
+        static_edges = True
+        for c in colours1.edge_colouring.colour_map.keys():
+            viable, static_set = refine_colour_set(
+                c, g1, g2, colours1, colours2, MappingMode.EDGE
+            )
+            if not viable:
+                return False, iteration
+            static_edges = static_edges and static_set
+
+        static = static_nodes and static_edges
+
+        colours1.edge_colouring.mergeUpdates()
+        colours2.edge_colouring.mergeUpdates()
+
+        iteration += 1
+        if draw_steps:
+            d = Diagram(g1, colouring=colours1)
+            d.render(filename + "_g1_" + str(iteration))
+            d = Diagram(g2, colouring=colours2)
+            d.render(filename + "_g2_" + str(iteration))
+
+    return True, iteration
+
+
+def refine_colour_set(
+    c: int,
+    g1: OpenHypergraph,
+    g2: OpenHypergraph,
+    colours1: Colouring,
+    colours2: Colouring,
+    mode: MappingMode,
+):
+    """Returns a (bool, bool) tuple; the first bool is true if isomorphism is still possible and false if there is a conflict.
+    The second bool is true if the refinement is stable and false if there has been an update. (The second bool is arbitrary if
+    a conflict has occurred.)"""
+
+    # get corresponding colour group in g1 and g2
+    colouring1 = colours1.get_map(mode)
+    colouring2 = colours2.get_map(mode)
+    cset1 = colouring1.colour_map[c]
+    cset2 = colouring2.colour_map[c]
+
+    if len(cset1) != len(cset2):
+        return (False, False)
+    if len(cset1) == 1:
+        return (True, True)
+
+    # attempt to split the colour groups
+    # these colour keys can be stored in a segmented array for all nodes/edges
+    # rather than being constructed like this
+    def get_key(x, y, z):
+        if mode == MappingMode.NODE:
+            return GetNodeColourKey(x, y.nodes[z])
+        else:
+            return GetEdgeColourKey(x, y.edges[z])
+
+    indexed_keys1 = [(v, get_key(colours1, g1, v)) for v in cset1]
+    indexed_keys1.sort(key=lambda x: x[1])
+    indexed_keys2 = [(v, get_key(colours2, g2, v)) for v in cset2]
+    indexed_keys2.sort(key=lambda x: x[1])
+
+    # these colour keys should be the same for both graphs else non isomorphic
+    if [k for (_, k) in indexed_keys1] != [k for (_, k) in indexed_keys2]:
+        return (False, False)
+    # assign new colours
+    static1 = AssignColours(colouring1, c, indexed_keys1)
+    static2 = AssignColours(colouring2, c, indexed_keys2)
+    if static1 != static2:
+        raise Exception("Applying recolouring for two graphs was inconsistent")
+    return (True, static1)
+
+
+def set_initial_label_map(
+    g1: OpenHypergraph,
+    g2: OpenHypergraph,
+    colours1: Colouring,
+    colours2: Colouring,
+    start_colour: int,
+):
+    # Initial label map can be constructed from a histogram of node and egde labels
+    # Constructing historgrams like this should be efficient on the GPU here we can
+    # just construct a list for simplicity
+    node_type_list1 = [
+        (i, v.label)
+        for i, v in enumerate(g1.nodes)
+        if colours1.node_colouring.colouring[i] == -1
+    ]
+    node_type_list2 = [
+        (i, v.label)
+        for i, v in enumerate(g2.nodes)
+        if colours2.node_colouring.colouring[i] == -1
+    ]
+    node_type_list1.sort(key=lambda z: z[1])
+    node_type_list2.sort(key=lambda z: z[1])
+
+    # The histograms need to match to be valid
+    if [label for (_, label) in node_type_list1] != [
+        label for (_, label) in node_type_list2
+    ]:
+        return False
+
+    AssignColours(colours1.node_colouring, start_colour, node_type_list1)
+    colours1.node_colouring.mergeUpdates()
+    AssignColours(colours2.node_colouring, start_colour, node_type_list2)
+    colours2.node_colouring.mergeUpdates()
+
+    edge_type_list1 = [(i, e.label) for i, e in enumerate(g1.edges)]
+    edge_type_list1.sort(key=lambda z: z[1])
+    edge_type_list2 = [(i, e.label) for i, e in enumerate(g2.edges)]
+    edge_type_list2.sort(key=lambda z: z[1])
+
+    if [label for (_, label) in edge_type_list1] != [
+        label for (_, label) in edge_type_list2
+    ]:
+        return False
+
+    AssignColours(colours1.edge_colouring, 0, edge_type_list1)
+    colours1.edge_colouring.mergeUpdates()
+    AssignColours(colours2.edge_colouring, 0, edge_type_list2)
+    colours2.edge_colouring.mergeUpdates()
+
+    return True
+
+
 def Get_Canonical_Graph_Colouring(
     g: OpenHypergraph, filename: str, draw_steps=False
 ) -> Colouring:
@@ -703,39 +947,41 @@ def break_symmetry(cmap: ColourMap, symmetry_colour: int):
     cmap.colour_map[new_colour] = set([break_idx])
 
 
-def Update_Colourings(g1, filename, colours, iteration, draw_steps=False):
+def Update_Colourings(g1, filename, colours: Colouring, iteration, draw_steps=False):
     static = False
     while not static:
         ## Update node colouring
         static_nodes = True
-        for (colour, colour_group) in colours.node_colouring.colour_map.items():
-            if len(colour_group) > 1:
+        for (colour, colour_set) in colours.node_colouring.colour_map.items():
+            if len(colour_set) > 1:
                 # attempt to split colour group
                 indexed_keys = [
-                    (v, GetNodeColourKey(colours, g1.nodes[v])) for v in colour_group
+                    (v, GetNodeColourKey(colours, g1.nodes[v])) for v in colour_set
                 ]
                 # sort the indexed colour keys
                 indexed_keys.sort(key=lambda x: x[1])
                 # assign new colours
-                static_nodes = AssignColours(
-                    colours.node_colouring, colour, indexed_keys
-                )
+                static_set = AssignColours(colours.node_colouring, colour, indexed_keys)
+                static_nodes = static_nodes and static_set
         colours.node_colouring.mergeUpdates()
+        iteration += 1
+        if draw_steps:
+            d = Diagram(g1, colouring=colours)
+            d.render(filename + str(iteration))
 
         ## Update edge colouring
         static_edges = True
-        for (colour, colour_group) in colours.edge_colouring.colour_map.items():
-            if len(colour_group) > 1:
+        for (colour, colour_set) in colours.edge_colouring.colour_map.items():
+            if len(colour_set) > 1:
                 # attempt to split colour group
                 indexed_keys = [
-                    (e, GetEdgeColourKey(colours, g1.edges[e])) for e in colour_group
+                    (e, GetEdgeColourKey(colours, g1.edges[e])) for e in colour_set
                 ]
                 # sort the indexed colour keys
                 indexed_keys.sort(key=lambda x: x[1])
                 # assign new colours
-                static_edges = AssignColours(
-                    colours.edge_colouring, colour, indexed_keys
-                )
+                static_set = AssignColours(colours.edge_colouring, colour, indexed_keys)
+                static_edges = static_edges and static_set
         colours.edge_colouring.mergeUpdates()
 
         static = static_nodes & static_edges

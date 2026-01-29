@@ -2,8 +2,11 @@ from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
 from IsomorphismChecker_python_serial.isomorphisms import (
     Colouring,
     Get_Canonical_Graph_Colouring,
+    Comparative_Graph_Colouring,
+    permute_graph,
 )
 import pytest
+
 
 test_graph_dir = "tests/inputs/"
 
@@ -18,6 +21,7 @@ multi_step_graphs: list[str] = ["Multi_Step_Colouring.json"]
 non_monogamous_graphs: list[str] = [
     "NonMonogamous_Ambiguous_Branching.json",
     "Ring.json",
+    "Branching_Graph.json",
 ]
 
 symmetric_graphs: list[str] = ["Anonymous_Ring.json", "Clique.json"]
@@ -37,10 +41,26 @@ def test_colouring(graph_file):
 
     file_stub = graph_file[:-5]
     colouring = Get_Canonical_Graph_Colouring(
-        g, file_stub + "_colouring", draw_steps=False
+        g, file_stub + "_colouring", draw_steps=True
     )
     print(f"Node colouring of {file_stub}: {colouring.node_colouring.colouring}")
     print(f"Edge colouring of {file_stub}: {colouring.edge_colouring.colouring}")
     (node_uniqueness, _), (edge_uniqueness, _) = colouring.check_uniqueness()
     assert node_uniqueness
     assert edge_uniqueness
+
+
+graphs_to_compare: list[str] = (
+    initial_step_graphs + multi_step_graphs + non_monogamous_graphs + symmetric_graphs
+)
+
+
+@pytest.mark.parametrize("graph_file", graphs_to_compare)
+def test_comparative_colouring(graph_file):
+    file_stub = graph_file[:-5]
+    g1 = create_hypergraph(test_graph_dir + graph_file)
+    (pi_n, pi_e, g2) = permute_graph(g1)  # calculates a random permutation of the graph
+
+    isomorphism = Comparative_Graph_Colouring(g1, g2, "compare_" + file_stub, True)
+
+    assert isomorphism.isomorphic

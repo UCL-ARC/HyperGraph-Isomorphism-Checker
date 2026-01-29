@@ -33,8 +33,27 @@ After this stage there will be no uncoloured nodes or edges left.
 
 ## Colour Refinement
 
-For each non-singleton colour set, we now want to try to update the colouring based on the neighbours of the nodes/edges in that colour set.
+For each non-singleton colour set, we now want to try to update the colouring based on the neighbours of the nodes/edges in that colour set. We do this by inspecting the colours of its neighbours in order to construct a colour key, and then split the colour set into new colour sets based on their colour key.
 
+### Node colour key construction
 
+Nodes attach to edges, so it is the colours of neighbouring edges which will make up the colour key. The colour key has two parts: the first for incoming edges and the second part for outgoing edges. Each part is the concatenation of all of the edge colours **sorted**. The colours must be sorted because the node to edge relationship is unordered.
+
+### Edge colour key
+
+Edges attach to nodes, so it is the colours of neighbourin gnodes which will make up the colour key. The colour key is constructed the same was as the node colour key, except that the list is **not sorted**, since the order of inputs and outputs has semantic consequences in edges.
+
+### Colour set refinement
+
+A new colour is then assigned to each subset, in the same way as for the initial colouring i.e. leaving enough space between each colour so that there are enough colours reserved for each non-singleton colour to continue the refinement process.
+
+The process alternates between refining node colourings and edge colourings until both the node colouring and edge colouring is stable (no further changes are able to be made).
+It is important that the node colour refinement step completes before starting the edge refinement step (and vice versa) so that the refinement has complete information and the process is fully deterministic.
 
 ## Symmetry Breaking
+
+If the algorithm arrives at a stable colouring where nodes/edges are not uniquely coloured, then remaining non-singleton colour-sets result from some underlying symmetry giving rise to an automorphism group. However, the nature of that symmetry is not immediately apparent from the colouring (for example, a ring and a clique would both result in nodes which all have the same colour, but these graphs are very different in structure).
+
+To proceed with a colour we may arbitrarily choose one element in the colour set to recolour with a new colour. The consequences of this are then propagated using the usual iterative colour refinement until the colouring again stabilised. For example, in a ring the symmetry breaking would propagate around the entire ring and every node would end up with a unique colour, but in a clique the remaining nodes would still all be equivalent so the colouring would immediately stabilise.
+
+The symmetry breaking process (followed by iterative colour refinement) can be repeated until all colour sets are singletons. In this case the colouring (map from nodes/edges to colours) is only unique up to automorphism.

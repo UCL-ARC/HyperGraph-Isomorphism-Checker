@@ -50,6 +50,8 @@ A new colour is then assigned to each subset, in the same way as for the initial
 The process alternates between refining node colourings and edge colourings until both the node colouring and edge colouring is stable (no further changes are able to be made).
 It is important that the node colour refinement step completes before starting the edge refinement step (and vice versa) so that the refinement has complete information and the process is fully deterministic.
 
+During a round of node or edge colour refinement, each colour set can be refined in parallel.
+
 ## Symmetry Breaking
 
 If the algorithm arrives at a stable colouring where nodes/edges are not uniquely coloured, then remaining non-singleton colour-sets result from some underlying symmetry giving rise to an automorphism group. However, the nature of that symmetry is not immediately apparent from the colouring (for example, a ring and a clique would both result in nodes which all have the same colour, but these graphs are very different in structure).
@@ -57,3 +59,16 @@ If the algorithm arrives at a stable colouring where nodes/edges are not uniquel
 To proceed with a colour we may arbitrarily choose one element in the colour set to recolour with a new colour. The consequences of this are then propagated using the usual iterative colour refinement until the colouring again stabilised. For example, in a ring the symmetry breaking would propagate around the entire ring and every node would end up with a unique colour, but in a clique the remaining nodes would still all be equivalent so the colouring would immediately stabilise.
 
 The symmetry breaking process (followed by iterative colour refinement) can be repeated until all colour sets are singletons. In this case the colouring (map from nodes/edges to colours) is only unique up to automorphism.
+
+## Data storage
+
+The data required to store an open hypergraph in its most basic form involves:
+
+- A list of all node types
+- A list of all edges, which contains a list of each edge's inputs and outputs
+
+The size of the graph is then determined by the number of nodes, $N$, and the number of connections between nodes and edges, $C$. Since the graphs are non-monogamous and we may an unbounded number of hyperedges attached to any node, $C$ is not bounded by $N$ and could be arbitrarily large.
+
+The algorithm is more efficient if we can easily look up the connections not just from edges to nodes but also from nodes to edges. This is in the form of segmented arrays of _next_ and _previous_ edges, and is just a rearrangment of the edge data with size $C$.
+
+The colour keys are formed by free concatenation of the colours in the next/previous arrays (for nodes) or input/output arrays (for edges), and therefore can be stored in segmented arrays of fixed size also linear in $C$.

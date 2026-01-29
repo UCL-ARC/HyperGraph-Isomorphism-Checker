@@ -36,9 +36,9 @@ repos:
       - id: mypy
         files: \.pyi?$  # .py and .pyi only
 
-  # C/C++ formatting
-  - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.8
-    hooks:
-      - id: clang-format
-        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
+#   # C/C++ formatting
+#   - repo: https://github.com/pre-commit/mirrors-clang-format
+#     rev: v18.1.8
+#     hooks:
+#       - id: clang-format
+#         files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$

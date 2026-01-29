@@ -654,8 +654,16 @@ def Comparative_Graph_Colouring(
     if not set_initial_label_map(g1, g2, colours1, colours2, c_running):
         return NonIso
 
+    if draw_steps:
+        d = Diagram(g1, colouring=colours1)
+        d.render(filename + "_g1_" + "0")
+        d = Diagram(g2, colouring=colours2)
+        d.render(filename + "_g2_" + "0")
+
     # Initial colouring complete, begin iterative updates
-    viable, iteration = Update_Colouring_Pair(g1, g2, filename, colours1, colours2, 1)
+    viable, iteration = Update_Colouring_Pair(
+        g1, g2, filename, colours1, colours2, 1, draw_steps
+    )
     if not viable:
         return NonIso
 
@@ -681,9 +689,11 @@ def Comparative_Graph_Colouring(
             break_symmetry(colours1.edge_colouring, edge_symmetry)
             break_symmetry(colours2.node_colouring, node_symmetry)
 
-        iteration = Update_Colouring_Pair(
-            g1, g2, filename, colours1, colours2, iteration
+        viable, iteration = Update_Colouring_Pair(
+            g1, g2, filename, colours1, colours2, iteration, draw_steps
         )
+        if not viable:
+            return NonIso
         (nodes_unique, node_symmetry), (
             edges_unique,
             edge_symmetry,
@@ -741,6 +751,9 @@ def Update_Colouring_Pair(
                 return False, iteration
             static_nodes = static_nodes and static_set
 
+        colours1.node_colouring.mergeUpdates()
+        colours2.node_colouring.mergeUpdates()
+
         static_edges = True
         for c in colours1.edge_colouring.colour_map.keys():
             viable, static_set = refine_colour_set(
@@ -752,7 +765,9 @@ def Update_Colouring_Pair(
 
         static = static_nodes and static_edges
 
-        colours1.node_colouring.mergeUpdates()
+        colours1.edge_colouring.mergeUpdates()
+        colours2.edge_colouring.mergeUpdates()
+
         iteration += 1
         if draw_steps:
             d = Diagram(g1, colouring=colours1)
@@ -796,12 +811,12 @@ def refine_colour_set(
             return GetEdgeColourKey(x, y.edges[z])
 
     indexed_keys1 = [(v, get_key(colours1, g1, v)) for v in cset1]
-    indexed_keys1.sort()
+    indexed_keys1.sort(key=lambda x: x[1])
     indexed_keys2 = [(v, get_key(colours2, g2, v)) for v in cset2]
-    indexed_keys2.sort()
+    indexed_keys2.sort(key=lambda x: x[1])
 
     # these colour keys should be the same for both graphs else non isomorphic
-    if indexed_keys1 != indexed_keys2:
+    if [k for (_, k) in indexed_keys1] != [k for (_, k) in indexed_keys2]:
         return (False, False)
     # assign new colours
     static1 = AssignColours(colouring1, c, indexed_keys1)
@@ -835,7 +850,9 @@ def set_initial_label_map(
     node_type_list2.sort(key=lambda z: z[1])
 
     # The histograms need to match to be valid
-    if node_type_list1 != node_type_list2:
+    if [label for (_, label) in node_type_list1] != [
+        label for (_, label) in node_type_list2
+    ]:
         return False
 
     AssignColours(colours1.node_colouring, start_colour, node_type_list1)
@@ -848,7 +865,9 @@ def set_initial_label_map(
     edge_type_list2 = [(i, e.label) for i, e in enumerate(g2.edges)]
     edge_type_list2.sort(key=lambda z: z[1])
 
-    if edge_type_list1 != edge_type_list2:
+    if [label for (_, label) in edge_type_list1] != [
+        label for (_, label) in edge_type_list2
+    ]:
         return False
 
     AssignColours(colours1.edge_colouring, 0, edge_type_list1)

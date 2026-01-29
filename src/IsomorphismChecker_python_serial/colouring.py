@@ -38,7 +38,7 @@ class Colouring:
     def set_colour(self, v, c, mode: MappingMode):
         colouring = self.get_map(mode)
         colouring.colouring[v] = c
-        if c in colouring.colour_map.keys:
+        if c in colouring.colour_map.keys():
             colouring.colour_map[c].add(v)
         else:
             colouring.colour_map[c] = set([v])

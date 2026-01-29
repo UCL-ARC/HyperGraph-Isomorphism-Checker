@@ -18,6 +18,7 @@ multi_step_graphs: list[str] = ["Multi_Step_Colouring.json"]
 non_monogamous_graphs: list[str] = [
     "NonMonogamous_Ambiguous_Branching.json",
     "Ring.json",
+    "Branching_Graph.json",
 ]
 
 symmetric_graphs: list[str] = ["Anonymous_Ring.json", "Clique.json"]
@@ -37,7 +38,7 @@ def test_colouring(graph_file):
 
     file_stub = graph_file[:-5]
     colouring = Get_Canonical_Graph_Colouring(
-        g, file_stub + "_colouring", draw_steps=False
+        g, file_stub + "_colouring", draw_steps=True
     )
     print(f"Node colouring of {file_stub}: {colouring.node_colouring.colouring}")
     print(f"Edge colouring of {file_stub}: {colouring.edge_colouring.colouring}")

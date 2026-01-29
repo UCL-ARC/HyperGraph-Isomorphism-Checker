@@ -1,4 +1,5 @@
 from IsomorphismChecker_python_serial.hypergraph import OpenHypergraph
+from IsomorphismChecker_python_serial.util import MappingMode
 
 
 class ColourMap:
@@ -27,6 +28,20 @@ class Colouring:
         self.n_edges = len(g.edges)
         self.node_colouring = ColourMap(self.n_nodes)
         self.edge_colouring = ColourMap(self.n_edges)
+
+    def get_map(self, mode: MappingMode):
+        if mode == MappingMode.NODE:
+            return self.node_colouring
+        else:
+            return self.edge_colouring
+
+    def set_colour(self, v, c, mode: MappingMode):
+        colouring = self.get_map(mode)
+        colouring.colouring[v] = c
+        if c in colouring.colour_map.keys:
+            colouring.colour_map[c].add(v)
+        else:
+            colouring.colour_map[c] = set([v])
 
     def get_new_colour(self):
         self.colour += 1

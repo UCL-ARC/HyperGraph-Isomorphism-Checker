@@ -167,4 +167,9 @@ struct CSR_Graph
 
 
 
+
+
+
+
+
 #endif // GPU_DATA_STRUCTURES_H

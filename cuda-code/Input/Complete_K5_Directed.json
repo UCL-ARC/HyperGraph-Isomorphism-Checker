@@ -1,0 +1,207 @@
+{
+  "graph_name": "Complete_K5_Directed",
+  "comment": [
+    "Complete directed graph on 5 nodes (20 edges)"
+  ],
+  "nodes": [
+    {
+      "type_label": "node"
+    },
+    {
+      "type_label": "node"
+    },
+    {
+      "type_label": "node"
+    },
+    {
+      "type_label": "node"
+    },
+    {
+      "type_label": "node"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "COMPLETE",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        3
+      ]
+    }
+  ],
+  "Inputs": [],
+  "Outputs": []
+}

@@ -1,0 +1,67 @@
+{
+  "graph_name": "Star_Hypergraph",
+  "comment": [
+    "Central hub with all edges connected to it"
+  ],
+  "nodes": [
+    {
+      "type_label": "hub"
+    },
+    {
+      "type_label": "spoke"
+    },
+    {
+      "type_label": "spoke"
+    },
+    {
+      "type_label": "spoke"
+    },
+    {
+      "type_label": "spoke"
+    },
+    {
+      "type_label": "spoke"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "RADIATE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        1,
+        2
+      ]
+    },
+    {
+      "type_label": "RADIATE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        3,
+        4
+      ]
+    },
+    {
+      "type_label": "RADIATE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        5
+      ]
+    }
+  ],
+  "Inputs": [
+    0
+  ],
+  "Outputs": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ]
+}

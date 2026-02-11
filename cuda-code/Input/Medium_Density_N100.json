@@ -1,0 +1,4462 @@
+{
+  "graph_name": "Medium_Density_N100",
+  "comment": [
+    "N=100, E=375, density\u224815%",
+    "Typical proof checker output"
+  ],
+  "nodes": [
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    },
+    {
+      "type_label": "node_0"
+    },
+    {
+      "type_label": "node_1"
+    },
+    {
+      "type_label": "node_2"
+    },
+    {
+      "type_label": "node_3"
+    },
+    {
+      "type_label": "node_4"
+    },
+    {
+      "type_label": "node_5"
+    },
+    {
+      "type_label": "node_6"
+    },
+    {
+      "type_label": "node_7"
+    },
+    {
+      "type_label": "node_8"
+    },
+    {
+      "type_label": "node_9"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        3,
+        94,
+        35
+      ],
+      "target_nodes": [
+        31
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        13
+      ],
+      "target_nodes": [
+        86,
+        94,
+        69
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        4,
+        3,
+        11
+      ],
+      "target_nodes": [
+        27,
+        29
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        71,
+        25,
+        91
+      ],
+      "target_nodes": [
+        83
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        57,
+        75
+      ],
+      "target_nodes": [
+        35
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        54
+      ],
+      "target_nodes": [
+        43,
+        35,
+        19
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        11,
+        48
+      ],
+      "target_nodes": [
+        12
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        33,
+        5
+      ],
+      "target_nodes": [
+        93,
+        58,
+        68
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        70,
+        37
+      ],
+      "target_nodes": [
+        80
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        24,
+        90
+      ],
+      "target_nodes": [
+        8,
+        5,
+        84
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        29,
+        12
+      ],
+      "target_nodes": [
+        48
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        46,
+        20
+      ],
+      "target_nodes": [
+        47,
+        45,
+        26
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        82,
+        9,
+        77
+      ],
+      "target_nodes": [
+        81,
+        21,
+        68
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        48
+      ],
+      "target_nodes": [
+        34,
+        81
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        41
+      ],
+      "target_nodes": [
+        98,
+        99,
+        7
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        51
+      ],
+      "target_nodes": [
+        34,
+        8
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        40,
+        27,
+        83
+      ],
+      "target_nodes": [
+        63,
+        50,
+        82
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        17
+      ],
+      "target_nodes": [
+        31,
+        95
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        95,
+        74,
+        54
+      ],
+      "target_nodes": [
+        74,
+        51
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        65
+      ],
+      "target_nodes": [
+        63
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        19
+      ],
+      "target_nodes": [
+        80
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        76,
+        8,
+        49
+      ],
+      "target_nodes": [
+        48,
+        76
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        70,
+        1,
+        87
+      ],
+      "target_nodes": [
+        92,
+        14
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        43,
+        14
+      ],
+      "target_nodes": [
+        37,
+        55,
+        20
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        92
+      ],
+      "target_nodes": [
+        33,
+        64,
+        97
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        80,
+        38,
+        81
+      ],
+      "target_nodes": [
+        64
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        47
+      ],
+      "target_nodes": [
+        97
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        0,
+        76,
+        41
+      ],
+      "target_nodes": [
+        62,
+        2,
+        14
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        7,
+        30
+      ],
+      "target_nodes": [
+        72
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        62
+      ],
+      "target_nodes": [
+        8,
+        97,
+        68
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        60
+      ],
+      "target_nodes": [
+        70,
+        21,
+        33
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        27,
+        69,
+        96
+      ],
+      "target_nodes": [
+        93,
+        88
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        51,
+        85,
+        83
+      ],
+      "target_nodes": [
+        47,
+        56
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        31,
+        28
+      ],
+      "target_nodes": [
+        8
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        70
+      ],
+      "target_nodes": [
+        29,
+        75,
+        28
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        80
+      ],
+      "target_nodes": [
+        7,
+        29,
+        8
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        65,
+        30
+      ],
+      "target_nodes": [
+        35
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        16
+      ],
+      "target_nodes": [
+        92,
+        73,
+        60
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        24,
+        12
+      ],
+      "target_nodes": [
+        12,
+        84
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        52,
+        59
+      ],
+      "target_nodes": [
+        93,
+        6
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        93
+      ],
+      "target_nodes": [
+        43,
+        13
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        68
+      ],
+      "target_nodes": [
+        57
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        35,
+        59
+      ],
+      "target_nodes": [
+        31
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        12,
+        6
+      ],
+      "target_nodes": [
+        83,
+        69,
+        1
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        52
+      ],
+      "target_nodes": [
+        62
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        7
+      ],
+      "target_nodes": [
+        21,
+        48
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        58,
+        36
+      ],
+      "target_nodes": [
+        54,
+        89
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        62,
+        19,
+        24
+      ],
+      "target_nodes": [
+        37,
+        27,
+        7
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        7,
+        95,
+        40
+      ],
+      "target_nodes": [
+        7,
+        6,
+        74
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        20,
+        7,
+        65
+      ],
+      "target_nodes": [
+        10,
+        23,
+        8
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        30
+      ],
+      "target_nodes": [
+        51,
+        15,
+        72
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        5,
+        79,
+        10
+      ],
+      "target_nodes": [
+        53,
+        84,
+        74
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        33,
+        26,
+        85
+      ],
+      "target_nodes": [
+        91,
+        40
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        16,
+        85
+      ],
+      "target_nodes": [
+        82,
+        38
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        1,
+        58
+      ],
+      "target_nodes": [
+        79
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        68
+      ],
+      "target_nodes": [
+        27
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        44,
+        8
+      ],
+      "target_nodes": [
+        31
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        56,
+        69
+      ],
+      "target_nodes": [
+        90
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        67,
+        1,
+        85
+      ],
+      "target_nodes": [
+        70,
+        38,
+        84
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        14
+      ],
+      "target_nodes": [
+        13,
+        95
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        36
+      ],
+      "target_nodes": [
+        77,
+        26
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        81
+      ],
+      "target_nodes": [
+        33,
+        64,
+        62
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        81
+      ],
+      "target_nodes": [
+        54
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        42
+      ],
+      "target_nodes": [
+        98
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        20,
+        94,
+        56
+      ],
+      "target_nodes": [
+        70,
+        90
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        14,
+        9,
+        88
+      ],
+      "target_nodes": [
+        19
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        74
+      ],
+      "target_nodes": [
+        70,
+        18
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        39
+      ],
+      "target_nodes": [
+        46
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        87,
+        31
+      ],
+      "target_nodes": [
+        85
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        52,
+        79
+      ],
+      "target_nodes": [
+        95,
+        19,
+        30
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        22,
+        94
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        94,
+        31
+      ],
+      "target_nodes": [
+        34,
+        20,
+        89
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        60,
+        28
+      ],
+      "target_nodes": [
+        25
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        29,
+        28
+      ],
+      "target_nodes": [
+        3,
+        84
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        35,
+        8
+      ],
+      "target_nodes": [
+        98,
+        35
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        51,
+        86,
+        68
+      ],
+      "target_nodes": [
+        42,
+        3,
+        14
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        33
+      ],
+      "target_nodes": [
+        4,
+        13,
+        76
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        40,
+        55
+      ],
+      "target_nodes": [
+        77,
+        65,
+        14
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        32,
+        5,
+        90
+      ],
+      "target_nodes": [
+        55
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        87,
+        92,
+        94
+      ],
+      "target_nodes": [
+        94,
+        85,
+        25
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        85,
+        42
+      ],
+      "target_nodes": [
+        79
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        92,
+        38,
+        64
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        89,
+        37
+      ],
+      "target_nodes": [
+        70,
+        16
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        48,
+        86
+      ],
+      "target_nodes": [
+        95,
+        22,
+        78
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        70,
+        0
+      ],
+      "target_nodes": [
+        38,
+        36
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        77,
+        83
+      ],
+      "target_nodes": [
+        41,
+        59,
+        56
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        65,
+        60,
+        94
+      ],
+      "target_nodes": [
+        21
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        84,
+        81
+      ],
+      "target_nodes": [
+        79,
+        42,
+        11
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        28,
+        25,
+        18
+      ],
+      "target_nodes": [
+        3,
+        5
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        98,
+        9
+      ],
+      "target_nodes": [
+        58,
+        53,
+        80
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        89
+      ],
+      "target_nodes": [
+        49,
+        63,
+        51
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        88
+      ],
+      "target_nodes": [
+        0,
+        96,
+        98
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        22,
+        89
+      ],
+      "target_nodes": [
+        66
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        31
+      ],
+      "target_nodes": [
+        15,
+        58,
+        17
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        71,
+        76,
+        40
+      ],
+      "target_nodes": [
+        96,
+        56,
+        78
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        57,
+        20
+      ],
+      "target_nodes": [
+        95,
+        60,
+        57
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        35
+      ],
+      "target_nodes": [
+        98,
+        99,
+        66
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        35,
+        56,
+        9
+      ],
+      "target_nodes": [
+        91
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        42
+      ],
+      "target_nodes": [
+        40,
+        69
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        29
+      ],
+      "target_nodes": [
+        49
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        8,
+        53,
+        52
+      ],
+      "target_nodes": [
+        42
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        7,
+        26
+      ],
+      "target_nodes": [
+        53,
+        49
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        97,
+        73,
+        48
+      ],
+      "target_nodes": [
+        61
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        96,
+        49
+      ],
+      "target_nodes": [
+        53,
+        68
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        62,
+        28,
+        34
+      ],
+      "target_nodes": [
+        55
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        43
+      ],
+      "target_nodes": [
+        85,
+        86
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        59,
+        16,
+        79
+      ],
+      "target_nodes": [
+        68
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        72,
+        84
+      ],
+      "target_nodes": [
+        3,
+        10,
+        82
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        23
+      ],
+      "target_nodes": [
+        6,
+        33
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        58,
+        41
+      ],
+      "target_nodes": [
+        43
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        32,
+        10
+      ],
+      "target_nodes": [
+        60,
+        2
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        28
+      ],
+      "target_nodes": [
+        83,
+        8
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        25
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        16
+      ],
+      "target_nodes": [
+        60
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        59,
+        89,
+        32
+      ],
+      "target_nodes": [
+        98
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        77
+      ],
+      "target_nodes": [
+        95,
+        91,
+        14
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        74,
+        3
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        50,
+        91,
+        25
+      ],
+      "target_nodes": [
+        9,
+        75
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        98
+      ],
+      "target_nodes": [
+        38,
+        87,
+        76
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        44,
+        68,
+        54
+      ],
+      "target_nodes": [
+        84
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        82
+      ],
+      "target_nodes": [
+        43,
+        1,
+        53
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        46
+      ],
+      "target_nodes": [
+        81,
+        58
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        93,
+        66
+      ],
+      "target_nodes": [
+        83
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        99,
+        61,
+        59
+      ],
+      "target_nodes": [
+        55,
+        93,
+        75
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        11,
+        35
+      ],
+      "target_nodes": [
+        57
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        78,
+        85
+      ],
+      "target_nodes": [
+        48,
+        43,
+        3
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        62,
+        27
+      ],
+      "target_nodes": [
+        45
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        76,
+        89
+      ],
+      "target_nodes": [
+        35,
+        71
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        10,
+        30,
+        92
+      ],
+      "target_nodes": [
+        52
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        88,
+        60,
+        82
+      ],
+      "target_nodes": [
+        91
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        11,
+        37
+      ],
+      "target_nodes": [
+        28
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        39,
+        84,
+        74
+      ],
+      "target_nodes": [
+        47
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        44,
+        54,
+        95
+      ],
+      "target_nodes": [
+        70,
+        42,
+        45
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        32,
+        29
+      ],
+      "target_nodes": [
+        15,
+        92
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        95,
+        68
+      ],
+      "target_nodes": [
+        97
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        94
+      ],
+      "target_nodes": [
+        61
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        97,
+        67,
+        76
+      ],
+      "target_nodes": [
+        36,
+        12,
+        24
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        22
+      ],
+      "target_nodes": [
+        38,
+        1
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        5
+      ],
+      "target_nodes": [
+        6,
+        70
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        81,
+        96,
+        62
+      ],
+      "target_nodes": [
+        13
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        60,
+        61,
+        56
+      ],
+      "target_nodes": [
+        43,
+        23
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        14,
+        8
+      ],
+      "target_nodes": [
+        51,
+        62
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        87,
+        6,
+        19
+      ],
+      "target_nodes": [
+        19,
+        72,
+        38
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        71
+      ],
+      "target_nodes": [
+        97
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        79,
+        28,
+        99
+      ],
+      "target_nodes": [
+        66,
+        48,
+        57
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        54,
+        39
+      ],
+      "target_nodes": [
+        72,
+        79,
+        7
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        97,
+        26,
+        80
+      ],
+      "target_nodes": [
+        27
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        20,
+        30,
+        22
+      ],
+      "target_nodes": [
+        70
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        52
+      ],
+      "target_nodes": [
+        57
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        4,
+        29
+      ],
+      "target_nodes": [
+        36,
+        90
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        9,
+        87,
+        29
+      ],
+      "target_nodes": [
+        33,
+        80
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        54,
+        14,
+        69
+      ],
+      "target_nodes": [
+        28
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        9,
+        7
+      ],
+      "target_nodes": [
+        21
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        72,
+        36,
+        56
+      ],
+      "target_nodes": [
+        15,
+        59,
+        88
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        34,
+        64,
+        69
+      ],
+      "target_nodes": [
+        63,
+        56
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        55,
+        94,
+        41
+      ],
+      "target_nodes": [
+        77
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        29
+      ],
+      "target_nodes": [
+        86
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        97,
+        86,
+        34
+      ],
+      "target_nodes": [
+        73
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        66
+      ],
+      "target_nodes": [
+        83,
+        56
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        55
+      ],
+      "target_nodes": [
+        81,
+        62,
+        11
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        42,
+        41
+      ],
+      "target_nodes": [
+        85,
+        13
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        88,
+        63
+      ],
+      "target_nodes": [
+        36,
+        84
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        58,
+        11,
+        40
+      ],
+      "target_nodes": [
+        32
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        65
+      ],
+      "target_nodes": [
+        0,
+        84
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        6,
+        24
+      ],
+      "target_nodes": [
+        66,
+        46
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        56,
+        97
+      ],
+      "target_nodes": [
+        6,
+        26,
+        34
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        56
+      ],
+      "target_nodes": [
+        89,
+        62
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        77
+      ],
+      "target_nodes": [
+        30,
+        90,
+        20
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        70,
+        52,
+        11
+      ],
+      "target_nodes": [
+        28
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        82,
+        19
+      ],
+      "target_nodes": [
+        63
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        34,
+        53,
+        61
+      ],
+      "target_nodes": [
+        60,
+        31,
+        58
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        24
+      ],
+      "target_nodes": [
+        76,
+        65
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        98
+      ],
+      "target_nodes": [
+        53,
+        43
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        36,
+        92
+      ],
+      "target_nodes": [
+        38
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        62,
+        19,
+        57
+      ],
+      "target_nodes": [
+        68,
+        61,
+        44
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        48,
+        58,
+        41
+      ],
+      "target_nodes": [
+        24,
+        89,
+        30
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        99,
+        52
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        90,
+        48,
+        49
+      ],
+      "target_nodes": [
+        84,
+        83
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        16,
+        64
+      ],
+      "target_nodes": [
+        75
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        12
+      ],
+      "target_nodes": [
+        67,
+        58
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        52,
+        83,
+        19
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        79,
+        88
+      ],
+      "target_nodes": [
+        50,
+        83
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        68,
+        48
+      ],
+      "target_nodes": [
+        40,
+        80,
+        91
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        79,
+        8,
+        30
+      ],
+      "target_nodes": [
+        80
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        11
+      ],
+      "target_nodes": [
+        55,
+        12,
+        97
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        88,
+        38
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        37,
+        45
+      ],
+      "target_nodes": [
+        47
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        67
+      ],
+      "target_nodes": [
+        52
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        21,
+        22,
+        10
+      ],
+      "target_nodes": [
+        78
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        30,
+        63,
+        74
+      ],
+      "target_nodes": [
+        18,
+        29,
+        59
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        85,
+        1
+      ],
+      "target_nodes": [
+        59,
+        36
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        56
+      ],
+      "target_nodes": [
+        44
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        54,
+        88
+      ],
+      "target_nodes": [
+        32,
+        58,
+        38
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        13,
+        30
+      ],
+      "target_nodes": [
+        48,
+        73
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        89,
+        37,
+        2
+      ],
+      "target_nodes": [
+        84,
+        50
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        87
+      ],
+      "target_nodes": [
+        99,
+        95,
+        6
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        36,
+        99,
+        29
+      ],
+      "target_nodes": [
+        77,
+        45
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        79,
+        32,
+        86
+      ],
+      "target_nodes": [
+        96
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        80,
+        82,
+        5
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        46
+      ],
+      "target_nodes": [
+        93,
+        16,
+        11
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        53,
+        22
+      ],
+      "target_nodes": [
+        25,
+        16,
+        69
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        34,
+        21,
+        32
+      ],
+      "target_nodes": [
+        61,
+        37,
+        95
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        9
+      ],
+      "target_nodes": [
+        18,
+        96
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        86,
+        50,
+        71
+      ],
+      "target_nodes": [
+        46,
+        11,
+        50
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        15,
+        58
+      ],
+      "target_nodes": [
+        47,
+        86,
+        95
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        81,
+        47,
+        13
+      ],
+      "target_nodes": [
+        86,
+        29
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        71
+      ],
+      "target_nodes": [
+        41,
+        78,
+        28
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        89,
+        38,
+        83
+      ],
+      "target_nodes": [
+        52,
+        14
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        38
+      ],
+      "target_nodes": [
+        63
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        68
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        85,
+        95
+      ],
+      "target_nodes": [
+        89,
+        69
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        93,
+        19,
+        53
+      ],
+      "target_nodes": [
+        83,
+        12,
+        62
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        4,
+        88
+      ],
+      "target_nodes": [
+        47,
+        27
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        46,
+        12
+      ],
+      "target_nodes": [
+        87
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        45,
+        7,
+        50
+      ],
+      "target_nodes": [
+        35,
+        24,
+        15
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        27
+      ],
+      "target_nodes": [
+        82,
+        81,
+        76
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        31
+      ],
+      "target_nodes": [
+        16,
+        72
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        26
+      ],
+      "target_nodes": [
+        75,
+        27,
+        29
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        35,
+        18,
+        16
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        14,
+        84
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        30
+      ],
+      "target_nodes": [
+        75,
+        41
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        6
+      ],
+      "target_nodes": [
+        16,
+        94
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        95,
+        8,
+        60
+      ],
+      "target_nodes": [
+        57
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        13,
+        57,
+        64
+      ],
+      "target_nodes": [
+        28,
+        78,
+        5
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        82,
+        3
+      ],
+      "target_nodes": [
+        7,
+        61
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        13,
+        62
+      ],
+      "target_nodes": [
+        91,
+        56,
+        9
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        18,
+        8
+      ],
+      "target_nodes": [
+        16,
+        35,
+        79
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        41,
+        48,
+        76
+      ],
+      "target_nodes": [
+        67,
+        37,
+        58
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        12,
+        89,
+        14
+      ],
+      "target_nodes": [
+        83,
+        98
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        55,
+        57,
+        29
+      ],
+      "target_nodes": [
+        52
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        53,
+        93
+      ],
+      "target_nodes": [
+        12,
+        40
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        32,
+        47
+      ],
+      "target_nodes": [
+        19,
+        87,
+        60
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        11
+      ],
+      "target_nodes": [
+        55
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        47,
+        16,
+        71
+      ],
+      "target_nodes": [
+        7,
+        75,
+        71
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        15,
+        52
+      ],
+      "target_nodes": [
+        45,
+        85,
+        96
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        36,
+        76,
+        39
+      ],
+      "target_nodes": [
+        45
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        27,
+        19,
+        84
+      ],
+      "target_nodes": [
+        61,
+        28,
+        13
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        14,
+        97,
+        35
+      ],
+      "target_nodes": [
+        73,
+        28
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        78,
+        86,
+        82
+      ],
+      "target_nodes": [
+        71,
+        3,
+        77
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        34
+      ],
+      "target_nodes": [
+        89
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        0,
+        23
+      ],
+      "target_nodes": [
+        18,
+        72
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        94
+      ],
+      "target_nodes": [
+        81
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        67
+      ],
+      "target_nodes": [
+        27,
+        48,
+        53
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        47,
+        39
+      ],
+      "target_nodes": [
+        92
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        10,
+        6,
+        19
+      ],
+      "target_nodes": [
+        20,
+        96,
+        79
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        34,
+        56,
+        84
+      ],
+      "target_nodes": [
+        54
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        53,
+        34,
+        27
+      ],
+      "target_nodes": [
+        96,
+        65
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        14,
+        36
+      ],
+      "target_nodes": [
+        86,
+        75
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        39,
+        5,
+        28
+      ],
+      "target_nodes": [
+        50,
+        76,
+        7
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        27
+      ],
+      "target_nodes": [
+        98,
+        17
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        15,
+        0
+      ],
+      "target_nodes": [
+        63,
+        95
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        48
+      ],
+      "target_nodes": [
+        68
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        85,
+        45,
+        9
+      ],
+      "target_nodes": [
+        50,
+        94,
+        5
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        9
+      ],
+      "target_nodes": [
+        40,
+        73
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        90,
+        81,
+        53
+      ],
+      "target_nodes": [
+        37,
+        14
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        21
+      ],
+      "target_nodes": [
+        79,
+        58
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        13
+      ],
+      "target_nodes": [
+        31,
+        55
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        10,
+        50
+      ],
+      "target_nodes": [
+        39,
+        95,
+        43
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        9,
+        65
+      ],
+      "target_nodes": [
+        81
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        24,
+        99,
+        44
+      ],
+      "target_nodes": [
+        44,
+        93,
+        82
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        18
+      ],
+      "target_nodes": [
+        32
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        19
+      ],
+      "target_nodes": [
+        97,
+        83,
+        9
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        59,
+        96,
+        72
+      ],
+      "target_nodes": [
+        97,
+        74
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        82,
+        81,
+        79
+      ],
+      "target_nodes": [
+        41,
+        80,
+        40
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        60,
+        56
+      ],
+      "target_nodes": [
+        80
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        7,
+        45
+      ],
+      "target_nodes": [
+        64,
+        9,
+        39
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        7,
+        47
+      ],
+      "target_nodes": [
+        36
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        78,
+        76,
+        64
+      ],
+      "target_nodes": [
+        49
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        94,
+        5,
+        57
+      ],
+      "target_nodes": [
+        73,
+        83,
+        24
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        64,
+        19,
+        7
+      ],
+      "target_nodes": [
+        57,
+        13
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        64,
+        82,
+        22
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        56,
+        67,
+        66
+      ],
+      "target_nodes": [
+        78,
+        20
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        49,
+        52
+      ],
+      "target_nodes": [
+        99,
+        43
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        82
+      ],
+      "target_nodes": [
+        42,
+        8,
+        12
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        36,
+        32,
+        92
+      ],
+      "target_nodes": [
+        84,
+        77
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        74,
+        84
+      ],
+      "target_nodes": [
+        18
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        89,
+        84
+      ],
+      "target_nodes": [
+        50,
+        16,
+        76
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        48,
+        82
+      ],
+      "target_nodes": [
+        42,
+        16,
+        85
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        85
+      ],
+      "target_nodes": [
+        54,
+        65,
+        46
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        23,
+        27
+      ],
+      "target_nodes": [
+        43,
+        98
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        17
+      ],
+      "target_nodes": [
+        19
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        64,
+        98
+      ],
+      "target_nodes": [
+        69
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        43
+      ],
+      "target_nodes": [
+        98,
+        79,
+        16
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        20,
+        23
+      ],
+      "target_nodes": [
+        88
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        56
+      ],
+      "target_nodes": [
+        5,
+        52,
+        46
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        36,
+        96
+      ],
+      "target_nodes": [
+        95,
+        57,
+        29
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        60
+      ],
+      "target_nodes": [
+        24,
+        47
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        98,
+        36
+      ],
+      "target_nodes": [
+        99,
+        48
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        20,
+        25,
+        77
+      ],
+      "target_nodes": [
+        17,
+        32
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        47,
+        70,
+        13
+      ],
+      "target_nodes": [
+        91,
+        66
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        97,
+        20
+      ],
+      "target_nodes": [
+        34
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        55,
+        11,
+        28
+      ],
+      "target_nodes": [
+        57
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        6
+      ],
+      "target_nodes": [
+        50,
+        64
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        10
+      ],
+      "target_nodes": [
+        47,
+        28
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        91,
+        83
+      ],
+      "target_nodes": [
+        42
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        36
+      ],
+      "target_nodes": [
+        60
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        57,
+        78,
+        0
+      ],
+      "target_nodes": [
+        10,
+        2
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        70
+      ],
+      "target_nodes": [
+        93
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        14,
+        99,
+        36
+      ],
+      "target_nodes": [
+        30,
+        38
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        53
+      ],
+      "target_nodes": [
+        81
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        14,
+        63
+      ],
+      "target_nodes": [
+        76
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        65
+      ],
+      "target_nodes": [
+        73,
+        30,
+        91
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        0,
+        78
+      ],
+      "target_nodes": [
+        45,
+        30
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        85,
+        10
+      ],
+      "target_nodes": [
+        67
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        69
+      ],
+      "target_nodes": [
+        64,
+        70,
+        2
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        81,
+        49
+      ],
+      "target_nodes": [
+        47
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        45,
+        8,
+        44
+      ],
+      "target_nodes": [
+        30
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        96,
+        42,
+        17
+      ],
+      "target_nodes": [
+        5,
+        45,
+        69
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        99,
+        87,
+        59
+      ],
+      "target_nodes": [
+        89
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        17,
+        8,
+        91
+      ],
+      "target_nodes": [
+        99
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        25
+      ],
+      "target_nodes": [
+        5,
+        25
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        65,
+        50
+      ],
+      "target_nodes": [
+        69,
+        60
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        24
+      ],
+      "target_nodes": [
+        36,
+        45,
+        99
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        34,
+        15,
+        47
+      ],
+      "target_nodes": [
+        55,
+        51
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        23,
+        63
+      ],
+      "target_nodes": [
+        88,
+        63
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        10,
+        93,
+        54
+      ],
+      "target_nodes": [
+        10,
+        55
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        37
+      ],
+      "target_nodes": [
+        41,
+        13,
+        10
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        39,
+        57,
+        77
+      ],
+      "target_nodes": [
+        91,
+        54
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        44,
+        57,
+        5
+      ],
+      "target_nodes": [
+        93,
+        45
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        81,
+        7
+      ],
+      "target_nodes": [
+        9,
+        85
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        95,
+        86
+      ],
+      "target_nodes": [
+        20,
+        3,
+        18
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        4,
+        16,
+        8
+      ],
+      "target_nodes": [
+        30,
+        99
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        72,
+        4
+      ],
+      "target_nodes": [
+        77,
+        19
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        56,
+        97
+      ],
+      "target_nodes": [
+        9,
+        73
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        50,
+        40,
+        83
+      ],
+      "target_nodes": [
+        35,
+        31
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        23
+      ],
+      "target_nodes": [
+        63,
+        66,
+        49
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        99
+      ],
+      "target_nodes": [
+        33,
+        90
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        36
+      ],
+      "target_nodes": [
+        88,
+        62,
+        25
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        57
+      ],
+      "target_nodes": [
+        22
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        40
+      ],
+      "target_nodes": [
+        85,
+        44,
+        90
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        37,
+        38,
+        20
+      ],
+      "target_nodes": [
+        91,
+        90,
+        89
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        28,
+        15
+      ],
+      "target_nodes": [
+        25,
+        17,
+        30
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        70
+      ],
+      "target_nodes": [
+        73,
+        47
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        78,
+        11,
+        8
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        61,
+        67,
+        52
+      ],
+      "target_nodes": [
+        98,
+        52,
+        73
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        82
+      ],
+      "target_nodes": [
+        9,
+        57
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        44,
+        16,
+        99
+      ],
+      "target_nodes": [
+        70,
+        81,
+        75
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        64
+      ],
+      "target_nodes": [
+        7,
+        15
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        21
+      ],
+      "target_nodes": [
+        20,
+        41
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        36,
+        10
+      ],
+      "target_nodes": [
+        32,
+        25,
+        81
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        80,
+        38
+      ],
+      "target_nodes": [
+        78
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        82
+      ],
+      "target_nodes": [
+        21,
+        75,
+        74
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        79
+      ],
+      "target_nodes": [
+        92,
+        77,
+        43
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        10
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        26,
+        98
+      ],
+      "target_nodes": [
+        73,
+        53,
+        79
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        69,
+        37
+      ],
+      "target_nodes": [
+        82,
+        38,
+        61
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        38,
+        58,
+        9
+      ],
+      "target_nodes": [
+        88,
+        7
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        61,
+        59
+      ],
+      "target_nodes": [
+        26,
+        43
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        91
+      ],
+      "target_nodes": [
+        40,
+        93
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        97,
+        47
+      ],
+      "target_nodes": [
+        65
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        30
+      ],
+      "target_nodes": [
+        59,
+        15
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        18,
+        12
+      ],
+      "target_nodes": [
+        6
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        53,
+        31
+      ],
+      "target_nodes": [
+        20,
+        41,
+        73
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        63
+      ],
+      "target_nodes": [
+        65
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        63,
+        2
+      ],
+      "target_nodes": [
+        11,
+        50
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        27,
+        74
+      ],
+      "target_nodes": [
+        45
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        63
+      ],
+      "target_nodes": [
+        76,
+        83
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        1,
+        13
+      ],
+      "target_nodes": [
+        55,
+        17,
+        33
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        5,
+        51
+      ],
+      "target_nodes": [
+        6,
+        72
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        70
+      ],
+      "target_nodes": [
+        36,
+        9
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        97,
+        70,
+        35
+      ],
+      "target_nodes": [
+        79,
+        87
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        12
+      ],
+      "target_nodes": [
+        50
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        46,
+        96
+      ],
+      "target_nodes": [
+        18,
+        25,
+        77
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        5,
+        4
+      ],
+      "target_nodes": [
+        17,
+        91,
+        42
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        19,
+        77,
+        65
+      ],
+      "target_nodes": [
+        17,
+        41
+      ]
+    },
+    {
+      "type_label": "COMPOSE",
+      "source_nodes": [
+        50,
+        78
+      ],
+      "target_nodes": [
+        94
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        64,
+        65,
+        68
+      ],
+      "target_nodes": [
+        62,
+        90
+      ]
+    },
+    {
+      "type_label": "INFER",
+      "source_nodes": [
+        2,
+        47
+      ],
+      "target_nodes": [
+        42,
+        86
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        39,
+        92
+      ],
+      "target_nodes": [
+        88,
+        80,
+        3
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        83,
+        99
+      ],
+      "target_nodes": [
+        74,
+        73
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        74,
+        61,
+        21
+      ],
+      "target_nodes": [
+        67
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        87,
+        31
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "REDUCE",
+      "source_nodes": [
+        24,
+        2,
+        56
+      ],
+      "target_nodes": [
+        40
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        88
+      ],
+      "target_nodes": [
+        26,
+        52
+      ]
+    },
+    {
+      "type_label": "BIND",
+      "source_nodes": [
+        94,
+        93,
+        7
+      ],
+      "target_nodes": [
+        90,
+        17
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "Outputs": [
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99
+  ]
+}

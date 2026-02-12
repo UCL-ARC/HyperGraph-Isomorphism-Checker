@@ -357,97 +357,134 @@ __global__ void Kernel_WL2_InitHyperEdges_Tiled(
     const  __restrict__ uint *d_edge_targets_num,
     const  __restrict__ uint *d_edge_labels)
 {
-    /* Calculate Warp-Global ID */
-    int warpInBlockIdx = threadIdx.x / WARP_SIZE;
-    int warpThreadIdx  = threadIdx.x % WARP_SIZE;
-    int edgeIdx        = blockIdx.x * WARPS_PER_BLOCK + warpInBlockIdx;
+	/* Calculate Warp-Global ID */
+	    int warpInBlockIdx = threadIdx.x / WARP_SIZE;
+	    int warpThreadIdx  = threadIdx.x % WARP_SIZE;
+	    int edgeIdx        = blockIdx.x * WARPS_PER_BLOCK + warpInBlockIdx;
 
-    /* Shared Memory Cache for Source/Target lists */
-    __shared__ int smem_src[WARPS_PER_BLOCK][MAX_CACHESIZE];
-    __shared__ int smem_tgt[WARPS_PER_BLOCK][MAX_CACHESIZE];
+	    /* Shared Memory Cache for Source/Target lists */
+	    __shared__ int smem_src[WARPS_PER_BLOCK][MAX_CACHESIZE];
+	    __shared__ int smem_tgt[WARPS_PER_BLOCK][MAX_CACHESIZE];
 
-    if (edgeIdx < numEdges)
-    {
-        /* 1. Load Metadata */
-        uint label, numSnodes, numTnodes, srcStartIdx, tgtStartIdx;
-        if (warpThreadIdx == 0)
-        {
-            label       = d_edge_labels        [edgeIdx];
-            srcStartIdx = d_edge_sources_start [edgeIdx];
-            numSnodes   = d_edge_sources_num   [edgeIdx];
-            tgtStartIdx = d_edge_targets_start [edgeIdx];
-            numTnodes   = d_edge_targets_num   [edgeIdx];
-        }
+	    if (edgeIdx < numEdges)
+	    {
+	        /* 1] Load Metadata */
+	        uint label, numSnodes, numTnodes, srcStartIdx, tgtStartIdx;
+	        if (warpThreadIdx == 0)
+	        {
+	            label       = d_edge_labels        [edgeIdx];
+	            srcStartIdx = d_edge_sources_start [edgeIdx];
+	            numSnodes   = d_edge_sources_num   [edgeIdx];
+	            tgtStartIdx = d_edge_targets_start [edgeIdx];
+	            numTnodes   = d_edge_targets_num   [edgeIdx];
+	        }
 
-        /* Sync to ensure all threads have the data */
-        label       = __shfl_sync(0xFFFFFFFF, label,       0);
-        numSnodes   = __shfl_sync(0xFFFFFFFF, numSnodes,   0);
-        numTnodes   = __shfl_sync(0xFFFFFFFF, numTnodes,   0);
-        srcStartIdx = __shfl_sync(0xFFFFFFFF, srcStartIdx, 0);
-        tgtStartIdx = __shfl_sync(0xFFFFFFFF, tgtStartIdx, 0);
+	        /* Sync to ensure all threads have the data */
+	        label       = __shfl_sync(0xFFFFFFFF, label,       0);
+	        numSnodes   = __shfl_sync(0xFFFFFFFF, numSnodes,   0);
+	        numTnodes   = __shfl_sync(0xFFFFFFFF, numTnodes,   0);
+	        srcStartIdx = __shfl_sync(0xFFFFFFFF, srcStartIdx, 0);
+	        tgtStartIdx = __shfl_sync(0xFFFFFFFF, tgtStartIdx, 0);
 
-        /* 2. Collaborative Load into Shared Memory */
-        /* Load Sources */
-        for (int i = warpThreadIdx; i < numSnodes && i < MAX_CACHESIZE; i += WARP_SIZE)
-        {
-            smem_src[warpInBlockIdx][i] = d_edge_sources[srcStartIdx + i];
-        }
-        /* Load Targets */
-        for (int i = warpThreadIdx; i < numTnodes && i < MAX_CACHESIZE; i += WARP_SIZE)
-        {
-            smem_tgt[warpInBlockIdx][i] = d_edge_targets[tgtStartIdx + i];
-        }
-        __syncwarp();
+	        /* 2] Collaborative Load into Shared Memory */
+	        /* Load Sources */
+	        for (int i = warpThreadIdx; i < numSnodes && i < MAX_CACHESIZE; i += WARP_SIZE)
+	        {
+	            smem_src[warpInBlockIdx][i] = d_edge_sources[srcStartIdx + i];
+	        }
+	        /* Load Targets (Only if they exist) */
+	        if (numTnodes > 0)
+	        {
+	            for (int i = warpThreadIdx; i < numTnodes && i < MAX_CACHESIZE; i += WARP_SIZE)
+	            {
+	                smem_tgt[warpInBlockIdx][i] = d_edge_targets[tgtStartIdx + i];
+	            }
+	        }
+	        __syncwarp();
 
-        /* 3. Process Pairs */
-        size_t total_pairs = (size_t)numSnodes * (size_t)numTnodes;
+	        /* 3] Process Pairs */
 
-        for (size_t i = warpThreadIdx; i < total_pairs; i += WARP_SIZE)
-        {
-            size_t s_idx = i / numTnodes;
-            size_t t_idx = i % numTnodes;
+	        /* Default for Directed Hyper Graphs  HyperEdge (Source -> Target) */
+	        if (numTnodes > 0)
+	        {
+	            size_t total_pairs = (size_t)numSnodes * (size_t)numTnodes;
 
-            int u, v;
+	            for (size_t i = warpThreadIdx; i < total_pairs; i += WARP_SIZE)
+	            {
+	                size_t s_idx = i / numTnodes;
+	                size_t t_idx = i % numTnodes;
 
-            /* Fetch u, v */
-            if (s_idx < MAX_CACHESIZE) u = smem_src[warpInBlockIdx][s_idx];
-            else                       u = d_edge_sources[srcStartIdx + s_idx];
+	                int u, v;
 
-            if (t_idx < MAX_CACHESIZE) v = smem_tgt[warpInBlockIdx][t_idx];
-            else                       v = d_edge_targets[tgtStartIdx + t_idx];
+	                /* Fetch u */
+	                if (s_idx < MAX_CACHESIZE) u = smem_src[warpInBlockIdx][s_idx];
+	                else                       u = d_edge_sources[srcStartIdx + s_idx];
 
-            if (u < numNodes && v < numNodes)
-            {
-                /* A] Mix Label: Start with entropy from the edge type */
-                uint64_t val = hashMix((uint64_t)label);
+	                /* Fetch v (From Targets) */
+	                if (t_idx < MAX_CACHESIZE) v = smem_tgt[warpInBlockIdx][t_idx];
+	                else                       v = d_edge_targets[tgtStartIdx + t_idx];
 
-                /* B] Mix Source Port: Multiply by Large Prime A to separate domain */
-                /* 0x517cc is a randomly chosen 64-bit prime */
-                uint64_t s_salt = (uint64_t)s_idx * 0x517cc1b727220a95ULL;
-                val = hashPair(val, s_salt);
+	                if (u < numNodes && v < numNodes)
+	                {
+	                    /* Standard Directed Hashing */
+	                    uint64_t val = hashMix((uint64_t)label);
+	                    uint64_t s_salt = (uint64_t)s_idx * 0x517cc1b727220a95ULL;
+	                    val = hashPair(val, s_salt);
+	                    uint64_t t_salt = (uint64_t)t_idx * 0x9e3779b97f4a7c15ULL;
+	                    val = hashPair(val, t_salt);
+	                    val = hashMix(val);
+	                    if (val == 0) val = HASH_SENTINEL;
 
-                /* C] Mix Target Port: Multiply by Large Prime B to separate domain */
-                /* 0x9e377 is a different 64-bit prime (Golden Ratio const) */
-                uint64_t t_salt = (uint64_t)t_idx * 0x9e3779b97f4a7c15ULL;
-                val = hashPair(val, t_salt);
+	                    size_t addr = (size_t)u * (size_t)numNodes + (size_t)v;
+	                    atomicXor((unsigned long long*)&MatrixEleColor[addr], (unsigned long long)val);
+	                }
+	            }
+	        }
+	        /* Mode B Undirected Hyperedge / Set (Source <-> Source) */
+	        else
+	        {
+	            size_t total_pairs = (size_t)numSnodes * (size_t)numSnodes;
 
-                /* D] Final Avalanche: Ensure single-bit changes affect all output bits */
-                val = hashMix(val);
+	            for (size_t i = warpThreadIdx; i < total_pairs; i += WARP_SIZE)
+	            {
+	                size_t s_idx = i / numSnodes;
+	                size_t t_idx = i % numSnodes;
 
-                /* E] Zero-Blindness Check:  Force a non-zero pattern */
-                if (val == 0) val = HASH_SENTINEL;
+	                /* Skip Self-Loops in Clique Expansion */
+	                if (s_idx == t_idx) continue;
 
-//                /* Atomic Add: Commutative and Safe */
-//                size_t addr = (size_t)u * (size_t)numNodes + (size_t)v;
-//                atomicAdd((unsigned long long*)&MatrixEleColor[addr], (unsigned long long)val);
-//
-                /* Atomic XOR: Commutative and robust against edge order */
-				/* Prevents "Unsorted" discrepancy by ensuring result is order-independent */
-				size_t addr = (size_t)u * (size_t)numNodes + (size_t)v;
-				atomicXor((unsigned long long*)&MatrixEleColor[addr], (unsigned long long)val);
-            }
-        }
-    }
+	                int u, v;
+
+	                /* Fetch u */
+	                if (s_idx < MAX_CACHESIZE) u = smem_src[warpInBlockIdx][s_idx];
+	                else                       u = d_edge_sources[srcStartIdx + s_idx];
+
+	                /* Fetch v (From Sources) */
+	                if (t_idx < MAX_CACHESIZE) v = smem_src[warpInBlockIdx][t_idx];
+	                else                       v = d_edge_sources[srcStartIdx + t_idx];
+
+	                if (u < numNodes && v < numNodes)
+	                {
+	                    /* Clique Hashing */
+	                    uint64_t val = hashMix((uint64_t)label);
+
+	                    /* Use positional salts to maintain structure within the set */
+	                    uint64_t s_salt = (uint64_t)s_idx * 0x517cc1b727220a95ULL;
+	                    val = hashPair(val, s_salt);
+
+	                    /* Use target salt for second node */
+	                    uint64_t t_salt = (uint64_t)t_idx * 0x9e3779b97f4a7c15ULL;
+	                    val = hashPair(val, t_salt);
+
+	                    val = hashMix(val);
+	                    if (val == 0) val = HASH_SENTINEL;
+
+	                    size_t addr = (size_t)u * (size_t)numNodes + (size_t)v;
+	                    atomicXor((unsigned long long*)&MatrixEleColor[addr], (unsigned long long)val);
+	                }
+	            }
+	        }
+	    }
 }
 /*===================================================================================================================*/
 

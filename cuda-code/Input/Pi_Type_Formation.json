@@ -1,0 +1,73 @@
+{
+  "graph_name": "Pi_Type_Formation",
+  "comment": [
+    "Dependent function type \u03a0x:A.B(x)"
+  ],
+  "nodes": [
+    {
+      "type_label": "type_A"
+    },
+    {
+      "type_label": "var_x"
+    },
+    {
+      "type_label": "type_B"
+    },
+    {
+      "type_label": "B_of_x"
+    },
+    {
+      "type_label": "pi_type"
+    },
+    {
+      "type_label": "function"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "CONTEXT",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "DEPENDENT",
+      "source_nodes": [
+        1,
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "PI_FORM",
+      "source_nodes": [
+        0,
+        3
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "CONSTRUCT",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        5
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    2
+  ],
+  "Outputs": [
+    5
+  ]
+}

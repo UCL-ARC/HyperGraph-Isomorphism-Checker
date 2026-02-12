@@ -1,0 +1,61 @@
+{
+  "graph_name": "Self_Loop_Chain",
+  "comment": [
+    "Each hyperedge has overlapping source/target nodes"
+  ],
+  "nodes": [
+    {
+      "type_label": "state"
+    },
+    {
+      "type_label": "state"
+    },
+    {
+      "type_label": "state"
+    },
+    {
+      "type_label": "state"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "UPDATE",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        0,
+        2
+      ]
+    },
+    {
+      "type_label": "UPDATE",
+      "source_nodes": [
+        1,
+        2
+      ],
+      "target_nodes": [
+        1,
+        3
+      ]
+    },
+    {
+      "type_label": "UPDATE",
+      "source_nodes": [
+        2,
+        3
+      ],
+      "target_nodes": [
+        2,
+        0
+      ]
+    }
+  ],
+  "Inputs": [
+    0
+  ],
+  "Outputs": [
+    3
+  ]
+}

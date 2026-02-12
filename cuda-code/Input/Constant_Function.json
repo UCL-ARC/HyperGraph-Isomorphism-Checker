@@ -1,0 +1,44 @@
+{
+  "graph_name": "Constant_Function",
+  "comment": [
+    "Hyperedge with no targets (constant/sink)"
+  ],
+  "nodes": [
+    {
+      "type_label": "input"
+    },
+    {
+      "type_label": "input"
+    },
+    {
+      "type_label": "unit"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "CONST",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "DISCARD",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": []
+    }
+  ],
+  "Inputs": [
+    0,
+    1
+  ],
+  "Outputs": [
+    2
+  ]
+}

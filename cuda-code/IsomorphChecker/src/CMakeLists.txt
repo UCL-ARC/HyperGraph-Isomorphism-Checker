@@ -21,7 +21,7 @@ file(GLOB_RECURSE ALL_SOURCES "*.cu" "*.cpp" "*.c")
 
 
 add_executable(HyperGraphCUDA ${ALL_SOURCES})
-target_compile_options(HyperGraphCUDA PRIVATE  -fPIC -use_fast_math -fconcepts -static  -g )
+target_compile_options(HyperGraphCUDA PRIVATE  -fPIC -use_fast_math -fconcepts -static -expt-extended-lambda -g )
 target_link_libraries(HyperGraphCUDA PRIVATE  -lstdc++fs)
 
 

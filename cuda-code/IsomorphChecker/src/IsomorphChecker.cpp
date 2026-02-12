@@ -9,7 +9,7 @@
 
 typedef unsigned int uint;
 #include "GPU_Solver/CUDA_Functions.h" /* CUDA Solver */
-#include "DataStructures.h" /* Compact Arrays the GPU will use*/
+#include "InputDataStructures.h" /* Compact Arrays the GPU will use*/
 #include "GraphIO.h"
 
 using namespace std;
@@ -183,6 +183,8 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
             debugHisto->edge.maxNodesSize = IOgraph.edges.at(e).sourceNodes.size() + IOgraph.edges.at(e).targetNodes.size();
         }
         /*-------------------------------------------------------------------------------------*/
+
+        //cout<<e<<" ELabel "<<" "<<CSRGraphDataOut.edgeData.labelIndex[e]<<endl;
     }
 
     // cout << " DEBUG: EdgeSourceCountCSR " << DEBUGedgeCounterSources << " EdgeTargetCountCSR " << DEBUGedgeCounterTargets << endl;
@@ -190,6 +192,8 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
     /** 4. Error Checking */
     for (uint n = 0; n < CSRGraphDataOut.nodeData.numNodes; n++)
     {
+
+
         if (CSRGraphDataOut.nodeData.edgeStartPrevsNum[n] != DEBUGnode_CountSources[n])
         {
             cout << n << " Error SourceNodeEdgeMapping Got " << DEBUGnode_CountSources[n]
@@ -223,7 +227,7 @@ static inline void AllocateAndPopulateCompactArrays( const InputGraph &IOgraph,
  */
 void TransferGraphToGPU(const CSR_Graph& data, int gpuIndex)
 {
-	InitGPUArrays( data.graphIndex,
+	GPU_InitArrays( data.graphIndex,
 	               data.nodeData.numNodes,            data.nodeData.labelIndex,
 	               data.nodeData.prevsFirstEdge,      data.nodeData.nextsFirstEdge,
 	               data.nodeData.nodeEdgesPrevsSize,  data.nodeData.nodeEdgesNextsSize,
@@ -339,7 +343,7 @@ int main(int argc, char* argv[])
 	auto Timer_Start = std::chrono::high_resolution_clock::now();
 
 	LoadGraphs    (argc, argv, m_IO_graphs, MaxNodesPerEdge); /** Open and process the json file or pass the arrays from another binary (RUST) */
-	SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); /** Sort Edges based on counts */
+	//SortGraphEdges(m_IO_graphs, m_DebugEdge_LabelDBIndexOrg); /** Sort Edges based on counts */
 
 
 
@@ -389,39 +393,13 @@ int main(int argc, char* argv[])
 	std::cout << "GPU initialization time: " << gpu_init_time << " ms" << std::endl;
 
 	/*===========================================================================================*/
-	/** GPU Multi-Step Calculation */
+	/** GPU Calculation */
 	/*===========================================================================================*/
 	auto start_gpu_compute = std::chrono::high_resolution_clock::now();
 
-	/** 1] CUDA Kernel to Create Bins for each graphs based on node/edge signatures and compare */
-    bool isPossibleIso = GPU_CompareSignatureCountsBetweenGraphs();
+	GPU_CheckHypergraphIsomorphism();
 
-	/** 2] CUDA Kernel to Compare Edge Signatures */
-    if (isPossibleIso)
-    {
-		if(MaxNodesPerEdge<8)
-		{
-		  printf(" Check EdgeNodes %d \n", MaxNodesPerEdge);
-		  isPossibleIso = GPU_CompareEdgesSignaturesBetweenGraphs();
-		}
-		else
-		{
-			printf(" Cannot use NetworkSort on GPU 8 Exceeded \n");
-		}
-    }
-
-    /** 3] WL-1 Test Coloring  */
-    if(isPossibleIso)
-    {
-    	GPU_WL1GraphColorHashIT(0, 100 );
-    }
-
-
-    /** 4] TODO WL-2/Tuple Test Coloring  */
-    if(isPossibleIso)
-    {
-
-    }
+	//RunDeterminismStressTest(100);
 
 	auto end_gpu_compute = std::chrono::high_resolution_clock::now();
 	auto gpu_compute_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_gpu_compute - start_gpu_compute).count();
@@ -430,7 +408,7 @@ int main(int argc, char* argv[])
 
     for (int gInd = 0;gInd<2;gInd++ )
 	{
-      GPU_FreeArrays(gInd,0);
+      GPU_FreeInitArrays(gInd,0);
 
 	  DeallocateCSRGraphData( m_CSRGraphs[gInd]);
 	  if (m_DebugEdge_LabelDBIndexOrg[gInd] != nullptr)
@@ -438,7 +416,9 @@ int main(int argc, char* argv[])
 	  	delete[] m_DebugEdge_LabelDBIndexOrg[gInd];
 	  }
 	}
-    /*===========================================================================================*/
+	/*===========================================================================================*/
+	/** End GPU Calculation */
+	/*===========================================================================================*/
 
 	auto Timer_End = std::chrono::high_resolution_clock::now();
 	auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(Timer_End - Timer_Start).count();

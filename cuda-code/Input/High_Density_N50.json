@@ -1,0 +1,3185 @@
+{
+  "graph_name": "High_Density_N50",
+  "comment": [
+    "N=50, E=250, density\u224840%",
+    "Stress test for dense graphs"
+  ],
+  "nodes": [
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    },
+    {
+      "type_label": "var_0"
+    },
+    {
+      "type_label": "var_1"
+    },
+    {
+      "type_label": "var_2"
+    },
+    {
+      "type_label": "var_3"
+    },
+    {
+      "type_label": "var_4"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        20,
+        42
+      ],
+      "target_nodes": [
+        30,
+        33,
+        24
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        34,
+        21
+      ],
+      "target_nodes": [
+        34,
+        22
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        41,
+        44,
+        16,
+        39
+      ],
+      "target_nodes": [
+        30,
+        12,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        14,
+        19,
+        49,
+        18
+      ],
+      "target_nodes": [
+        45,
+        13
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        20,
+        30,
+        22,
+        35
+      ],
+      "target_nodes": [
+        46,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        43,
+        34
+      ],
+      "target_nodes": [
+        24,
+        25,
+        22
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        18,
+        45,
+        5
+      ],
+      "target_nodes": [
+        22
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        47,
+        30,
+        13,
+        12
+      ],
+      "target_nodes": [
+        34,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        8,
+        6,
+        39,
+        47
+      ],
+      "target_nodes": [
+        37,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        33,
+        14
+      ],
+      "target_nodes": [
+        40,
+        14,
+        3
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        45,
+        30,
+        6
+      ],
+      "target_nodes": [
+        43,
+        49
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        10,
+        26
+      ],
+      "target_nodes": [
+        41,
+        30,
+        12
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        41,
+        3,
+        49
+      ],
+      "target_nodes": [
+        5,
+        41
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        47,
+        46
+      ],
+      "target_nodes": [
+        2,
+        11,
+        26
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        31,
+        11
+      ],
+      "target_nodes": [
+        47,
+        18
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        36,
+        38
+      ],
+      "target_nodes": [
+        6,
+        21
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        34,
+        33,
+        31
+      ],
+      "target_nodes": [
+        8,
+        32,
+        29
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        21,
+        10
+      ],
+      "target_nodes": [
+        46
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        45,
+        11,
+        0,
+        47
+      ],
+      "target_nodes": [
+        21,
+        18
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        11,
+        39,
+        40,
+        25
+      ],
+      "target_nodes": [
+        27
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        25,
+        42,
+        6
+      ],
+      "target_nodes": [
+        11
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        15,
+        0,
+        16
+      ],
+      "target_nodes": [
+        24,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        19,
+        37,
+        46
+      ],
+      "target_nodes": [
+        36,
+        0
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        44,
+        15,
+        3,
+        42
+      ],
+      "target_nodes": [
+        7,
+        29
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        43,
+        32
+      ],
+      "target_nodes": [
+        45,
+        49
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        40,
+        18,
+        23,
+        39
+      ],
+      "target_nodes": [
+        14
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        9,
+        29
+      ],
+      "target_nodes": [
+        47,
+        38
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        35,
+        30,
+        48
+      ],
+      "target_nodes": [
+        34,
+        42,
+        13
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        5,
+        33,
+        28,
+        45
+      ],
+      "target_nodes": [
+        23,
+        4,
+        36
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        32,
+        12
+      ],
+      "target_nodes": [
+        36,
+        34,
+        9
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        28,
+        7,
+        43
+      ],
+      "target_nodes": [
+        13,
+        45,
+        37
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        28,
+        3
+      ],
+      "target_nodes": [
+        29,
+        8,
+        32
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        3,
+        35,
+        29
+      ],
+      "target_nodes": [
+        43,
+        19,
+        46
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        0,
+        47,
+        13
+      ],
+      "target_nodes": [
+        37,
+        4
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        44,
+        4,
+        34
+      ],
+      "target_nodes": [
+        3,
+        4
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        26,
+        11
+      ],
+      "target_nodes": [
+        49,
+        8
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        26,
+        23,
+        24,
+        28
+      ],
+      "target_nodes": [
+        24,
+        5,
+        43
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        41,
+        22,
+        7,
+        11
+      ],
+      "target_nodes": [
+        34
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        46,
+        14,
+        0,
+        48
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        46,
+        34,
+        27
+      ],
+      "target_nodes": [
+        34,
+        24,
+        14
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        9,
+        17,
+        12
+      ],
+      "target_nodes": [
+        46,
+        48
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        26,
+        39
+      ],
+      "target_nodes": [
+        49,
+        1,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        38,
+        2
+      ],
+      "target_nodes": [
+        28
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        3,
+        15,
+        47,
+        2
+      ],
+      "target_nodes": [
+        25,
+        28,
+        14
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        8,
+        32
+      ],
+      "target_nodes": [
+        18
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        20,
+        36,
+        38,
+        49
+      ],
+      "target_nodes": [
+        43,
+        20,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        33,
+        14
+      ],
+      "target_nodes": [
+        26,
+        19,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        47,
+        11,
+        40,
+        43
+      ],
+      "target_nodes": [
+        27,
+        35,
+        31
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        42,
+        24,
+        33
+      ],
+      "target_nodes": [
+        20,
+        44,
+        26
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        24,
+        11
+      ],
+      "target_nodes": [
+        48,
+        34
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        19,
+        45
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        26,
+        35
+      ],
+      "target_nodes": [
+        33,
+        8,
+        24
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        21,
+        41,
+        5
+      ],
+      "target_nodes": [
+        28
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        46,
+        12
+      ],
+      "target_nodes": [
+        3,
+        17,
+        24
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        2,
+        4,
+        12,
+        48
+      ],
+      "target_nodes": [
+        37,
+        46,
+        42
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        13,
+        21
+      ],
+      "target_nodes": [
+        19,
+        0
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        7,
+        47
+      ],
+      "target_nodes": [
+        48,
+        30,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        13,
+        25,
+        15,
+        35
+      ],
+      "target_nodes": [
+        20,
+        49,
+        18
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        41,
+        22,
+        19
+      ],
+      "target_nodes": [
+        16,
+        23,
+        32
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        46,
+        30,
+        48
+      ],
+      "target_nodes": [
+        20
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        26,
+        2,
+        36
+      ],
+      "target_nodes": [
+        14,
+        47
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        35,
+        37
+      ],
+      "target_nodes": [
+        37,
+        46
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        12,
+        21,
+        14
+      ],
+      "target_nodes": [
+        24
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        35,
+        41
+      ],
+      "target_nodes": [
+        43,
+        21
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        41,
+        47,
+        31
+      ],
+      "target_nodes": [
+        29,
+        10,
+        46
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        46,
+        34
+      ],
+      "target_nodes": [
+        31
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        3,
+        33,
+        2,
+        4
+      ],
+      "target_nodes": [
+        42,
+        3,
+        48
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        40,
+        14,
+        4
+      ],
+      "target_nodes": [
+        45
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        32,
+        29
+      ],
+      "target_nodes": [
+        23
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        42,
+        39,
+        30,
+        31
+      ],
+      "target_nodes": [
+        1,
+        0,
+        34
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        1,
+        33,
+        46
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        32,
+        44,
+        43
+      ],
+      "target_nodes": [
+        27
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        33,
+        9
+      ],
+      "target_nodes": [
+        15
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        16,
+        22,
+        17,
+        25
+      ],
+      "target_nodes": [
+        5,
+        23,
+        25
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        44,
+        14,
+        19,
+        43
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        5,
+        25,
+        24,
+        35
+      ],
+      "target_nodes": [
+        30
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        44,
+        10,
+        5,
+        31
+      ],
+      "target_nodes": [
+        27
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        6,
+        33,
+        2
+      ],
+      "target_nodes": [
+        14,
+        13,
+        44
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        2,
+        4,
+        43
+      ],
+      "target_nodes": [
+        17,
+        34
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        11,
+        20,
+        1,
+        13
+      ],
+      "target_nodes": [
+        37
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        4,
+        19,
+        10,
+        36
+      ],
+      "target_nodes": [
+        15,
+        36
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        21,
+        24,
+        48,
+        47
+      ],
+      "target_nodes": [
+        8,
+        44,
+        46
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        22,
+        3,
+        6,
+        27
+      ],
+      "target_nodes": [
+        14,
+        4,
+        21
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        25,
+        49,
+        20,
+        1
+      ],
+      "target_nodes": [
+        40,
+        17,
+        28
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        35,
+        24
+      ],
+      "target_nodes": [
+        27,
+        11
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        24,
+        5,
+        49,
+        39
+      ],
+      "target_nodes": [
+        18,
+        15,
+        45
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        9,
+        24
+      ],
+      "target_nodes": [
+        45,
+        40
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        20,
+        23,
+        6,
+        5
+      ],
+      "target_nodes": [
+        0,
+        19
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        6,
+        8,
+        5
+      ],
+      "target_nodes": [
+        11,
+        27
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        32,
+        26,
+        6,
+        1
+      ],
+      "target_nodes": [
+        5,
+        22,
+        35
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        20,
+        24,
+        0,
+        18
+      ],
+      "target_nodes": [
+        26,
+        24,
+        49
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        15,
+        36,
+        33,
+        10
+      ],
+      "target_nodes": [
+        43,
+        24,
+        10
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        17,
+        31,
+        9
+      ],
+      "target_nodes": [
+        4,
+        10
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        19,
+        30,
+        4
+      ],
+      "target_nodes": [
+        23,
+        16
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        31,
+        38,
+        39,
+        12
+      ],
+      "target_nodes": [
+        29,
+        6,
+        8
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        21,
+        39
+      ],
+      "target_nodes": [
+        24,
+        21
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        41,
+        38,
+        8
+      ],
+      "target_nodes": [
+        19,
+        20
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        30,
+        20,
+        11,
+        25
+      ],
+      "target_nodes": [
+        20
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        40,
+        31,
+        36,
+        15
+      ],
+      "target_nodes": [
+        20,
+        24,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        36,
+        12,
+        37
+      ],
+      "target_nodes": [
+        34
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        1,
+        46,
+        29,
+        45
+      ],
+      "target_nodes": [
+        13,
+        28,
+        18
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        43,
+        31
+      ],
+      "target_nodes": [
+        8,
+        40
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        42,
+        9
+      ],
+      "target_nodes": [
+        45,
+        27
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        38,
+        30
+      ],
+      "target_nodes": [
+        37,
+        25
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        26,
+        34,
+        2,
+        23
+      ],
+      "target_nodes": [
+        44,
+        34,
+        38
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        49,
+        15
+      ],
+      "target_nodes": [
+        42
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        41,
+        39,
+        2
+      ],
+      "target_nodes": [
+        36
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        25,
+        48,
+        21,
+        27
+      ],
+      "target_nodes": [
+        6,
+        0,
+        16
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        33,
+        35,
+        37,
+        44
+      ],
+      "target_nodes": [
+        36,
+        14,
+        28
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        49,
+        43,
+        37
+      ],
+      "target_nodes": [
+        44,
+        32
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        30,
+        6,
+        18
+      ],
+      "target_nodes": [
+        26
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        9,
+        22
+      ],
+      "target_nodes": [
+        19,
+        21,
+        29
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        22,
+        30,
+        6,
+        28
+      ],
+      "target_nodes": [
+        46,
+        44
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        19,
+        2,
+        45
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        6,
+        43,
+        10
+      ],
+      "target_nodes": [
+        47,
+        15,
+        33
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        21,
+        35,
+        27,
+        29
+      ],
+      "target_nodes": [
+        14
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        11,
+        40,
+        42,
+        27
+      ],
+      "target_nodes": [
+        25
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        12,
+        28,
+        37,
+        27
+      ],
+      "target_nodes": [
+        24,
+        0,
+        45
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        48,
+        45
+      ],
+      "target_nodes": [
+        4,
+        36
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        23,
+        20,
+        12,
+        29
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        33,
+        40,
+        20,
+        38
+      ],
+      "target_nodes": [
+        24,
+        39
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        22,
+        29,
+        39,
+        11
+      ],
+      "target_nodes": [
+        43
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        37,
+        5,
+        43
+      ],
+      "target_nodes": [
+        8,
+        20,
+        7
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        11,
+        23,
+        44
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        38,
+        8,
+        36
+      ],
+      "target_nodes": [
+        24,
+        27
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        34,
+        44,
+        41
+      ],
+      "target_nodes": [
+        11,
+        35,
+        10
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        11,
+        20,
+        28
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        31,
+        8,
+        12
+      ],
+      "target_nodes": [
+        24
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        31,
+        26,
+        43,
+        45
+      ],
+      "target_nodes": [
+        28,
+        31,
+        10
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        48,
+        14,
+        18,
+        2
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        10,
+        49,
+        29,
+        36
+      ],
+      "target_nodes": [
+        47,
+        49
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        7,
+        36,
+        17,
+        49
+      ],
+      "target_nodes": [
+        34,
+        23,
+        48
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        34,
+        13,
+        27,
+        6
+      ],
+      "target_nodes": [
+        47,
+        41
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        28,
+        16,
+        22
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        13,
+        47
+      ],
+      "target_nodes": [
+        37
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        39,
+        40,
+        27
+      ],
+      "target_nodes": [
+        10,
+        39,
+        8
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        36,
+        22
+      ],
+      "target_nodes": [
+        34
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        10,
+        20,
+        45,
+        18
+      ],
+      "target_nodes": [
+        18,
+        36,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        8,
+        48,
+        26,
+        3
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        8,
+        15
+      ],
+      "target_nodes": [
+        9,
+        45,
+        20
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        31,
+        9,
+        36,
+        40
+      ],
+      "target_nodes": [
+        17,
+        40
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        4,
+        40,
+        49
+      ],
+      "target_nodes": [
+        5,
+        25
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        44,
+        23,
+        29,
+        31
+      ],
+      "target_nodes": [
+        20,
+        37
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        46,
+        29,
+        40,
+        42
+      ],
+      "target_nodes": [
+        44
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        25,
+        13
+      ],
+      "target_nodes": [
+        27,
+        13,
+        31
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        21,
+        35,
+        36
+      ],
+      "target_nodes": [
+        8,
+        36
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        48,
+        3,
+        2
+      ],
+      "target_nodes": [
+        6,
+        40,
+        29
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        28,
+        29
+      ],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        8,
+        41
+      ],
+      "target_nodes": [
+        19,
+        10,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        16,
+        5,
+        23,
+        42
+      ],
+      "target_nodes": [
+        41,
+        10
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        19,
+        46,
+        44
+      ],
+      "target_nodes": [
+        48,
+        14,
+        27
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        6,
+        0
+      ],
+      "target_nodes": [
+        13,
+        30,
+        4
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        33,
+        43,
+        28,
+        0
+      ],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        27,
+        44,
+        8
+      ],
+      "target_nodes": [
+        30
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        5,
+        46
+      ],
+      "target_nodes": [
+        6,
+        20
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        24,
+        49,
+        48
+      ],
+      "target_nodes": [
+        8
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        4,
+        33,
+        36,
+        0
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        22,
+        46
+      ],
+      "target_nodes": [
+        13,
+        40
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        39,
+        43
+      ],
+      "target_nodes": [
+        28,
+        13
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        48,
+        7
+      ],
+      "target_nodes": [
+        37
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        27,
+        20,
+        8
+      ],
+      "target_nodes": [
+        15,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        35,
+        38
+      ],
+      "target_nodes": [
+        38
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        49,
+        44,
+        1,
+        42
+      ],
+      "target_nodes": [
+        19,
+        13
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        12,
+        47,
+        25,
+        18
+      ],
+      "target_nodes": [
+        41,
+        3,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        15,
+        31,
+        40
+      ],
+      "target_nodes": [
+        38
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        23,
+        20,
+        8,
+        24
+      ],
+      "target_nodes": [
+        36
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        43,
+        11,
+        48
+      ],
+      "target_nodes": [
+        30,
+        49,
+        4
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        0,
+        16,
+        13,
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        40,
+        45,
+        32,
+        49
+      ],
+      "target_nodes": [
+        26,
+        27
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        40,
+        34,
+        39
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        5,
+        32
+      ],
+      "target_nodes": [
+        13,
+        9
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        37,
+        40,
+        48
+      ],
+      "target_nodes": [
+        41,
+        43
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        44,
+        27
+      ],
+      "target_nodes": [
+        46,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        27,
+        7
+      ],
+      "target_nodes": [
+        29
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        19,
+        42,
+        47,
+        11
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        44,
+        0,
+        10,
+        31
+      ],
+      "target_nodes": [
+        22
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        16,
+        10,
+        23,
+        8
+      ],
+      "target_nodes": [
+        47,
+        49,
+        17
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        21,
+        27
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        45,
+        36
+      ],
+      "target_nodes": [
+        40,
+        4
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        23,
+        3,
+        31
+      ],
+      "target_nodes": [
+        36,
+        10,
+        23
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        36,
+        43,
+        46
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        0,
+        2,
+        15,
+        30
+      ],
+      "target_nodes": [
+        23,
+        24,
+        9
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        45,
+        47
+      ],
+      "target_nodes": [
+        41,
+        26,
+        14
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        46,
+        20
+      ],
+      "target_nodes": [
+        17,
+        4
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        32,
+        43,
+        3
+      ],
+      "target_nodes": [
+        11
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        25,
+        4,
+        29,
+        18
+      ],
+      "target_nodes": [
+        49
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        35,
+        29,
+        0
+      ],
+      "target_nodes": [
+        23
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        19,
+        47,
+        39
+      ],
+      "target_nodes": [
+        15,
+        29,
+        23
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        46,
+        34,
+        48
+      ],
+      "target_nodes": [
+        15
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        1,
+        14
+      ],
+      "target_nodes": [
+        34,
+        22
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        21,
+        0,
+        48,
+        42
+      ],
+      "target_nodes": [
+        24
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        6,
+        13,
+        33,
+        15
+      ],
+      "target_nodes": [
+        26,
+        31
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        17,
+        5
+      ],
+      "target_nodes": [
+        2,
+        14,
+        33
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        29,
+        47,
+        5,
+        37
+      ],
+      "target_nodes": [
+        6,
+        32
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        4,
+        37,
+        36,
+        3
+      ],
+      "target_nodes": [
+        27,
+        42
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        16,
+        20
+      ],
+      "target_nodes": [
+        25,
+        44
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        28,
+        17,
+        14
+      ],
+      "target_nodes": [
+        4,
+        12
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        9,
+        6,
+        10,
+        28
+      ],
+      "target_nodes": [
+        29
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        34,
+        22,
+        49
+      ],
+      "target_nodes": [
+        13
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        16,
+        7,
+        5
+      ],
+      "target_nodes": [
+        10,
+        43
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        38,
+        2,
+        13,
+        20
+      ],
+      "target_nodes": [
+        9,
+        5,
+        45
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        32,
+        3,
+        43
+      ],
+      "target_nodes": [
+        19,
+        16
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        28,
+        35
+      ],
+      "target_nodes": [
+        47,
+        35
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        6,
+        8
+      ],
+      "target_nodes": [
+        7,
+        0
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        12,
+        25
+      ],
+      "target_nodes": [
+        23
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        5,
+        37,
+        16,
+        4
+      ],
+      "target_nodes": [
+        1,
+        4,
+        12
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        5,
+        21,
+        7
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        36,
+        27
+      ],
+      "target_nodes": [
+        46
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        24,
+        43,
+        27
+      ],
+      "target_nodes": [
+        11
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        17,
+        28
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        39,
+        15,
+        41,
+        18
+      ],
+      "target_nodes": [
+        31,
+        26,
+        35
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        17,
+        24
+      ],
+      "target_nodes": [
+        8
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        33,
+        15
+      ],
+      "target_nodes": [
+        40,
+        34,
+        1
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        30,
+        34,
+        31,
+        22
+      ],
+      "target_nodes": [
+        36,
+        32
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        11,
+        1,
+        20
+      ],
+      "target_nodes": [
+        38,
+        14
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        30,
+        33,
+        22
+      ],
+      "target_nodes": [
+        49
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        6,
+        15
+      ],
+      "target_nodes": [
+        42
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        47,
+        3,
+        48
+      ],
+      "target_nodes": [
+        14,
+        36,
+        24
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        15,
+        37
+      ],
+      "target_nodes": [
+        20
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        37,
+        1,
+        45,
+        44
+      ],
+      "target_nodes": [
+        22,
+        36
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        12,
+        31
+      ],
+      "target_nodes": [
+        34,
+        19,
+        11
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        3,
+        14
+      ],
+      "target_nodes": [
+        38
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        30,
+        0
+      ],
+      "target_nodes": [
+        21,
+        39,
+        12
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        11,
+        20,
+        3
+      ],
+      "target_nodes": [
+        1,
+        9,
+        37
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        33,
+        23
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        25,
+        37,
+        6,
+        21
+      ],
+      "target_nodes": [
+        19,
+        20,
+        8
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        40,
+        31,
+        41,
+        20
+      ],
+      "target_nodes": [
+        11,
+        45
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        22,
+        14,
+        42,
+        37
+      ],
+      "target_nodes": [
+        11,
+        24,
+        19
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        8,
+        11,
+        46,
+        0
+      ],
+      "target_nodes": [
+        44,
+        36
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        11,
+        38,
+        20,
+        39
+      ],
+      "target_nodes": [
+        14
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        31,
+        9,
+        21,
+        47
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        10,
+        40,
+        5
+      ],
+      "target_nodes": [
+        45,
+        42
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        28,
+        0,
+        16,
+        13
+      ],
+      "target_nodes": [
+        15,
+        44
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        6,
+        46,
+        0
+      ],
+      "target_nodes": [
+        3,
+        24
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        10,
+        26,
+        31,
+        24
+      ],
+      "target_nodes": [
+        22,
+        34
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        36,
+        41
+      ],
+      "target_nodes": [
+        48,
+        43
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        4,
+        2
+      ],
+      "target_nodes": [
+        18,
+        1
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        4,
+        21,
+        10
+      ],
+      "target_nodes": [
+        24
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        35,
+        5,
+        21,
+        38
+      ],
+      "target_nodes": [
+        39
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        27,
+        41,
+        10,
+        38
+      ],
+      "target_nodes": [
+        27
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        21,
+        13
+      ],
+      "target_nodes": [
+        12
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        46,
+        34,
+        16,
+        42
+      ],
+      "target_nodes": [
+        18,
+        19,
+        15
+      ]
+    },
+    {
+      "type_label": "OP_A",
+      "source_nodes": [
+        36,
+        35
+      ],
+      "target_nodes": [
+        31,
+        9
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        27,
+        5,
+        18
+      ],
+      "target_nodes": [
+        42
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        12,
+        6,
+        1,
+        13
+      ],
+      "target_nodes": [
+        10,
+        40
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        7,
+        19
+      ],
+      "target_nodes": [
+        25,
+        30
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        5,
+        41,
+        34,
+        24
+      ],
+      "target_nodes": [
+        11,
+        23
+      ]
+    },
+    {
+      "type_label": "OP_B",
+      "source_nodes": [
+        28,
+        2,
+        16
+      ],
+      "target_nodes": [
+        28
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        17,
+        36,
+        3
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "OP_C",
+      "source_nodes": [
+        5,
+        42,
+        22,
+        34
+      ],
+      "target_nodes": [
+        26
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "Outputs": [
+    45,
+    46,
+    47,
+    48,
+    49
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "graph_name": "Linear_Chain_20",
+  "comment": [
+    "Long linear chain to test WL-1 convergence"
+  ],
+  "nodes": [
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    },
+    {
+      "type_label": "link"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        5
+      ],
+      "target_nodes": [
+        6
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        6
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        7
+      ],
+      "target_nodes": [
+        8
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        8
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        9
+      ],
+      "target_nodes": [
+        10
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        10
+      ],
+      "target_nodes": [
+        11
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        11
+      ],
+      "target_nodes": [
+        12
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        12
+      ],
+      "target_nodes": [
+        13
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        13
+      ],
+      "target_nodes": [
+        14
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        14
+      ],
+      "target_nodes": [
+        15
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        15
+      ],
+      "target_nodes": [
+        16
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        16
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        17
+      ],
+      "target_nodes": [
+        18
+      ]
+    },
+    {
+      "type_label": "NEXT",
+      "source_nodes": [
+        18
+      ],
+      "target_nodes": [
+        19
+      ]
+    }
+  ],
+  "Inputs": [
+    0
+  ],
+  "Outputs": [
+    19
+  ]
+}

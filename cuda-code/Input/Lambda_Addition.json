@@ -1,0 +1,74 @@
+{
+  "graph_name": "Lambda_Addition",
+  "comment": [
+    "\u03bbx.\u03bby.x+y - curried addition function"
+  ],
+  "nodes": [
+    {
+      "type_label": "var_x"
+    },
+    {
+      "type_label": "var_y"
+    },
+    {
+      "type_label": "int"
+    },
+    {
+      "type_label": "lambda_xy"
+    },
+    {
+      "type_label": "lambda_y"
+    },
+    {
+      "type_label": "result"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "ADD",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "LAMBDA_Y",
+      "source_nodes": [
+        1,
+        2
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "LAMBDA_X",
+      "source_nodes": [
+        0,
+        4
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        5
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    1
+  ],
+  "Outputs": [
+    5
+  ]
+}

@@ -119,6 +119,10 @@ In the general case this necessitates exploring a tree of recolouring choices in
 
 We would want to avoid this potentially large amount of storage and expensive sorting operations if possible.
 
+### Direct Comparison of Graph Isomorphism Candidates
+
+In principle a full canonical labelling does not need to be reached for both graphs to establish an isomorphism between them. For two graphs $g_1$ and $g_2$ which are being compared, we can choose an arbitrary node to recolour in $g_1$, and attempt recolourings in $g_2$ to find those that match. (A node recolouring in $g_2$ which breaks up the colour set in a different way than occurred in $g_1$ would not be a suitable candidate for a matching node in an isomorphism.) This still requires a tree traversal on $g_2$ but may allow us to avoid the same cost in $g_1$ and permit for some early termination conditions if there are no suitable candidate recolourings found for any given colour set.
+
 ## Data storage
 
 The data required to store an open hypergraph in its most basic form involves:

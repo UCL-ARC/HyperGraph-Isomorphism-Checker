@@ -1,0 +1,439 @@
+---
+title: "Open Hypergraph Colouring"
+
+toc: true
+toc-depth: 3
+numbersections: true
+bibliography: HypergraphCitations.bib
+
+header-includes:
+  - \usepackage{tikz}
+  - \usetikzlibrary{calc}
+---
+
+# Open Hypergraph Colouring
+
+The general open hypergraph isomorphism uses an iterative graph colouring approach.
+This approach can be applied to acquire a canonical form for each graph separately, or a pair of graphs can be analysed together in tandem in order to provide opportunities for early return.
+
+The algorithm can be broken down into three major steps:
+
+- An initial colouring of both nodes and edges (wires and boxes) based on information that is present in each individually e.g. type/label, global input/output. This ensures that the properties of the string diagram are respected by the isomorphism.
+- Iterative colour refinement: colours of nodes are updated based on the colours of all the edges that they are connected to directly; edges are then updated based on the colours of all the nodes to which they are connected directly. This process repeats until the graph colouring is stable.
+- Symmetry breaking / tree traversal: graphs which reach a stable colouring (equitable partition) that is not complete need to be further refined. For some classes of string diagram we can identify an underlying symmetry that can be straight-forwardly broken, but in more general hypergraph categories a tree-traversal approach is necessary to explore the space of possible isomorphisms, as in McKay's algorithm [@McKay1981], [@McKay2013].
+
+The algorithm stops once every node and edge is uniquely coloured.
+
+We'll use the following terminology:
+
+- _colour_: A colour is just a integer label on a node/edge which is derived from the structural information in the graph. A value of -1 is _uncoloured_.
+- _colouring_: A map from node/edge indices to colours. The colouring is initialised to _uncoloured_. A colouring is a graph partition.
+- _colour set_: A colour set is the subset of nodes/edges in the graph that has a specific colour. The algorithm proceeds until all colour sets are singletons.
+- _colour refinement_: An iterative update step that recolours nodes/edges based on their neighbours. Colour refinement either leaves a colouring unchanged, or increases the number of colours / decreases the size of some colour sets. It cannot reduce the number of colours or increase the size of any colour set.
+- _stable colouring_: A colouring that does not change under the colour refinement step. A colouring that has stabilised will be an equitable partition.
+- _complete colouring_: A complete colouring is one where every node has a unique colour. A complete colouring is necessarily stable.
+- _colour key_: The colour key is constructed for a node/edge by concatenation of the colours of its neighbours,  and is used to determine any updates to the colour.
+
+The algorithm will store two separate colourings for nodes and edges.
+
+We will furthermore characterise the size of the graph in three ways:
+
+- $N$, the number of nodes
+- $E$, the number of edges
+- $K$, the number of connections between nodes and edges. This would be the sum of the number of sources and targets of all edges $\sum_e |S_e| + |T_e|$. Since a general hypergraph can have multiple edges between the same nodes, an edges with arbitrary numbers of sources and targets, and nodes with arbitrary splitting (arbitrary numbers of incoming and outgoing edges), the number of connections is often the best way to characterise the size of the graph in its data usage and complexity of connections.
+
+## The Initial Colouring
+
+The initial node colouring has two stages.
+
+- Global Interface Colouring: nodes on the global interface are uniquely identified and therefore can be uniquely coloured immediately. The first step in colouring is therefore to iterate over the global interface list (defined as the concatenation of the global inputs followed by global outputs). A new colour (starting at 0 and incrementing each time) is given to each node in this list that is not already coloured (since a node may appear in this concatenated list more than once).
+    - A node can appear in this concatenated list twice since it can appear in the input list and output list, but every node in the input list should be unique and every node in the output list should be unique. Therefore the input colours can be applied in parallel, as can the output colours, in a two-stage process.
+- Label colouring: a histogram is formed on the remaining nodes based on their types, and their number of connections (previous/next) so that we have a map from a label $l$ to the number of remaining nodes with that label $n_l$. A new colour is applied to all the uncoloured nodes of each label so that $c_{l_{i+1}}$ = $c_{l_{i}} + n_{l_i}$ (where the sequence $[l_0, l_1, ...]$ is sorted). This is so that during the colour refinement of each colour set, fresh colours can be generated without conflicting with any colours generated by refining another colour set in parallel.
+    - This histogram can be constructed by means of a parallel reduction; the labels must be sorted by a parallel sort.
+    - In practice, since the types of wires are enumerable, a label $l$ can be represented by three integers $(t, n_\text{in}, n_\text{out})$.
+
+The initial edge colouring has only one stage since edges are not part of the global interface, and is the same as the label colouring for nodes.
+
+After this stage there will be no uncoloured nodes or edges left.
+
+#### Complexity and PRAM-CREW Parallelism
+
+- The global interface colour is $O(1)$ since every node in the global inputs can be coloured in parallel, and every node in the global outputs can be coloured in parallel.
+- The labelling process for nodes requires us to construct an array of labels, of size $3N$ integers. The histogram can be constructed in $O(\log n)$ time in a PRAM-CREW model, and can be sorted in $O(\log n)$ [@Cole1988].
+
+The initial colouring is therefore parallelisable up to $O(\log N + \log E)$ in PRAM-CREW, and $O(N \log N + E)$ in serial (since the edges require constructing the histogram but not the sorting step).
+
+## Colour Refinement
+
+For each non-singleton colour set, we now want to try to update the colouring based on the neighbours of the nodes/edges in that colour set. We do this by inspecting the colours of its neighbours in order to construct a colour key, and then split the colour set into new colour sets based on their colour key.
+
+### Node colour key construction
+
+Nodes attach to edges, so it is the colours of neighbouring edges which will make up the colour key. The colour key has two parts: the first for incoming edges and the second part for outgoing edges. Each part is the concatenation of all of the edge colours **sorted**. The colours must be sorted because the node to edge relationship is unordered.
+
+Construction of the keys is independent so can be parallelised:
+
+```
+colour_key[n] = [e.colour for e in incoming_edges] : [e.colour for e in outgoing_edges]
+```
+- There is no loop dependency in this loop so every operation can be performed in parallel in principle
+- The size of each part of the colour key is also known
+
+**Colour keys are stored in a segmented array of size $K$**; each segment relates to a single node and each element in the segment is assigned to one of the incoming / outgoing edges of that node.
+
+Since wire splitting / joining is commutative, in order for the equivalent colour keys to be represented identically in data the colours in the incoming/outgoing halves of the key need to be sorted. This amounts to a segmented sort over the colour-key data array. Every segment can be sorted independently and for a comparison sort is $O(n_s \log n_s)$, so a very large segment can dominate the performance of this step.
+
+#### Complexity and PRAM-CREW Parallelism
+
+In a PRAM-CREW model:
+
+- If necessary, we can identify all non-singleton colour sets in $O(1)$ by way of an array of size $N$ which stores the nodes in their colour order and an array of size $N$ denoting the position of each colour segment (which allows the size of each colour segment to be calculated).
+- With parallel reads the colour keys of all nodes can be constructed in parallel, and each element of each segment of the array can also be filled in parallel since there are no memory write conflicts. The PRAM time for this is $O(1)$. To finish constructing the node colour keys requires a segmented sort, $O(\log N)$.
+
+This places the serial complexity of the construction of the node colour keys at $O(N \log N)$ and the PRAM-CREW model complexity at $O(\log N)$, each being dominated the segmented sort.
+
+### Edge colour key
+
+Edges attach to nodes, so it is the colours of neighbouring nodes which will make up the colour key. The colour key is constructed the same was as the node colour key, except that the list is **not sorted**, since the order of inputs and outputs is fixed in edges.
+
+#### Complexity and PRAM-CREW Parallelism
+
+Since there is no sorting, this can be done in $O(E)$ serial time and $O(1)$ time in a PRAM-CREW model.
+
+### Colour set decomposition
+
+In order to assign new colours in a systematic way, the nodes/edges in a colour-set must now be sorted on their colour-keys. Since a colour-key is essentially a list, this means sorting a list of lists. For a colour set of size $k$ containing nodes of valency $v$, then the time to sort a list of lists serially is $O(kv \log (v)$.
+
+New colours are then assigned to each colour-key subset within a colour set, in the same way as for the initial colouring i.e. leaving enough space between each colour so that there are enough colours reserved for each non-singleton colour to continue the refinement process. This is at worst $O(k)$ for each colour set of size $k$; each colour set can be updated in parallel as there is no dependence between them. If maintaining an array to keep track of the start/end points of each colour, this can be trivially updated as part of this process as well.
+
+### Iteration
+
+The process alternates between refining node colourings and edge colourings until both the node colouring and edge colouring is stable. At this point the colouring will be a equitable partition (every node/edge of colour $c_1$ is attached to the same number of edges/nodes of colour $c_2$ for all $c_1$, $c_2$).
+It is important that the node colour refinement step completes before starting the edge refinement step (and vice versa) so that the refinement has complete information and the process is fully deterministic.
+
+## Stable Colourings, Symmetry Breaking, and Tree Traversal
+
+If the algorithm arrives at a stable colouring (equitable partition) where nodes/edges are not uniquely coloured, then remaining non-singleton colour-sets are generally subject to some unknown symmetries which needs to be broken in order to arrive at a concrete isomorphism. Since there may be multiple symmetries which underly a single colour group there does not necessarily exist an automorphism which exchanges any two arbitrary vertices $v_1$ and $v_2$ in this set. (Such a partition is called an _orbit partition_.) We examine this further for difference classes of hypergraphs below.
+
+In the general case this necessitates exploring a tree of recolouring choices in order to check for the isomorphism. A standard approach in the literature (and implementations such as nauty) is to explore the tree (pruning some branches where possible) to arrive at multiple colourings of the graph, encode these colourings as signatures (essentially lists of edges using colours instead of node labels) and then sort these signatures and choose the maximum or minimum signature as the canonical labelling. The isomorphism is then confirmed by comparing the canonical labellings of two graphs.
+
+We would want to avoid this potentially large amount of storage and expensive sorting operations if possible.
+
+## Data storage
+
+The data required to store an open hypergraph in its most basic form involves:
+
+- A list of all node types
+- A list of all edges, which contains each edge's label and a list of each edge's inputs and outputs
+
+The size of the graph is then determined by the number of nodes, $N$, the number of edges $E$, and the number of connections between nodes and edges, $K$. Since the graphs are in general non-monogamous, and we may an unbounded number of hyperedges attached to any node, $K$ is not bounded by $N$ or $E$ and could be arbitrarily large.
+
+The algorithm is more efficient if we can easily look up the connections not just from edges to nodes but also from nodes to edges. This is in the form of additional segmented arrays of incoming and outgoing edges for nodes, and is just a rearrangment of the edge source/target data with size $K$.
+
+The colour keys are formed by concatenation of the colours in the next/previous arrays (for nodes) or input/output arrays (for edges), and therefore can be stored in segmented arrays of fixed size also linear in $K$.
+
+Data requirements increase substantially if we need to perform a tree traversal, as we either need to have enough storage to explore multiple paths in parallel, or store additional data in order to roll back changes where a branch proves to be a dead end. Various tree pruning algorithms for spotting automorphisms will require additional colouring data to be stored as well.
+
+# Monogamous Hypergraph Isomorphism
+
+The simplest case for this algorithm which ensures good complexity properties is the case of monogamous graphs without disconnected subgraphs (i.e. all nodes are connected to the global interface by some path).
+
+This case can be solved linearly on a CPU using a graph traversal approach from the interface, although in many cases the colour refinement approach can aid parallelism since it allows us to explore paths from all global inputs/outputs at the same time.
+
+## Initial Colours
+
+Initial colours are assigned in the same way as the general algorithm.
+
+## Colour Refinement
+
+In the construction of the node colour key there is no need for the sorting procedure for neighbouring edge colours, since each node can have at most 1 incoming and outgoing edge.
+
+Likewise sorting all the colour keys to form groups of nodes with the same colour be achieved more quickly using e.g. a radix sort, since the the colours keys can be condensed into 2 integers (32 or 64 bits).
+
+The procedure for edges remains the same.
+
+In the monogamous case with no disconnected sub-graphs there are no stable colourings that are not complete, since every node / edge is identifiable by a unique path to a node in the global interface.
+
+Since at least one node / edge must be recoloured every iteration until the colouring is stable there are at most $N + E$ refinements to be made. Furthermore, $E$ is bounded by $2N$ in the general monogamous case, and bounded by $N$ in the cartesian case where disconnected sub-graphs are discarded.
+
+## Monogamous Graphs with Disconnected Sub-Graphs
+
+A sub-graph which is disconnected from the global interface my have symmetries which lead to stable colourings which are not complete. A simple example is a ring.
+
+In a monogamous graph, once one pair of nodes (or edges) can are identified with on another, then the isomorphism is either revealed or rejected by graph a single traversal. A viable pair of sub-graphs for isomorphism must have the same size and content (same number of nodes $N_\text{sub}$ of the same types, same number of edges $E_\text{sub}$ of the same types); given a node $n_1$ in $g_{1,\text{sub}}$, there are at most $N_\text{sub}$ nodes in $g_{2,\text{sub}}$ with which it can be matched. This means that a brute force approach can be taken with at most $N_\text{sub}$ trials, and since the graph traversal can be completed in $O(N_\text{sub})$ time the worst case for matching a monogamous graph not connected to the interface is $O(N_\text{sub}^2)$. Since $N_\text{sub}$ is bounded by $N$ this is $O(N^2)$.
+
+If there are $m$ disconnected subgraphs in $g_1$ and $g_2$ with the same content then multiple combinations of isomorphisms may need to be attempted. This is still $O(N_\text{tot}^2)$ for the total number of nodes $N_\text{tot} = mN_\text{sub}$ since at most $\frac{m(m+1)}{2}$ combinations need to be tried, and the time for each of these is $O(\frac{N_\text{tot}^2}{m^2})$.
+
+### Parallel Discovery of Disconnected Subgraphs
+
+We can find disconnected subgraphs in a similar way to the colouring algorithm.
+
+1. Initially every node / edge has a label equal to its index (or N + index for edges).
+2. At each iteration, each node / edge looks at its neighbours and is relabeled with the largest number of its neighbours.
+
+Once this labeling is stable, each subgraph will be labeled with the a single number corresponding to the index of its highest component.
+
+The number of iterations is bounded by the size of the largest subgraph.
+
+# Categories of Graphs
+
+Properties of the underlying category give rise to different possible structures in the graphs. The structures of interest are:
+
+- Cycles (traced monoidal categories)
+- Splitting of wires / disconnected ends (copy-delete, Markov, and Cartesian categories)
+- Joining of wires / disconnected starts
+- Disconnected sub-graphs
+
+The different properties of these graphs can be mapped to underlying categorical structures [@Piedeleu2023].
+
+## Monogamous Graphs Connected to the Global Interface
+
+If every node in a monogamous graph is connected to the global interface, then the only stable colouring is complete. Every graph can be coloured in $O(N)$ time. This applies to both acyclic (general symmetric monoidal categories) and cyclic (traced monoidal categories). This guarantees that the graph colouring / isomorphism algorithm will complete without the need for a tree traversal.
+
+## Markov and Cartesian Categories
+
+These are all cases of diagrams which admit splitting of wires (nodes which have multiple outgoing edges), but not joining of wires or cycles (in the general case). In categorical terms, we have a co-commutative co-monoid.
+
+Markov and Cartesian categories are furthermore equipped with identities that allow the pruning of edges that lead to dead ends (figure \ref{fig:cartesian}).
+
+\begin{figure}[h]
+\centering
+
+\begin{tikzpicture}[baseline={(current bounding box.center)},
+    wire/.style={line width=1pt, rounded corners=8pt},
+    dot/.style={circle, fill=black, inner sep=2pt},
+    box/.style={draw, line width=1pt, minimum width=25pt, minimum height=25pt}
+]
+
+% --- Top equation ---
+% Left-hand side
+\node[box] (F) at (0,0) {$f$};
+\draw[wire] (-2,0) -- (F.west);
+\draw[wire] (F.east) -- (2, 0);
+\node[dot] at (2,0) {};
+
+% Equality sign
+\node at (3,0) {$=$};
+
+% Right-hand side
+\draw[wire] (4,0) -- (5,0);
+\node[dot] at (5,0) {};
+
+% --- Bottom equation ---
+% LHS fork
+%\draw[wire] (-1.5,-2) -- (-0.5,-2);
+%\node[dot] at (-0.5,-2) {};
+
+%\draw[wire] (-0.5,-2) .. controls (0,-1.4) .. (0.8, -1.4);
+%\draw[wire] (-0.5,-2) .. controls (0,-2.6) .. (0.2,-2.6);
+%\node[dot] at (0.2,-2.6) {};
+
+% Equality sign
+%\node at (1.5,-2) {$=$};
+
+% RHS straight wire
+%\draw[wire] (2.5,-2) -- (3.5,-2);
+
+\end{tikzpicture}
+
+\caption{Pruning rule for Markov and Cartesian categories.}
+\label{fig:cartesian}
+
+\end{figure}
+
+This allows all subgraphs disconnected from the global interface to be reduced to a single node, which can be removed if we have the `extra-special' Frobenius axiom (figure \ref{fig:extra_frob}).
+
+\begin{figure}[h]
+\centering
+
+\begin{tikzpicture}[baseline={(current bounding box.center)},
+    wire/.style={line width=1pt, rounded corners=8pt},
+    dot/.style={circle, fill=black, inner sep=2pt},
+    box/.style={draw, line width=1pt, minimum width=25pt, minimum height=25pt}
+]
+
+\node[dot] at (0,0) {};
+\draw[wire] (0,0) -- (1,0);
+\node [dot] at (1,0) {};
+
+\node at (2,0) {$=$};
+
+\end{tikzpicture}
+
+\caption{Extra special Frobenius axiom.}
+\label{fig:extra_frob}
+
+\end{figure}
+
+Diagrams in these categories can be pruned down to eliminate disconnected subgraphs and dead end branches.
+
+In this case we can take advantage of the fact that every node in the graph must be connected to an edge that is connected to the global outputs by some forward-directed path.
+
+Take an arbitrary node $n_0$ within a pruned graph $g$; since $n_0$ has not been pruned it must either:
+
+1. have an outgoing edge, or
+2. have an incoming edge that has other target nodes.
+
+In each case we can identify an edge $e_0$ as the starting point for our path.
+
+We can then construct a path to the output since:
+
+1. An edge in the path $e_i$ must have at least one target node which has a successor or is a global output, else it would have been pruned, so we can find a new node $n_i$.
+2. If $n_i$ is a global output then the path is terminated; otherwise there must be at least one outgoing edge $e_{i+1}$ which has target nodes.
+
+In the sequence of nodes $n_1, n_2, n_3 ...$ we cannot have $n_i = n_j$ for $i \ne j$ since there are no cycles, and the sequence must be finite, therefore it must eventually reach a global output.
+
+Furthermore, no other node can join to this output by the same set of directions, since nodes have unique incoming edges, and paths can only join into edges via differentiated ports. Since each output is uniquely coloured, and each node has a unique path to the an output, each node in the graph will be uniquely coloured in a pruned graph without cycles. This means that the graph colouring algorithm can complete without tree traversals in this case.
+
+### Copy Delete Categories
+
+Categories which have copy-delete structures (co-commutative comonoids) but _not_ the Markov/Cartesian rule that allows for pruning of the graph admit terms that have incomplete stable colourings which require exploration of a search tree. (See below: Non-Cartesian Categories.)
+
+## Cartesian Traced Monoidal Categories
+
+Categories of graphs which admit both branching and cylces admit ambiguities even in the case where we can delete disconnected subgraphs and dead ends.
+
+\begin{figure}[h]
+
+\begin{tikzpicture}[baseline={(current bounding box.center)},
+    wire/.style={line width=0.4pt, rounded corners=8pt},
+    dot/.style={circle, fill=black, inner sep=2pt},
+dot1/.style={circle, fill=blue, inner sep=2pt},
+dot2/.style={circle, fill=red, inner sep=2pt},
+    box/.style={draw, minimum width=25pt, minimum height=25pt}
+]
+
+
+\node[box] (F1) at (0,0) {$f$};
+\node[box] (F2) at (0,-2) {$f$};
+\node[box] (F3) at (2,-2) {$f$};
+
+\draw[wire] ($(F2.east) + (0, 0.1)$) -- ($(F3.west) + (0,0.1)$);
+\node[dot2] at (1,-1.9) {};
+
+\draw[wire] (F3.east) -- +(0.5, 0) .. controls +(0, 1) .. (1, -1) .. controls (-1, -1) .. (-1, -1.9) --  ($(F2.west) + (0, 0.1)$);
+\node[dot2] at (1,-1) {};
+
+\node[dot1] (d1) at (-3, -1) {};
+\draw[wire] (-4, -1) -- (-3, -1);
+
+\draw[wire] (-3, -1) .. controls (-2, -0.1) .. ($(F1.west) + (0, -0.1)$);
+
+\draw[wire] (F1.east) -- +(0.5, 0) .. controls +(0, 1) .. (0, 1)  -- +(-1, 0) .. controls +(0, -0.9) .. ($(F1.west) + (0, 0.1)$);
+\node[dot2] at (0, 1) {};
+
+\draw[wire] (d1) .. controls +(1, -1.1) .. ($(F2.west) + (0, -0.1)$);
+
+\draw[wire] (d1) .. controls +(1, -2) .. (0, -3) --  ($(F3.west) + (0, -0.1)$);
+
+\end{tikzpicture}
+
+\caption{An example of a hypergraph in a cartesian traced category which has a non-singleton colour set (shown in red) where not all nodes are related by automorphism. Each of the $f$-boxes would also be coloured identically in this graph. We can see that each red node is reachable from the blue node by an identical path (blue $\rightarrow$ input 0 of $f$ $\rightarrow$ output 0 of $f$ $\rightarrow$ red), and from each red node all paths alternate between the a red node and an $f$-box (input 1 and output 0); the identical paths to and from these nodes are what cause the colourings to be the same and stable. Nevertheless, it is clear that there is an automorphism which exchanges the two bottom red nodes, but not the upper red node.}
+\label{fig:cartesian_traced}
+
+\end{figure}
+
+In the above graph, nodes are labelled with a stable colouring ($C = \{1, 2\}$).
+
+We can see that each box has the same label, and has a node of colour $2$ as its first input and colour $1$ as its second input. Each branch from the node with colour $1$ enters into the second port of an $f$ box, and every node with colour $2$ goes from the output port of an $f$ box into the first input port of an $f$ box.
+
+Intuitively this produces a stable colouring because for each of the three branches coming from the first node we enter a loop where every colour sequence is the same (alternating between a node of colour 2 and an identical $f$ box), and each of these boxes is the same because they all connect to the unique colour hub node in the same way. The set of possible colour sequences from each of the nodes labeled $2$, or each of the $f$ boxes, is identical, and thus indistinguishable to the colouring algorithm. However, these colour groups cannot be broken arbitrarily, since there is no automorphism between the node in the top cycle and the nodes in the bottom cycle.
+
+For cartesian traced monoidal categories we must therefore explore a tree of possible colourings.
+
+## Non-Cartesian Theories
+
+In cases where sub-graphs cannot be deleted we can always construct graphs which lead to stable colourings that are not orbit partitions, even without cycles or splitting.
+
+\begin{figure}[h]
+
+\begin{tikzpicture}[baseline={(current bounding box.center)},
+    wire/.style={line width=0.4pt, rounded corners=8pt},
+    dot/.style={circle, fill=black, inner sep=2pt},
+dot1/.style={circle, fill=blue, inner sep=2pt},
+dot2/.style={circle, fill=red, inner sep=2pt},
+    box/.style={draw, minimum width=25pt, minimum height=25pt}
+]
+
+\node[dot] (i1) at (-1,2) {};
+\node[dot] (i2) at (-1,1) {};
+\node[dot] (i3) at (-1,0) {};
+\node[dot] (i4) at (-1,-1) {};
+\node[dot] (i5) at (-1,-2) {};
+
+\node[dot] (o1) at (7,2) {};
+\node[dot] (o2) at (7,1) {};
+\node[dot] (o3) at (7,0) {};
+\node[dot] (o4) at (7,-1) {};
+\node[dot] (o5) at (7,-2) {};
+
+\node[box] (f1) at (0, 2) {$f$};
+\node[box] (f2) at (0, 1) {$f$};
+\node[box] (f3) at (0, 0) {$f$};
+\node[box] (f4) at (0, -1) {$f$};
+\node[box] (f5) at (0, -2) {$f$};
+
+\node[box] (g1) at (3, 2) {$g$};
+\node[box] (g2) at (3, 1) {$g$};
+\node[box] (g3) at (3, 0) {$g$};
+\node[box] (g4) at (3, -1) {$g$};
+\node[box] (g5) at (3, -2) {$g$};
+
+\node[box] (h1) at (6, 2) {$h$};
+\node[box] (h2) at (6, 1) {$h$};
+\node[box] (h3) at (6, 0) {$h$};
+\node[box] (h4) at (6, -1) {$h$};
+\node[box] (h5) at (6, -2) {$h$};
+
+\draw[wire] (i1) -- (f1.west);
+\draw[wire] (i2) -- (f2.west);
+\draw[wire] (i3) -- (f3.west);
+\draw[wire] (i4) -- (f4.west);
+\draw[wire] (i5) -- (f5.west);
+
+
+\draw[wire] ($(f1.east) + (0, 0.2)$) -- ($(g1.west)+(0,-0.2)$);
+\draw[wire] ($(f2.east) + (0, 0.2)$) -- ($(g2.west)+(0,-0.2)$);
+\draw[wire] ($(f3.east) + (0, 0.2)$) -- ($(g3.west)+(0,-0.2)$);
+\draw[wire] ($(f4.east) + (0, 0.2)$) -- ($(g4.west)+(0,-0.2)$);
+\draw[wire] ($(f5.east) + (0, 0.2)$) -- ($(g5.west)+(0,-0.2)$);
+
+\draw[wire] ($(f1.east) + (0, -0.2)$) -- ($(g2.west)+(0,+0.2)$);
+\draw[wire] ($(f2.east) + (0, -0.2)$) -- ($(g3.west)+(0,+0.2)$);
+\draw[wire] ($(f3.east) + (0, -0.2)$) -- ($(g4.west)+(0,+0.2)$);
+\draw[wire] ($(f4.east) + (0, -0.2)$) -- ($(g5.west)+(0,+0.2)$);
+\draw[wire] ($(f5.east) + (0, -0.2)$) -- +(1.5,0) -- +(1.5,4.4) -- ($(g1.west)+(0,+0.2)$);
+
+\draw[wire] ($(g1.east) + (0, 0.2)$) -- ($(h1.west)+(0,-0.2)$);
+\draw[wire] ($(g2.east) + (0, 0.2)$) -- ($(h2.west)+(0,-0.2)$);
+\draw[wire] ($(g3.east) + (0, 0.2)$) -- ($(h3.west)+(0,-0.2)$);
+\draw[wire] ($(g4.east) + (0, 0.2)$) -- ($(h4.west)+(0,-0.2)$);
+\draw[wire] ($(g5.east) + (0, 0.2)$) -- ($(h5.west)+(0,-0.2)$);
+
+\draw[wire] ($(g1.east) + (0, -0.2)$) -- ($(h2.west)+(0,+0.2)$);
+\draw[wire] ($(g2.east) + (0, -0.2)$) -- +(1.5,0) -- +(1.5,1.4) -- ($(h1.west)+(0,+0.2)$);
+\draw[wire] ($(g3.east) + (0, -0.2)$) -- ($(h4.west)+(0,+0.2)$);
+\draw[wire] ($(g4.east) + (0, -0.2)$) -- ($(h5.west)+(0,+0.2)$);
+\draw[wire] ($(g5.east) + (0, -0.2)$) -- +(1.5,0) -- +(1.5,2.4) -- ($(h3.west)+(0,+0.2)$);
+
+\draw[wire] (h1.east) -- (o1);
+\draw[wire] (h2.east) -- (o2);
+\draw[wire] (h3.east) -- (o3);
+\draw[wire] (h4.east) -- (o4);
+\draw[wire] (h5.east) -- (o5);
+
+\end{tikzpicture}
+
+\caption{An example of a graph disconnected from the global interface which features nested helical symmetries. The wires between identical output/input ports of $g$-boxes and $h$-boxes will all have the same colouring after the initial colouring stabilisers, but divide into two separate orbits (equivalence classes under automorphism).}
+\label{fig:disconnected_helix}
+
+\end{figure}
+
+In this example we see again that we can create identically coloured paths by setting up cyclical-like structures of different sizes.
+
+## General Hypergraph Categories
+
+The most general case admits cycles, splitting, joining, and disconnected sub-graphs. As a result it is possible to represent all of the pathological examples given above, and more.
+
+
+# References

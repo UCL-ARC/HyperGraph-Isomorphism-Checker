@@ -81,9 +81,12 @@ class Diagram:
                 color = "black"
 
             if self.colouring is not None:
-                colour = "/set19/" + str(
-                    self.colouring.node_colouring.colouring[node.index] + 1
-                )
+                n_colour = self.colouring.node_colouring.colouring[node.index] + 1
+                if n_colour <= 9:
+                    colour = "/set19/" + str(n_colour)
+                else:
+                    colour = "/set28/" + str(n_colour - 9)
+
                 self.graphRep.node(
                     node_label, shape="circle", style="filled", fillcolor=colour
                 )
@@ -103,9 +106,11 @@ class Diagram:
             else:
                 color = "black"
             if self.colouring is not None:
-                colour = "/paired12/" + str(
-                    self.colouring.edge_colouring.colouring[hyperEdge.index] + 1
-                )
+                n_colour = self.colouring.edge_colouring.colouring[hyperEdge.index] + 1
+                if n_colour <= 12:
+                    colour = "/paired12/" + str(n_colour)
+                else:
+                    colour = "/pastel28/" + str(n_colour - 12)
                 self.graphRep.node(
                     edge_label, shape="box", style="filled", fillcolor=colour
                 )

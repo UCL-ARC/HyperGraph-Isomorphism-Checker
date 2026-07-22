@@ -268,7 +268,7 @@ class Isomorphism:
 
         print("check splitting")
         # nodes require the same amount of splitting in each directoin
-        if len(v1.next) != len(v2.next) or (len(v1.prev) != len(v2.prev)):
+        if len(v1.targets) != len(v2.targets) or (len(v1.sources) != len(v2.sources)):
             self.mapping_valid = False
             return
 
@@ -276,7 +276,7 @@ class Isomorphism:
         # matching_paths: list[list[int]] = [[] for i in range(num_nexts)]
         # print(f"Nexts = {v1.next, v2.next}")
         # eliminated_paths = {i: False for i in range(num_nexts)}
-        if len(v1.next) > 1:
+        if len(v1.targets) > 1:
             raise RuntimeError("Branching paths algorithm in progress")
             # for i, next1 in enumerate(v1.next):
             #     # attempt to find a matching path in g2
@@ -306,11 +306,11 @@ class Isomorphism:
 
             # explore paths starting with the minimal branching
         else:
-            next1, next2 = head(v1.next), head(v2.next)
+            next1, next2 = head(v1.targets), head(v2.targets)
             if self.check_edges_for_continuation(next1, next2):
                 self.explore_edges(next1.index, next2.index)
 
-            prev1, prev2 = head(v1.prev), head(v2.prev)
+            prev1, prev2 = head(v1.sources), head(v2.sources)
             if self.check_edges_for_continuation(prev1, prev2):
                 self.explore_edges(prev1.index, prev2.index)
 
@@ -421,16 +421,16 @@ def get_connected_subgraphs(
         added_nodes[node_idx] = True
         next_edge = (
             None
-            if head(g.nodes[node_idx].next) is None
-            else head(g.nodes[node_idx].next).index
+            if head(g.nodes[node_idx].targets) is None
+            else head(g.nodes[node_idx].targets).index
         )
         if next_edge is not None:
             traverse_connected_graph_from_edge(next_edge, node_list, edge_list)
 
         prev_edge = (
             None
-            if head(g.nodes[node_idx].prev) is None
-            else head(g.nodes[node_idx].prev).index
+            if head(g.nodes[node_idx].sources) is None
+            else head(g.nodes[node_idx].sources).index
         )
         if prev_edge is not None:
             traverse_connected_graph_from_edge(prev_edge, node_list, edge_list)
@@ -591,8 +591,8 @@ def construct_neighbour_map(g: OpenHypergraph, sg: SubGraph | None = None):
 
 
 def construct_node_key(v: Node):
-    e_n = head(v.next)  # TODO: Update to handle non-monogamous?
-    e_p = head(v.prev)
+    e_n = head(v.targets)  # TODO: Update to handle non-monogamous?
+    e_p = head(v.sources)
 
     def edge_sig(e):
         if e is None:
@@ -770,9 +770,9 @@ def AssignColours(
 
 def GetNodeColourKey(colours: Colouring, v: Node):
     """Gather the colours of adjoining edges and convert it into a hashable key"""
-    prevs = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.prev]
+    prevs = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.sources]
     prevs.sort()
-    nexts = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.next]
+    nexts = [(colours.edge_colouring.colouring[e.index], e.port) for e in v.targets]
     nexts.sort()
     key = f"{prevs}:{nexts}"
     return key

@@ -1,0 +1,317 @@
+from IsomorphismChecker_python_serial.hypergraph import (
+    FlatHypergraph,
+    SegmentedArray,
+)
+
+import numpy as np
+from IsomorphismChecker_python_serial import data_parallel_primitives as dpp
+
+
+def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
+    ## Check size and type compatibility of vertices and edges
+    if g1.num_nodes != g2.num_nodes:
+        return False
+
+    if g1.num_edges != g2.num_edges:
+        return False
+
+    getNodeTypes = lambda g: [
+        (g.node_labels[i], g.node_sources.sizes[i], g.node_targets.sizes[i])
+        for i in range(g.num_nodes)
+    ]
+    node_types1 = getNodeTypes(g1)
+    node_types2 = getNodeTypes(g2)
+    dpp.sort(node_types1)
+    dpp.sort(node_types2)
+    if node_types1 != node_types2:
+        return False
+
+    getEdgeTypes = lambda g: [
+        (g.edge_labels[i], g.edge_sources.sizes[i], g.edge_targets.sizes[i])
+        for i in range(g.num_edges)
+    ]
+    edge_types1 = getEdgeTypes(g1)
+    edge_types2 = getEdgeTypes(g2)
+    dpp.sort(edge_types1)
+    dpp.sort(edge_types2)
+    if edge_types1 != edge_types2:
+        return False
+
+    ## Check size and type compatibility of global interface
+    if g1.num_inputs != g2.num_inputs:
+        return False
+
+    if len(g1.global_interface) != len(g2.global_interface):
+        return False
+
+    for i in range(len(g1.global_interface)):
+        if (
+            g1.node_labels[g1.global_interface[i]]
+            != g2.node_labels[g2.global_interface[i]]
+        ):
+            return False
+
+
+class ColourData:
+    def __init__(self, num_nodes: int):
+        self.v2c = np.array([-1] * num_nodes)
+        self.c2v = np.array([-1] * num_nodes)
+        self.c_sizes = np.array([0] * num_nodes)
+        self.deltas = np.array([(-1, -1)] * num_nodes)
+
+    def __repr__(self):
+        return (
+            "ColourData(\n"
+            f"  v2c={self.v2c},\n"
+            f"  c2v={self.c2v},\n"
+            f"  c_sizes={self.c_sizes},\n"
+            f"  deltas={self.deltas}\n"
+            ")"
+        )
+
+
+def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
+    N_int = len(g.global_interface)
+    P = np.arange(N_int, dtype=np.int64)
+    I = g.global_interface
+    I, P = dpp.stable_sort_by_key(I, P)
+
+    B = dpp.genChangeArray(N_int, I)
+
+    S = dpp.prefix_sum(B)  ## S[i] <= i
+
+    c_max = S[N_int - 1]
+    P_prime = np.zeros(c_max + 1, dtype=np.int64)
+    I_prime = np.zeros(c_max + 1, dtype=np.int64)
+
+    ## not trivially parallelisable if done in place (reusing I & P)
+    for i in range(N_int):
+        if B[i]:
+            I_prime[S[i]] = I[i]
+            P_prime[S[i]] = P[i]
+
+    P_prime, I_prime = dpp.sort_by_key(P_prime, I_prime)
+    ## trivially parallelisable
+    for i in range(c_max + 1):
+        colouring.c2v[i] = I_prime[i]
+        colouring.c_sizes[i] = 1
+        colouring.v2c[I_prime[i]] = i
+        colouring.deltas[i] = (i, 1)
+
+    return c_max
+
+
+def InitialColouring(
+    g: FlatHypergraph,
+    node_colouring: ColourData,
+    edge_colouring: ColourData,
+    c_max: int,
+):
+    """Assigns colours to the remaining nodes and edges after the interface"""
+    ## Assign the remaining node colours
+    nodeKeys = np.array(
+        [(-1, -1, -1)] * g.num_nodes
+    )  # In practice this would be e.g. 3 16-bit ints packed into a 64 bit value
+    ## trivially parallelisable
+    for i in range(g.num_nodes):
+        if node_colouring.v2c[i] == -1:
+            nodeKeys[i] = [
+                g.node_labels[i],
+                g.node_sources.sizes[i],
+                g.node_targets.sizes[i],
+            ]
+
+    i_max_nodes = initialiseColoursFromKeys(
+        g.num_nodes, node_colouring, c_max, nodeKeys
+    )
+
+    edgeKeys = np.array([(-1, -1, -1)] * g.num_edges)
+    ## trivially parallelisable
+    for i in range(g.num_edges):
+        edgeKeys[i] = [
+            g.edge_labels[i],
+            g.edge_sources.sizes[i],
+            g.edge_targets.sizes[i],
+        ]
+
+    i_max_edges = initialiseColoursFromKeys(g.num_edges, edge_colouring, -1, edgeKeys)
+
+    return (c_max + i_max_nodes, i_max_edges)
+
+
+def initialiseColoursFromKeys(N, colouring, c_max, keys):
+    """c_max the the most recently filled after the global interface. It is -1 if nothing has been coloured.
+    All assigned colours up to this point are guaranteed to be unique."""
+    c_next = c_max + 1
+    subsize = N - (c_next)  # number of elements yet to be coloured
+
+    P = np.arange(N, dtype=np.int64)
+    keys, P = dpp.sort_packed_by_key(keys, P)
+
+    B = dpp.genChangeArray(subsize, keys[c_next:], lambda a, b: np.array_equal(a, b))
+    S = dpp.prefix_sum(B)
+
+    i_max = S[subsize - 1] + 1
+    workspace = np.array([0] * (i_max + 1))  # size at most N+1
+    workspace[i_max] = N
+
+    ## trivially parallelisable
+    for i in range(subsize):
+        if i == 0 or B[i] == 1:
+            workspace[S[i]] = i + c_next
+
+    ## trivially parallelisable and collapsible
+    for i in range(i_max):
+        n = workspace[i + 1] - workspace[i]
+        c = workspace[i]
+        colouring.c_sizes[c] = n
+        colouring.deltas[c_max + i] = (c, n)
+        for j in range(n):
+            colouring.c2v[c + j] = P[c + j]
+            colouring.v2c[P[c + j]] = c
+    return i_max  ## next delta entry index
+
+
+def setupColourCellKeyArrays(
+    N,
+    sources: SegmentedArray,
+    targets: SegmentedArray,
+    cell_keys: SegmentedArray,
+    colouring: ColourData,
+):
+    """This needs to be called after the initial colouring but before colour refinement. This allows us to know the size of the key
+    required for each different colour that will be assigned. (When a colour cell is split, all new colours within that block will
+    still have the same size key, so the initial colouring suffices.)"""
+    for c in range(N):
+        colour_rep = colouring.c2v[c]
+        key_size = sources.sizes[colour_rep] + targets.sizes[colour_rep]
+        cell_keys.sizes[c] = key_size
+    cell_keys.initials = dpp.prefix_sum(cell_keys.sizes) - cell_keys.sizes[0]
+
+
+def constructEdgeColourKeys(
+    N: int,
+    keys: SegmentedArray,
+    sources: SegmentedArray,
+    targets: SegmentedArray,
+    neighbour_colouring: ColourData,
+):
+    """Trivially paralellisable function to construct all node keys. Each node can have its
+    key constructed in parallel. The bottleneck is the sort operations for each key which
+    can be avoided if hashing is used."""
+    for i in range(N):
+        start_idx = keys.initials[i]
+
+        ## construct and sort the source subarray
+        source_size = sources.sizes[i]
+        source_idx = sources.initials[i]
+        local_sources = sources.elements[source_idx : source_idx + source_size]
+        segment = keys.elements[start_idx : start_idx + source_size]
+        segment[:] = [neighbour_colouring.v2c[e] for e in local_sources]
+
+        # do the same for targets
+        target_size = targets.sizes[i]
+        target_idx = targets.initials[i]
+        local_targets = targets.elements[target_idx : target_idx + target_size]
+        segment = keys.elements[
+            start_idx + source_size : start_idx + source_size + target_size
+        ]
+        segment[:] = [neighbour_colouring.v2c[e] for e in local_targets]
+
+
+def constructNodeColourKeys(
+    N: int,
+    keys: SegmentedArray,
+    sources: SegmentedArray,
+    s_ports: SegmentedArray,
+    targets: SegmentedArray,
+    t_ports: SegmentedArray,
+    neighbour_colouring: ColourData,
+):
+    """Trivially paralellisable function to construct all node keys. Each node can have its
+    key constructed in parallel. The bottleneck is the sort operations for each key which
+    can be avoided if hashing is used."""
+    for i in range(N):
+        start_idx = keys.initials[i]
+
+        ## construct and sort the source subarray
+        source_size = sources.sizes[i]
+        source_idx = sources.initials[i]
+        local_sources = sources.elements[source_idx : source_idx + source_size]
+        local_s_ports = s_ports.elements[source_idx : source_idx + source_size]
+        segment = keys.elements[start_idx : start_idx + source_size]
+        for j in range(source_size):
+            segment[j] = (
+                neighbour_colouring.v2c[local_sources[j]] << 16
+            ) | local_s_ports[j]
+        segment[:] = dpp.sort(segment)
+
+        # do the same for targets
+        target_size = targets.sizes[i]
+        print(f"Size of targets for {i} is {target_size} = {targets.sizes[i]}")
+        target_idx = targets.initials[i]
+        local_targets = targets.elements[target_idx : target_idx + target_size]
+        local_t_ports = t_ports.elements[target_idx : target_idx + target_size]
+        segment = keys.elements[
+            start_idx + source_size : start_idx + source_size + target_size
+        ]
+        for j in range(target_size):
+            segment[j] = (
+                neighbour_colouring.v2c[local_targets[j]] << 16
+            ) | local_t_ports[j]
+        segment[:] = dpp.sort(segment)
+
+
+def colourSetDecomposition(
+    N: int, cellKeys: SegmentedArray, keys: SegmentedArray, colouring: ColourData
+):
+    ## for each colour we need to decompose the set if the size > 1
+    for c in range(N):
+        print(c)
+        if colouring.c_sizes[c] > 1:
+            cell_size = colouring.c_sizes[c]
+            segment = colouring.c2v[c : c + cell_size]
+            cellKeys_start_idx = cellKeys.initials[c]
+            key_size = cellKeys.sizes[c]
+            ## copy all keys for this cell into their segment
+            # for i in range(size):
+            #    cell_idx = cellKeys_start_idx + i*key_size
+            #    v = segment[i]
+            #    vKey_idx = keys.initials[v]
+            #    key = keys.elements[vKey_idx:vKey_idx+key_size]
+            #    cellKeys.element[cell_idx:cell_idx+key_size] = key
+
+            ## for simpler sequential sorting arrange the keys (a, b, c...) as
+            ## [a0, b0, c0, ..., a1, b1, c1, ...]
+            ## Then we can sort the string by stable sorting the segments left to
+            ## right
+            for i in range(cell_size):
+                cell_idx = cellKeys_start_idx + i
+                v = segment[i]
+                vKey_idx = keys.initials[v]
+                key = keys.elements[vKey_idx : vKey_idx + key_size]
+                for j in range(key_size):
+                    cellKeys.elements[cell_idx + j * cell_size] = key[j]
+
+            ## sort these keys
+            ## for key of length k this does k sort operations on n elements
+            key_segment = cellKeys.elements[
+                cellKeys_start_idx : cellKeys_start_idx + (cell_size * key_size)
+            ]
+            print(key_segment, cell_size, key_size)
+            P = dpp.sort_str_by_key(key_segment, cell_size, key_size)
+            print(P, cell_size, P.size, key_size)
+
+            ## generating the bool array is now linear in the size of the key
+            ## due to the equality check over an array
+            B = np.array([0] * cell_size)  # combined this is just an array of length N
+            for i in range(1, cell_size):
+                v_i = P[i]
+                v_im1 = P[i - 1]
+                ki_idx = keys.initials[v_i]
+                kim1_idx = keys.initials[v_im1]
+                key_i = keys.elements[ki_idx : ki_idx + key_size]
+                key_im1 = keys.elements[kim1_idx : kim1_idx + key_size]
+                if not np.array_equal(key_i, key_im1):
+                    B[i] = 1
+            print(B)

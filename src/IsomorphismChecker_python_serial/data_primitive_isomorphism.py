@@ -6,8 +6,6 @@ from IsomorphismChecker_python_serial.hypergraph import (
 import numpy as np
 from IsomorphismChecker_python_serial import data_parallel_primitives as dpp
 
-from dataclasses import dataclass
-
 
 def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
     ## Check size and type compatibility of vertices and edges
@@ -53,6 +51,9 @@ def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
         ):
             return False
 
+    # pass all checks
+    return True
+
 
 class ColourData:
     def __init__(self, N: int):
@@ -77,11 +78,11 @@ class ColourData:
         )
 
 
-@dataclass
 class ColouredGraph:
-    g: FlatHypergraph
-    vertexColours: ColourData
-    edgeColours: ColourData
+    def __init__(self, g: FlatHypergraph):
+        self.g = g
+        self.vertexColours = ColourData(g.num_nodes)
+        self.edgeColours = ColourData(g.num_edges)
 
 
 def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
@@ -518,7 +519,7 @@ def rollBackColouring(colouring: ColourData, t: int):
             colouring.c_sizes[previous_colour] += cell_size
 
 
-def checkIsomorphism(cg1: ColouredGraph, cg2: ColouredGraph):
+def checkIsomorphism(cg1: ColouredGraph, cg2: ColouredGraph) -> bool:
     """Checks that two given graphs with discrete colourings are isomorphic"""
     # Check the nodes are compatible
     # Start with the interface
@@ -566,3 +567,46 @@ def checkIsomorphism(cg1: ColouredGraph, cg2: ColouredGraph):
                 return False
 
     return True
+
+
+def determineIsomorphism(g1: FlatHypergraph, g2: FlatHypergraph):
+    """Complete isomorphism procedure for two hypergraphs."""
+
+    ## Initial compatibility checks
+    if not InitialCompare(g1, g2):
+        return False
+
+    ## Initial colourings
+    cg1 = ColouredGraph(g1)
+    cg2 = ColouredGraph(g2)
+
+    cmax1 = ColourGlobalInterface(cg1.g, cg1.vertexColours)
+    cmax2 = ColourGlobalInterface(cg2.g, cg2.vertexColours)
+
+    if not (cmax1 == cmax2):
+        return False
+
+    InitialColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, cmax1)
+    InitialColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, cmax2)
+
+    if not compareNodeInvariant(cg1, cg2):
+        return False
+
+    ## Initial convergence for both graphs; we can put more checks in if we combine these into one function
+    t1 = convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, 2)
+    t2 = convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, 2)
+    if not (t1 == t2):
+        return False
+    if not compareNodeInvariant(cg1, cg2):
+        return False
+
+    ## Recursive tree search
+    if not (
+        checkCompleteness(cg1.vertexColours, cg1.edgeColours)
+        and checkCompleteness(cg2.vertexColours, cg2.edgeColours)
+    ):
+        if not processStableColourings(cg1, cg2, t1):
+            return False
+
+    ## Isomorphism check
+    return checkIsomorphism(cg1, cg2)

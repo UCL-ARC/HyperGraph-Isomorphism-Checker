@@ -36,6 +36,10 @@ def prefix_sum(A):
     return np.cumulative_sum(A)
 
 
+def max_scan(A):
+    return np.maximum.accumulate(A)
+
+
 def unique(inputs):
     """Analogous to thrust::unique / thrust::unique_by_key"""
 

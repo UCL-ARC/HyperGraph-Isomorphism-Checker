@@ -56,8 +56,12 @@ class ColourData:
     def __init__(self, num_nodes: int):
         self.v2c = np.array([-1] * num_nodes)
         self.c2v = np.array([-1] * num_nodes)
+        self.c2v_dummy = np.array([-1] * num_nodes)
         self.c_sizes = np.array([0] * num_nodes)
+        self.c_sizes_dummy = np.array([0] * num_nodes)
         self.deltas = np.array([(-1, -1)] * num_nodes)
+        self.Delta = np.array([0] * num_nodes)
+        self.Delta_t = np.array([-1] * num_nodes)
 
     def __repr__(self):
         return (
@@ -93,9 +97,12 @@ def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
     P_prime, I_prime = dpp.sort_by_key(P_prime, I_prime)
     ## trivially parallelisable
     for i in range(c_max + 1):
+        c = I_prime[i]
         colouring.c2v[i] = I_prime[i]
         colouring.c_sizes[i] = 1
-        colouring.v2c[I_prime[i]] = i
+        colouring.v2c[c] = i
+        colouring.Delta[c] = 1
+        colouring.Delta_t[c] = 0
         colouring.deltas[i] = (i, 1)
 
     return c_max
@@ -165,6 +172,8 @@ def initialiseColoursFromKeys(N, colouring, c_max, keys):
         n = workspace[i + 1] - workspace[i]
         c = workspace[i]
         colouring.c_sizes[c] = n
+        colouring.Delta[c] = N
+        colouring.Delta[c] = 1
         colouring.deltas[c_max + i] = (c, n)
         for j in range(n):
             colouring.c2v[c + j] = P[c + j]
@@ -263,7 +272,11 @@ def constructNodeColourKeys(
 
 
 def colourSetDecomposition(
-    N: int, cellKeys: SegmentedArray, keys: SegmentedArray, colouring: ColourData
+    N: int,
+    cellKeys: SegmentedArray,
+    keys: SegmentedArray,
+    colouring: ColourData,
+    t: int,
 ):
     ## for each colour we need to decompose the set if the size > 1
     for c in range(N):
@@ -302,7 +315,7 @@ def colourSetDecomposition(
             P = dpp.sort_str_by_key(key_segment, cell_size, key_size)
             print(P, cell_size, P.size, key_size)
 
-            ## generating the bool array is now linear in the size of the key
+            ## generating the counting array is now linear in the size of the key
             ## due to the equality check over an array
             B = np.array([0] * cell_size)  # combined this is just an array of length N
             for i in range(1, cell_size):
@@ -313,5 +326,93 @@ def colourSetDecomposition(
                 key_i = keys.elements[ki_idx : ki_idx + key_size]
                 key_im1 = keys.elements[kim1_idx : kim1_idx + key_size]
                 if not np.array_equal(key_i, key_im1):
-                    B[i] = 1
-            print(B)
+                    B[i] = i
+
+            S = dpp.max_scan(B)  ## S now contains the offsets from the original colour
+
+            # helper function to avoid code repetition
+            def recordNewCell(colouring, t, c, size):
+                colouring.c_sizes[c] = size
+                colouring.Delta[c] = size
+                colouring.Delta_t[c] = t
+
+            # Only need to proceed if there is at least one key that is different
+            if S[cell_size - 1] != 0:
+                # make a copy of the relevant data from colouring so that we can read and update
+                # in parallel; only necessary if this loop needs to be parallelised
+                colouring.c2v_dummy[c : c + cell_size] = colouring.c2v[
+                    c : c + cell_size
+                ]
+                for j in range(cell_size):
+                    v = colouring.c2v_dummy[c + P[j]]
+                    colouring.v2c[v] = c + S[j]
+                    colouring.c2v[c + j] = v
+                    if B[j] != 0:
+                        diff = S[j] - S[j - 1]
+                        recordNewCell(colouring, t, c + j - diff, diff)
+                diff = cell_size - S[cell_size - 1]
+                recordNewCell(colouring, t, c + cell_size - diff, diff)
+
+
+def refineColouring(
+    g: FlatHypergraph, vertex_colours: ColourData, edge_colours: ColourData, t: int
+):
+    """Perform a single step of colour refinement on a graph"""
+    constructNodeColourKeys(
+        g.num_nodes,
+        g.node_keys,
+        g.node_sources,
+        g.node_s_ports,
+        g.node_targets,
+        g.node_t_ports,
+        edge_colours,
+    )
+    colourSetDecomposition(
+        g.num_nodes, g.node_cell_keys, g.node_keys, vertex_colours, t
+    )
+
+    constructEdgeColourKeys(
+        g.num_edges, g.edge_keys, g.edge_sources, g.edge_targets, vertex_colours
+    )
+    colourSetDecomposition(g.num_edges, g.edge_cell_keys, g.edge_keys, edge_colours, t)
+
+
+def convergeColouring(
+    g: FlatHypergraph, vertex_colours: ColourData, edge_colours: ColourData, t: int
+):
+    """Apply colour refinement until it has stabilised"""
+    # Convergence criterion could also be implemented by setting a flag when updating
+    # colours and then performing a reduction over those values to detect changes
+    def converged():
+        vertices_converged = np.all(vertex_colours.Delta_t < t)
+        edges_converged = np.all(edge_colours.Delta_t < t)
+        return vertices_converged and edges_converged
+
+    while not converged():
+        t += 1
+        refineColouring(g, vertex_colours, edge_colours, t)
+
+
+def checkCompleteness():
+    """Check whether the colouring is discrete"""
+    pass
+
+
+def selectTargetCell():
+    """Select a colour to force refinement"""
+    pass
+
+
+def exploreBranches():
+    """Explores possibilities in g2 for matching g1
+    If no branches give a positive match then the graphs are not isomorphic"""
+
+
+def compareNodeInvariant():
+    """Check that the histories of the two graphs are sufficiently similar"""
+    pass
+
+
+def rollBackColouring(t: int):
+    """Roll back the colouring to step t"""
+    pass

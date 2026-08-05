@@ -6,6 +6,8 @@ from IsomorphismChecker_python_serial.hypergraph import (
 import numpy as np
 from IsomorphismChecker_python_serial import data_parallel_primitives as dpp
 
+from dataclasses import dataclass
+
 
 def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
     ## Check size and type compatibility of vertices and edges
@@ -53,15 +55,16 @@ def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
 
 
 class ColourData:
-    def __init__(self, num_nodes: int):
-        self.v2c = np.array([-1] * num_nodes)
-        self.c2v = np.array([-1] * num_nodes)
-        self.c2v_dummy = np.array([-1] * num_nodes)
-        self.c_sizes = np.array([0] * num_nodes)
-        self.c_sizes_dummy = np.array([0] * num_nodes)
-        self.deltas = np.array([(-1, -1)] * num_nodes)
-        self.Delta = np.array([0] * num_nodes)
-        self.Delta_t = np.array([-1] * num_nodes)
+    def __init__(self, N: int):
+        self.v2c = np.array([-1] * N)
+        self.c2v = np.array([-1] * N)
+        self.c2v_dummy = np.array([-1] * N)
+        self.c_sizes = np.array([0] * N)
+        self.c_sizes_dummy = np.array([0] * N)
+        self.deltas = np.array([(-1, -1)] * N)
+        self.Delta = np.array([0] * N)
+        self.Delta_t = np.array([-1] * N)
+        self.size = N
 
     def __repr__(self):
         return (
@@ -72,6 +75,13 @@ class ColourData:
             f"  deltas={self.deltas}\n"
             ")"
         )
+
+
+@dataclass
+class ColouredGraph:
+    g: FlatHypergraph
+    vertexColours: ColourData
+    edgeColours: ColourData
 
 
 def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
@@ -393,26 +403,91 @@ def convergeColouring(
         refineColouring(g, vertex_colours, edge_colours, t)
 
 
-def checkCompleteness():
+def checkCompleteness(vertex_colours: ColourData, edge_colours: ColourData):
     """Check whether the colouring is discrete"""
-    pass
+    vertices_discrete = np.all(vertex_colours.c_sizes == 1)
+    edges_discrete = np.all(edge_colours.c_sizes == 1)
+    return vertices_discrete and edges_discrete
 
 
-def selectTargetCell():
+def selectTargetCell(colouring: ColourData):
     """Select a colour to force refinement"""
-    pass
+    S, C = dpp.stable_sort_by_key(colouring.c_sizes, np.arange(colouring.c_sizes.size))
+    for s, c in zip(S, C):
+        if s > 1:
+            return c
+    raise LookupError("No valid target cells found.")
 
 
-def exploreBranches():
+def exploreBranches(cg1: ColouredGraph, cg2: ColouredGraph, target_colour: int, t: int):
     """Explores possibilities in g2 for matching g1
     If no branches give a positive match then the graphs are not isomorphic"""
+    # start by recolouring an element of the target cell in g1
+    target_cell_size = cg1.vertexColours.c_sizes[target_colour]
+    new_colour = target_colour + target_cell_size - 1
+    target_vertex = cg1.vertexColours.c2v[new_colour]
+    recolourTarget(cg1.vertexColours, target_colour, new_colour, target_vertex, t)
+
+    # Propragate the consequences in g1
+    convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, t)
+
+    # search for a matching solution in g2
+    for i in range(target_cell_size):
+        if checkBranch(cg1, cg2, target_colour, new_colour, i, t):
+            return True
+        else:
+            # unroll changes to c2 before trying again!
+            rollBackColouring(cg2.vertexColours, t)
+            rollBackColouring(cg2.edgeColours, t)
+
+    return False
 
 
-def compareNodeInvariant():
+def checkBranch(cg1, cg2, target_colour, new_colour, i, t):
+    target_vertex2 = cg2.vertexColours.c2v[target_colour + i]
+    recolourTarget(cg2.vertexColours, target_colour, new_colour, target_vertex2, t)
+    convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, t)
+    # Compare the results of the recolouring to see if this is valid so far
+    if not compareNodeInvariant(cg1, cg2):
+        return False
+    else:
+        # Recursively check for more refinements to be made.
+        return True
+
+
+def recolourTarget(colouring1, target_colour, new_colour, target_vertex, t):
+    colouring1.v2c[target_vertex] = new_colour
+    colouring1.c_sizes[new_colour] = 1
+    colouring1.c_sizes[target_colour] -= 1
+    colouring1.Delta[new_colour] = 1
+    colouring1.Delta_t[new_colour] = t
+
+
+def compareNodeInvariant(cg1: ColouredGraph, cg2: ColouredGraph) -> bool:
     """Check that the histories of the two graphs are sufficiently similar"""
-    pass
+    match_v_history = np.all(
+        cg1.vertexColours.Delta == cg2.vertexColours.Delta
+    ) and np.all(cg1.vertexColours.Delta_t == cg2.vertexColours.Delta_t)
+    match_e_history = np.all(cg1.edgeColours.Delta == cg2.edgeColours.Delta) and np.all(
+        cg1.edgeColours.Delta_t == cg2.edgeColours.Delta_t
+    )
+    return match_v_history and match_e_history
 
 
-def rollBackColouring(t: int):
+def rollBackColouring(colouring: ColourData, t: int):
     """Roll back the colouring to step t"""
-    pass
+    for i in range(colouring.size):
+        if colouring.Delta_t[i] > t:
+            cell_size = colouring.c_sizes[i]
+            # search for its previous colour
+            previous_colour = 0
+            for j in range(i - 1, -1, -1):
+                if colouring.Delta_t[j] <= t:
+                    previous_colour = j
+            for j in range(cell_size):
+                v = colouring.c2v[j]
+                colouring.v2c[v] = previous_colour
+            colouring.Delta[i] = 0
+            colouring.Delta_t[i] = -1
+            # this would need to reformulated as a reduction
+            colouring.c_sizes[previous_colour] += cell_size

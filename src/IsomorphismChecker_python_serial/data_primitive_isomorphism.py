@@ -491,3 +491,53 @@ def rollBackColouring(colouring: ColourData, t: int):
             colouring.Delta_t[i] = -1
             # this would need to reformulated as a reduction
             colouring.c_sizes[previous_colour] += cell_size
+
+
+def checkIsomorphism(cg1: ColouredGraph, cg2: ColouredGraph):
+    """Checks that two given graphs with discrete colourings are isomorphic"""
+    # Check the nodes are compatible
+    # Start with the interface
+    if (cg1.g.num_inputs != cg2.g.num_inputs) or (
+        len(cg1.g.global_interface) != len(cg2.g.global_interface)
+    ):
+        return False
+
+    for i in range(cg1.g.num_inputs):
+        v1 = cg1.g.global_interface[i]
+        v2 = cg2.g.global_interface[i]
+        if cg1.vertexColours.v2c[v1] != cg2.vertexColours.v2c[v2]:
+            return False
+
+    for c in range(cg1.g.num_nodes):
+        v1 = cg1.vertexColours.c2v[c]
+        v2 = cg2.vertexColours.c2v[c]
+        if cg1.g.node_labels[v1] != cg2.g.node_labels[v2]:
+            return False
+
+    # Check the edges
+    for c in range(cg1.g.num_edges):
+        e1 = cg1.edgeColours.c2v[c]
+        e2 = cg1.edgeColours.c2v[c]
+        if cg1.g.edge_labels[e1] != cg2.g.edge_labels[e2]:
+            return False
+        if cg1.g.edge_sources.sizes[e1] != cg2.g.edge_sources.sizes[e2]:
+            return False
+        if cg1.g.edge_targets.sizes[e1] != cg2.g.edge_targets.sizes[e2]:
+            return False
+        s_idx1 = cg1.g.edge_sources.initials[e1]
+        s_idx2 = cg2.g.edge_sources.initials[e2]
+        for s in range(cg1.g.edge_sources.sizes[e1]):
+            v1 = cg1.g.edge_sources.elements[s_idx1 + s]
+            v2 = cg2.g.edge_sources.elements[s_idx2 + s]
+            if cg1.vertexColours.v2c[v1] != cg2.vertexColours.v2c[v2]:
+                return False
+
+        t_idx1 = cg1.g.edge_targets.initials[e1]
+        t_idx2 = cg2.g.edge_targets.initials[e2]
+        for t in range(cg1.g.edge_targets.sizes[e1]):
+            v1 = cg1.g.edge_targets.elements[t_idx1 + t]
+            v2 = cg2.g.edge_targets.elements[t_idx2 + t]
+            if cg1.vertexColours.v2c[v1] != cg2.vertexColours.v2c[v2]:
+                return False
+
+    return True

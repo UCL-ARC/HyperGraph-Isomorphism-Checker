@@ -401,13 +401,30 @@ def convergeColouring(
     while not converged():
         t += 1
         refineColouring(g, vertex_colours, edge_colours, t)
+    return t
 
 
 def checkCompleteness(vertex_colours: ColourData, edge_colours: ColourData):
     """Check whether the colouring is discrete"""
     vertices_discrete = np.all(vertex_colours.c_sizes == 1)
     edges_discrete = np.all(edge_colours.c_sizes == 1)
-    return vertices_discrete and edges_discrete
+    return (vertices_discrete, edges_discrete)
+
+
+def processStableColourings(cg1: ColouredGraph, cg2: ColouredGraph, t: int) -> bool:
+    (v_discrete, e_discrete) = checkCompleteness(cg1.vertexColours, cg1.edgeColours)
+    # at this point since the histories are identical the same must be true of cg2
+
+    if v_discrete and e_discrete:
+        # we're done!
+        return True
+    elif not v_discrete:
+        c = selectTargetCell(cg1.vertexColours)
+        return exploreBranches(cg1, cg2, c, t)
+    else:
+        # need to implement explore for edges
+        c = selectTargetCell(cg1.edgeColours)
+        return exploreBranches(cg1, cg2, c, t)
 
 
 def selectTargetCell(colouring: ColourData):
@@ -419,21 +436,27 @@ def selectTargetCell(colouring: ColourData):
     raise LookupError("No valid target cells found.")
 
 
-def exploreBranches(cg1: ColouredGraph, cg2: ColouredGraph, target_colour: int, t: int):
+def exploreBranches(
+    cg1: ColouredGraph,
+    cg2: ColouredGraph,
+    target_colour: int,
+    t: int,
+    recolour_edges=False,
+) -> bool:
     """Explores possibilities in g2 for matching g1
     If no branches give a positive match then the graphs are not isomorphic"""
     # start by recolouring an element of the target cell in g1
     target_cell_size = cg1.vertexColours.c_sizes[target_colour]
     new_colour = target_colour + target_cell_size - 1
     target_vertex = cg1.vertexColours.c2v[new_colour]
-    recolourTarget(cg1.vertexColours, target_colour, new_colour, target_vertex, t)
+    recolourTarget(cg1.vertexColours, target_colour, new_colour, target_vertex, t + 1)
 
     # Propragate the consequences in g1
-    convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, t)
+    t1 = convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, t + 1)
 
     # search for a matching solution in g2
     for i in range(target_cell_size):
-        if checkBranch(cg1, cg2, target_colour, new_colour, i, t):
+        if checkBranch(cg1, cg2, target_colour, new_colour, i, t1, t):
             return True
         else:
             # unroll changes to c2 before trying again!
@@ -443,16 +466,18 @@ def exploreBranches(cg1: ColouredGraph, cg2: ColouredGraph, target_colour: int, 
     return False
 
 
-def checkBranch(cg1, cg2, target_colour, new_colour, i, t):
+def checkBranch(cg1, cg2, target_colour, new_colour, i, t1, t) -> bool:
     target_vertex2 = cg2.vertexColours.c2v[target_colour + i]
-    recolourTarget(cg2.vertexColours, target_colour, new_colour, target_vertex2, t)
-    convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, t)
+    recolourTarget(cg2.vertexColours, target_colour, new_colour, target_vertex2, t + 1)
+    t2 = convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, t + 1)
+    if t1 != t2:
+        return False
     # Compare the results of the recolouring to see if this is valid so far
     if not compareNodeInvariant(cg1, cg2):
         return False
     else:
         # Recursively check for more refinements to be made.
-        return True
+        return processStableColourings(cg1, cg2, t1)
 
 
 def recolourTarget(colouring1, target_colour, new_colour, target_vertex, t):

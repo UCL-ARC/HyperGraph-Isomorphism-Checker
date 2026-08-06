@@ -72,6 +72,19 @@ def test_interface_colour():
 
 def test_initial_colour():
     g = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
+    node_colouring, edge_colouring = flatten_and_init_colour(g)
+    assert np.all(node_colouring.v2c == np.array([0, 1, 2, 5, 3, 4, 6]))
+    assert np.all(node_colouring.c2v == np.array([0, 1, 2, 4, 5, 3, 6]))
+    assert np.all(edge_colouring.v2c == np.array([0, 1]))
+    assert np.all(edge_colouring.c2v == np.array([0, 1]))
+
+    g2 = create_hypergraph(test_graph_dir + "NonMonogamous_Ambiguous_Branching.json")
+    n_colours2, e_colours2 = flatten_and_init_colour(g2)
+    assert np.all(n_colours2.v2c == np.array([0, 1, 2, 7, 3, 4, 5, 6]))
+    assert np.all(e_colours2.v2c == np.array([0, 1, 2, 2]))
+
+
+def flatten_and_init_colour(g):
     g_flat = g.flatten()
     node_colouring = ColourData(g_flat.num_nodes)
     edge_colouring = ColourData(g_flat.num_edges)
@@ -91,6 +104,7 @@ def test_initial_colour():
         assert 0 <= v < g_flat.num_edges
     for c in edge_colouring.v2c:
         assert 0 <= c < g_flat.num_edges
+    return node_colouring, edge_colouring
 
 
 def test_construct_node_keys():

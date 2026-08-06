@@ -10,7 +10,7 @@ def sort_by_key(keys, values):
 
 
 def sort_packed_by_key(keys, values):
-    permutation = np.lexsort(keys.T)
+    permutation = np.lexsort(np.rot90(keys))
     return keys[permutation], values[permutation]
 
 

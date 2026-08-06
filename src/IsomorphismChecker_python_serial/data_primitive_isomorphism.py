@@ -21,9 +21,9 @@ def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
     ]
     node_types1 = getNodeTypes(g1)
     node_types2 = getNodeTypes(g2)
-    dpp.sort(node_types1)
-    dpp.sort(node_types2)
-    if node_types1 != node_types2:
+    node_types1.sort()
+    node_types2.sort()
+    if not node_types1 == node_types2:
         return False
 
     getEdgeTypes = lambda g: [
@@ -32,8 +32,8 @@ def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
     ]
     edge_types1 = getEdgeTypes(g1)
     edge_types2 = getEdgeTypes(g2)
-    dpp.sort(edge_types1)
-    dpp.sort(edge_types2)
+    edge_types1.sort()
+    edge_types2.sort()
     if edge_types1 != edge_types2:
         return False
 
@@ -418,7 +418,7 @@ def processStableColourings(cg1: ColouredGraph, cg2: ColouredGraph, t: int) -> b
 
     if v_discrete and e_discrete:
         # we're done!
-        return True
+        return checkIsomorphism(cg1, cg2)
     elif not v_discrete:
         c = selectTargetCell(cg1.vertexColours)
         return exploreBranches(cg1, cg2, c, t)

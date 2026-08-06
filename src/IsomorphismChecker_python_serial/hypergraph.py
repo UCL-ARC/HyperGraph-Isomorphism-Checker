@@ -94,6 +94,13 @@ class FlatHypergraph:
         )
 
 
+def constructLabelMap(labels):
+    label_set = list(set(labels))
+    label_set.sort()
+    label_map = {l: i for (i, l) in enumerate(label_set)}
+    return label_map
+
+
 @dataclass
 class OpenHypergraph:
     """An open hypergraph with input and output nodes."""
@@ -104,23 +111,14 @@ class OpenHypergraph:
     input_nodes: list[int] = field(default_factory=list)
     output_nodes: list[int] = field(default_factory=list)
 
-    def flatten(self):
+    def flatten(self, vertex_label_map=None, edge_label_map=None):
         """Construct array representation used in data parallel approach"""
 
         ## Convert readable string labels to compact integer labels
-        vertex_label_map = {}
-        int_label = 0
-        for node in self.nodes:
-            if node.label not in vertex_label_map.keys():
-                vertex_label_map[node.label] = int_label
-                int_label += 1
-
-        edge_label_map = {}
-        int_label = 0
-        for edge in self.edges:
-            if edge.label not in edge_label_map.keys():
-                edge_label_map[edge.label] = int_label
-                int_label += 1
+        if vertex_label_map is None:
+            vertex_label_map = constructLabelMap([v.label for v in self.nodes])
+        if edge_label_map is None:
+            edge_label_map = constructLabelMap([e.label for e in self.edges])
 
         (
             node_labels,

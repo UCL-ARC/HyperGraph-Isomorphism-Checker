@@ -1,4 +1,5 @@
 from IsomorphismChecker_python_serial.graph_utils import create_hypergraph
+from IsomorphismChecker_python_serial.hypergraph import constructLabelMap
 from IsomorphismChecker_python_serial.draw import draw_graph
 from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     ColourGlobalInterface,
@@ -8,7 +9,9 @@ from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     constructEdgeColourKeys,
     colourSetDecomposition,
     setupColourCellKeyArrays,
+    InitialCompare,
 )
+from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 import numpy as np
 
 test_graph_dir = "tests/inputs/"
@@ -27,6 +30,26 @@ def test_flatten_graph():
     assert np.array_equal(g_flat.node_targets.sizes, np.array([1, 1, 1, 1, 0, 0, 1]))
     assert np.array_equal(g_flat.node_targets.elements, np.array([0, 0, 1, 1, 1]))
     assert g_flat.num_inputs == 3
+
+
+def test_initial_comparison():
+    g1 = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
+    (_, _, g2) = permute_graph(g1)
+    g3 = create_hypergraph(test_graph_dir + "Acyclic_Wrong_Edge_Label.json")
+
+    vertex_label_map = constructLabelMap(
+        [v.label for v in g1.nodes + g2.nodes + g3.nodes]
+    )
+    edge_label_map = constructLabelMap(
+        [e.label for e in g1.edges + g2.edges + g3.edges]
+    )
+
+    g1_flat = g1.flatten(vertex_label_map, edge_label_map)
+    g2_flat = g2.flatten(vertex_label_map, edge_label_map)
+    assert InitialCompare(g1_flat, g2_flat)
+
+    g3_flat = g3.flatten(vertex_label_map, edge_label_map)
+    assert not InitialCompare(g1_flat, g3_flat)
 
 
 def test_interface_colour():

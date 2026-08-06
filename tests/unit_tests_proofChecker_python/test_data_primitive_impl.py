@@ -119,6 +119,7 @@ def test_construct_edge_keys():
         g_flat.edge_keys,
         g_flat.edge_sources,
         g_flat.edge_targets,
+        edge_colouring,
         node_colouring,
     )
     segment_idx = g_flat.edge_keys.initials[2]  # colour of H edges
@@ -152,6 +153,7 @@ def test_construct_node_keys():
         g_flat.edge_keys,
         g_flat.edge_sources,
         g_flat.edge_targets,
+        edge_colouring,
         node_colouring,
     )
 
@@ -199,6 +201,7 @@ def test_colour_decomposition():
         g_flat.edge_keys,
         g_flat.edge_sources,
         g_flat.edge_targets,
+        edge_colouring,
         node_colouring,
     )
     colourSetDecomposition(

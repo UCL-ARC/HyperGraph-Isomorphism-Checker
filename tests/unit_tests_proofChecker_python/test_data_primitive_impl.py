@@ -107,6 +107,27 @@ def flatten_and_init_colour(g):
     return node_colouring, edge_colouring
 
 
+def test_construct_edge_keys():
+    g = create_hypergraph(test_graph_dir + "NonMonogamous_Ambiguous_Branching.json")
+    g_flat = g.flatten()
+    node_colouring = ColourData(g_flat.num_nodes)
+    edge_colouring = ColourData(g_flat.num_edges)
+    cmax_v = ColourGlobalInterface(g_flat, node_colouring)
+    (cmax_v, cmax_e) = InitialColouring(g_flat, node_colouring, edge_colouring, cmax_v)
+    constructEdgeColourKeys(
+        g_flat.num_edges,
+        g_flat.edge_keys,
+        g_flat.edge_sources,
+        g_flat.edge_targets,
+        node_colouring,
+    )
+    segment_idx = g_flat.edge_keys.initials[2]  # colour of H edges
+    segment = g_flat.edge_keys.elements[
+        segment_idx : segment_idx + (2 * 2)
+    ]  # 2 H edges share a colour and have total valency 2
+    assert np.all(segment == np.array([7, 5, 7, 6]))
+
+
 def test_construct_node_keys():
     g = create_hypergraph(test_graph_dir + "Acyclic_Graph.json")
     g_flat = g.flatten()
@@ -123,6 +144,7 @@ def test_construct_node_keys():
         g_flat.node_s_ports,
         g_flat.node_targets,
         g_flat.node_t_ports,
+        node_colouring,
         edge_colouring,
     )
     constructEdgeColourKeys(

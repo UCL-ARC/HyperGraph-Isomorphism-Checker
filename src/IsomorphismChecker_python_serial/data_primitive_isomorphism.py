@@ -246,12 +246,16 @@ def constructNodeColourKeys(
     s_ports: SegmentedArray,
     targets: SegmentedArray,
     t_ports: SegmentedArray,
+    self_colouring: ColourData,
     neighbour_colouring: ColourData,
 ):
     """Trivially paralellisable function to construct all node keys. Each node can have its
     key constructed in parallel. The bottleneck is the sort operations for each key which
     can be avoided if hashing is used."""
     for i in range(N):
+        # No need to calculate keys for cells which cannot be refined any further
+        if self_colouring.c_sizes[self_colouring.v2c[i]] == 1:
+            continue
         start_idx = keys.initials[i]
 
         ## construct and sort the source subarray
@@ -376,6 +380,7 @@ def refineColouring(
         g.node_s_ports,
         g.node_targets,
         g.node_t_ports,
+        vertex_colours,
         edge_colours,
     )
     colourSetDecomposition(

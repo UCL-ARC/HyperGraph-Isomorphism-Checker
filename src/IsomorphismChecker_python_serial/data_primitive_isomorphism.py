@@ -214,12 +214,15 @@ def constructEdgeColourKeys(
     keys: SegmentedArray,
     sources: SegmentedArray,
     targets: SegmentedArray,
+    self_colouring: ColourData,
     neighbour_colouring: ColourData,
 ):
     """Trivially paralellisable function to construct all node keys. Each node can have its
     key constructed in parallel. The bottleneck is the sort operations for each key which
     can be avoided if hashing is used."""
     for i in range(N):
+        if self_colouring.c_sizes[self_colouring.v2c[i]] == 1:
+            continue
         start_idx = keys.initials[i]
 
         ## construct and sort the source subarray
@@ -388,7 +391,12 @@ def refineColouring(
     )
 
     constructEdgeColourKeys(
-        g.num_edges, g.edge_keys, g.edge_sources, g.edge_targets, vertex_colours
+        g.num_edges,
+        g.edge_keys,
+        g.edge_sources,
+        g.edge_targets,
+        edge_colours,
+        vertex_colours,
     )
     colourSetDecomposition(g.num_edges, g.edge_cell_keys, g.edge_keys, edge_colours, t)
 

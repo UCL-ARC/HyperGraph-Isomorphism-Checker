@@ -58,6 +58,7 @@ def InitialCompare(g1: FlatHypergraph, g2: FlatHypergraph):
 class ColourData:
     def __init__(self, N: int):
         self.v2c = np.array([-1] * N)
+        self.v2c_dummy = np.array([-1] * N)
         self.c2v = np.array([-1] * N)
         self.c2v_dummy = np.array([-1] * N)
         self.c_sizes = np.array([0] * N)
@@ -183,9 +184,8 @@ def initialiseColoursFromKeys(N, colouring, c_max, keys):
         n = workspace[i + 1] - workspace[i]
         c = workspace[i]
         colouring.c_sizes[c] = n
-        colouring.Delta[c] = N
-        colouring.Delta[c] = 1
-        colouring.deltas[c_max + i] = (c, n)
+        colouring.Delta[c] = n
+        colouring.Delta_t[c] = 1
         for j in range(n):
             colouring.c2v[c + j] = P[c + j]
             colouring.v2c[P[c + j]] = c
@@ -297,6 +297,9 @@ def colourSetDecomposition(
     t: int,
 ):
     ## for each colour we need to decompose the set if the size > 1
+    colouring.v2c_dummy = colouring.v2c.copy()
+    colouring.c2v_dummy = colouring.c2v.copy()
+    colouring.c_sizes_dummy = colouring.c_sizes.copy()
     for c in range(N):
         print(c)
         if colouring.c_sizes[c] > 1:
@@ -337,8 +340,8 @@ def colourSetDecomposition(
             ## due to the equality check over an array
             B = np.array([0] * cell_size)  # combined this is just an array of length N
             for i in range(1, cell_size):
-                v_i = P[i]
-                v_im1 = P[i - 1]
+                v_i = segment[P[i]]
+                v_im1 = segment[P[i - 1]]
                 ki_idx = keys.initials[v_i]
                 kim1_idx = keys.initials[v_im1]
                 key_i = keys.elements[ki_idx : ki_idx + key_size]
@@ -350,26 +353,26 @@ def colourSetDecomposition(
 
             # helper function to avoid code repetition
             def recordNewCell(colouring, t, c, size):
-                colouring.c_sizes[c] = size
-                colouring.Delta[c] = size
-                colouring.Delta_t[c] = t
+                colouring.c_sizes_dummy[c] = size
+                if colouring.Delta[c] == 0:  # previously unassigned colour
+                    colouring.Delta[c] = size
+                    colouring.Delta_t[c] = t
 
             # Only need to proceed if there is at least one key that is different
             if S[cell_size - 1] != 0:
-                # make a copy of the relevant data from colouring so that we can read and update
-                # in parallel; only necessary if this loop needs to be parallelised
-                colouring.c2v_dummy[c : c + cell_size] = colouring.c2v[
-                    c : c + cell_size
-                ]
                 for j in range(cell_size):
-                    v = colouring.c2v_dummy[c + P[j]]
-                    colouring.v2c[v] = c + S[j]
-                    colouring.c2v[c + j] = v
+                    v = colouring.c2v[c + P[j]]
+                    colouring.v2c_dummy[v] = c + S[j]
+                    colouring.c2v_dummy[c + j] = v
                     if B[j] != 0:
                         diff = S[j] - S[j - 1]
                         recordNewCell(colouring, t, c + j - diff, diff)
                 diff = cell_size - S[cell_size - 1]
                 recordNewCell(colouring, t, c + cell_size - diff, diff)
+    # efficient approach can use pointer swapping for these arrays
+    colouring.v2c = colouring.v2c_dummy
+    colouring.c2v = colouring.c2v_dummy
+    colouring.c_sizes = colouring.c_sizes_dummy
 
 
 def refineColouring(

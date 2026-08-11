@@ -89,9 +89,7 @@ def flatten_and_init_colour(g):
     node_colouring = ColourData(g_flat.num_nodes)
     edge_colouring = ColourData(g_flat.num_edges)
     c_max = ColourGlobalInterface(g_flat, node_colouring)
-    (delta_entry, delta_entry_edges) = InitialColouring(
-        g_flat, node_colouring, edge_colouring, c_max
-    )
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
     # assert delta_entry == 6
     # assert delta_entry_edges == 1
     print(node_colouring)
@@ -149,9 +147,7 @@ def test_colour_decomposition():
     node_colouring = ColourData(g_flat.num_nodes)
     edge_colouring = ColourData(g_flat.num_edges)
     c_max = ColourGlobalInterface(g_flat, node_colouring)
-    (delta_entry, delta_entry_edges) = InitialColouring(
-        g_flat, node_colouring, edge_colouring, c_max
-    )
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
     setupColourCellKeyArrays(
         g_flat.num_nodes,
         g_flat.node_sources,
@@ -178,6 +174,7 @@ def test_colour_decomposition():
         g_flat.node_s_ports,
         g_flat.node_targets,
         g_flat.node_t_ports,
+        node_colouring,
         edge_colouring,
     )
     constructEdgeColourKeys(
@@ -189,9 +186,14 @@ def test_colour_decomposition():
         node_colouring,
     )
     colourSetDecomposition(
-        g_flat.num_nodes, g_flat.node_cell_keys, g_flat.node_keys, node_colouring
+        g_flat.num_nodes, g_flat.node_cell_keys, g_flat.node_keys, node_colouring, 2
     )
     print("Edge set decomposition")
     colourSetDecomposition(
-        g_flat.num_edges, g_flat.edge_cell_keys, g_flat.edge_keys, edge_colouring
+        g_flat.num_edges, g_flat.edge_cell_keys, g_flat.edge_keys, edge_colouring, 2
     )
+
+    assert np.all(edge_colouring.c2v == np.array([0, 1, 2, 3]))
+    assert np.all(edge_colouring.v2c == np.array([0, 1, 2, 3]))
+    assert np.all(edge_colouring.Delta == np.array([1, 1, 2, 1]))
+    assert np.all(edge_colouring.Delta_t == np.array([1, 1, 1, 2]))

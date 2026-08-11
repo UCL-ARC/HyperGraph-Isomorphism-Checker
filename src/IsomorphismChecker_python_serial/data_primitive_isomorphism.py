@@ -73,7 +73,6 @@ class ColourData:
             f"  v2c={self.v2c},\n"
             f"  c2v={self.c2v},\n"
             f"  c_sizes={self.c_sizes},\n"
-            f"  deltas={self.deltas}\n"
             ")"
         )
 
@@ -564,7 +563,7 @@ def checkIsomorphism(cg1: ColouredGraph, cg2: ColouredGraph) -> bool:
     # Check the edges
     for c in range(cg1.g.num_edges):
         e1 = cg1.edgeColours.c2v[c]
-        e2 = cg1.edgeColours.c2v[c]
+        e2 = cg2.edgeColours.c2v[c]
         if cg1.g.edge_labels[e1] != cg2.g.edge_labels[e2]:
             return False
         if cg1.g.edge_sources.sizes[e1] != cg2.g.edge_sources.sizes[e2]:

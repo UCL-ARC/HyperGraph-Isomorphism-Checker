@@ -16,9 +16,11 @@ from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     forceRecolour,
     checkCompleteness,
     rollBackColouring,
+    checkIsomorphism,
 )
 from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 import numpy as np
+import copy
 
 test_graph_dir = "tests/inputs/"
 
@@ -330,7 +332,53 @@ def testRecolouring():
 
 
 def testCheckIsomorphism():
-    pass
+    """Tests multi-step refinement until colouring is stable"""
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    g_flat = g.flatten()
+    node_colouring = ColourData(g_flat.num_nodes)
+    edge_colouring = ColourData(g_flat.num_edges)
+    c_max = ColourGlobalInterface(g_flat, node_colouring)
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
+    setupColourCellKeyArrays(
+        g_flat.num_nodes,
+        g_flat.node_sources,
+        g_flat.node_targets,
+        g_flat.node_cell_keys,
+        node_colouring,
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_edges,
+        g_flat.edge_sources,
+        g_flat.edge_targets,
+        g_flat.edge_cell_keys,
+        edge_colouring,
+    )
+    convergeColouring(g_flat, node_colouring, edge_colouring, 1)
+    node_permutation, edge_permutation, permuted_graph = permute_graph(g)
+    node_permutation = np.array(node_permutation)
+    node_inverse = np.array(
+        [np.where(node_permutation == i)[0][0] for i in range(len(node_permutation))]
+    )
+    edge_permutation = np.array(edge_permutation)
+    edge_inverse = np.array(
+        [np.where(edge_permutation == i)[0][0] for i in range(len(edge_permutation))]
+    )
+
+    cg1 = ColouredGraph(g_flat)
+    cg1.vertexColours = node_colouring
+    cg1.edgeColours = edge_colouring
+
+    # Manually construct colouring for isomorphic graph
+    cg2 = ColouredGraph(permuted_graph.flatten())
+    cg2.vertexColours = copy.deepcopy(node_colouring)
+    cg2.vertexColours.c2v = node_permutation[cg2.vertexColours.c2v]
+    cg2.vertexColours.v2c = cg2.vertexColours.v2c[node_inverse]
+    cg2.edgeColours = copy.deepcopy(edge_colouring)
+    cg2.edgeColours.c2v = edge_permutation[cg2.edgeColours.c2v]
+    cg2.edgeColours.v2c = cg2.edgeColours.v2c[edge_inverse]
+
+    assert checkIsomorphism(cg1, cg2)
 
 
 def testRollback():

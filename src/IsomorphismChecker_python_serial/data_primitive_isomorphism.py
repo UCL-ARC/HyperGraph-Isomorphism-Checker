@@ -63,7 +63,6 @@ class ColourData:
         self.c2v_dummy = np.array([-1] * N)
         self.c_sizes = np.array([0] * N)
         self.c_sizes_dummy = np.array([0] * N)
-        self.deltas = np.array([(-1, -1)] * N)
         self.Delta = np.array([0] * N)
         self.Delta_t = np.array([-1] * N)
         self.size = N
@@ -463,13 +462,7 @@ def exploreBranches(
     """Explores possibilities in g2 for matching g1
     If no branches give a positive match then the graphs are not isomorphic"""
     # start by recolouring an element of the target cell in g1
-    target_cell_size = cg1.vertexColours.c_sizes[target_colour]
-    new_colour = target_colour + target_cell_size - 1
-    target_vertex = cg1.vertexColours.c2v[new_colour]
-    recolourTarget(cg1.vertexColours, target_colour, new_colour, target_vertex, t + 1)
-
-    # Propragate the consequences in g1
-    t1 = convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, t + 1)
+    target_cell_size, new_colour, t1 = forceRecolour(cg1, target_colour, t)
 
     # search for a matching solution in g2
     for i in range(target_cell_size):
@@ -481,6 +474,17 @@ def exploreBranches(
             rollBackColouring(cg2.edgeColours, t)
 
     return False
+
+
+def forceRecolour(cg: ColouredGraph, target_colour, t):
+    target_cell_size = cg.vertexColours.c_sizes[target_colour]
+    new_colour = target_colour + target_cell_size - 1
+    target_vertex = cg.vertexColours.c2v[new_colour]
+    recolourTarget(cg.vertexColours, target_colour, new_colour, target_vertex, t + 1)
+
+    # Propragate the consequences in g1
+    t1 = convergeColouring(cg.g, cg.vertexColours, cg.edgeColours, t + 1)
+    return target_cell_size, new_colour, t1
 
 
 def checkBranch(cg1, cg2, target_colour, new_colour, i, t1, t) -> bool:
@@ -519,15 +523,16 @@ def compareNodeInvariant(cg1: ColouredGraph, cg2: ColouredGraph) -> bool:
 def rollBackColouring(colouring: ColourData, t: int):
     """Roll back the colouring to step t"""
     for i in range(colouring.size):
-        if colouring.Delta_t[i] > t:
+        if colouring.Delta_t[i] >= t:
             cell_size = colouring.c_sizes[i]
             # search for its previous colour
             previous_colour = 0
             for j in range(i - 1, -1, -1):
-                if colouring.Delta_t[j] <= t:
+                if 0 <= colouring.Delta_t[j] <= t:
                     previous_colour = j
+                    break
             for j in range(cell_size):
-                v = colouring.c2v[j]
+                v = colouring.c2v[i + j]
                 colouring.v2c[v] = previous_colour
             colouring.Delta[i] = 0
             colouring.Delta_t[i] = -1

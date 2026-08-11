@@ -4,12 +4,18 @@ from IsomorphismChecker_python_serial.draw import draw_graph
 from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     ColourGlobalInterface,
     ColourData,
+    ColouredGraph,
     InitialColouring,
     constructNodeColourKeys,
     constructEdgeColourKeys,
     setupColourCellKeyArrays,
     InitialCompare,
     refineColouring,
+    convergeColouring,
+    selectTargetCell,
+    forceRecolour,
+    checkCompleteness,
+    rollBackColouring,
 )
 from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 import numpy as np
@@ -171,7 +177,101 @@ def test_colour_decomposition():
     assert np.all(edge_colouring.Delta_t == np.array([1, 1, 1, 2]))
 
 
+def testcolourDecomposition2():
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    g_flat = g.flatten()
+    node_colouring = ColourData(g_flat.num_nodes)
+    edge_colouring = ColourData(g_flat.num_edges)
+    c_max = ColourGlobalInterface(g_flat, node_colouring)
+    assert node_colouring.v2c[0] == 0
+    assert node_colouring.v2c[15] == 1
+    assert np.all(node_colouring.v2c[1:15] == -1)
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 0, 0, 14, 0, 0, 0, 0, 16, 0, 0, 0, 0, 14, 0, 0, 0])
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_nodes,
+        g_flat.node_sources,
+        g_flat.node_targets,
+        g_flat.node_cell_keys,
+        node_colouring,
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_edges,
+        g_flat.edge_sources,
+        g_flat.edge_targets,
+        g_flat.edge_cell_keys,
+        edge_colouring,
+    )
+
+    refineColouring(g_flat, node_colouring, edge_colouring, 2)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 2, 8, 11, 2, 2, 10, 13, 2, 2, 8, 11, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 10, 1, 14, 7, 4, 10, 3, 16, 9, 4, 10, 1, 14, 7, 4, 13])
+    )
+
+
 def testConvergeColouring():
+    """Tests multi-step refinement until colouring is stable"""
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    g_flat = g.flatten()
+    node_colouring = ColourData(g_flat.num_nodes)
+    edge_colouring = ColourData(g_flat.num_edges)
+    c_max = ColourGlobalInterface(g_flat, node_colouring)
+    assert node_colouring.v2c[0] == 0
+    assert node_colouring.v2c[15] == 1
+    assert np.all(node_colouring.v2c[1:15] == -1)
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 0, 0, 14, 0, 0, 0, 0, 16, 0, 0, 0, 0, 14, 0, 0, 0])
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_nodes,
+        g_flat.node_sources,
+        g_flat.node_targets,
+        g_flat.node_cell_keys,
+        node_colouring,
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_edges,
+        g_flat.edge_sources,
+        g_flat.edge_targets,
+        g_flat.edge_cell_keys,
+        edge_colouring,
+    )
+    convergeColouring(g_flat, node_colouring, edge_colouring, 1)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 5, 8, 11, 2, 7, 10, 13, 4, 5, 8, 11, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 10, 1, 14, 7, 4, 12, 3, 16, 9, 6, 10, 1, 14, 7, 4, 13])
+    )
+
+
+def testCompareNodeInvarient():
+    pass
+
+
+def testSelectTargetCell():
     """Tests multi-step refinement until colouring is stable"""
     g = create_hypergraph(test_graph_dir + "Fork_Join.json")
     draw_graph(g, "colour_decomp_test_graph.png")
@@ -194,16 +294,39 @@ def testConvergeColouring():
         g_flat.edge_cell_keys,
         edge_colouring,
     )
-
-    refineColouring(g_flat, node_colouring, edge_colouring, 2)
-
-
-def testCompareNodeInvarient():
-    pass
+    convergeColouring(g_flat, node_colouring, edge_colouring, 1)
+    c_node = selectTargetCell(node_colouring)
+    assert c_node == 2
 
 
-def testSelectTargetCell():
-    pass
+def testRecolouring():
+    """Tests multi-step refinement until colouring is stable"""
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    cg = ColouredGraph(g.flatten())
+    c_max = ColourGlobalInterface(cg.g, cg.vertexColours)
+    (_, _) = InitialColouring(cg.g, cg.vertexColours, cg.edgeColours, c_max)
+    setupColourCellKeyArrays(
+        cg.g.num_nodes,
+        cg.g.node_sources,
+        cg.g.node_targets,
+        cg.g.node_cell_keys,
+        cg.vertexColours,
+    )
+    setupColourCellKeyArrays(
+        cg.g.num_edges,
+        cg.g.edge_sources,
+        cg.g.edge_targets,
+        cg.g.edge_cell_keys,
+        cg.edgeColours,
+    )
+    t = convergeColouring(cg.g, cg.vertexColours, cg.edgeColours, 1)
+
+    c_target = selectTargetCell(cg.vertexColours)
+    (size, c_new, t) = forceRecolour(cg, c_target, t)
+    assert size == 2
+    assert c_new == 3
+    assert checkCompleteness(cg.vertexColours, cg.edgeColours) == (True, True)
 
 
 def testCheckIsomorphism():
@@ -211,7 +334,73 @@ def testCheckIsomorphism():
 
 
 def testRollback():
-    pass
+    """Tests multi-step refinement until colouring is stable"""
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    g_flat = g.flatten()
+    node_colouring = ColourData(g_flat.num_nodes)
+    edge_colouring = ColourData(g_flat.num_edges)
+    c_max = ColourGlobalInterface(g_flat, node_colouring)
+    assert node_colouring.v2c[0] == 0
+    assert node_colouring.v2c[15] == 1
+    assert np.all(node_colouring.v2c[1:15] == -1)
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 0, 0, 14, 0, 0, 0, 0, 16, 0, 0, 0, 0, 14, 0, 0, 0])
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_nodes,
+        g_flat.node_sources,
+        g_flat.node_targets,
+        g_flat.node_cell_keys,
+        node_colouring,
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_edges,
+        g_flat.edge_sources,
+        g_flat.edge_targets,
+        g_flat.edge_cell_keys,
+        edge_colouring,
+    )
+    refineColouring(g_flat, node_colouring, edge_colouring, 2)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 2, 8, 11, 2, 2, 10, 13, 2, 2, 8, 11, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 10, 1, 14, 7, 4, 10, 3, 16, 9, 4, 10, 1, 14, 7, 4, 13])
+    )
+
+    t0 = 3
+
+    refineColouring(g_flat, node_colouring, edge_colouring, t0)
+
+    # t = 4
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 5, 8, 11, 2, 7, 10, 13, 4, 5, 8, 11, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 10, 1, 14, 7, 4, 12, 3, 16, 9, 6, 10, 1, 14, 7, 4, 13])
+    )
+
+    rollBackColouring(node_colouring, t0)
+    rollBackColouring(edge_colouring, t0)
+    assert np.all(
+        node_colouring.v2c
+        == np.array([0, 14, 2, 8, 11, 2, 2, 10, 13, 2, 2, 8, 11, 2, 15, 1])
+    )
+    assert np.all(
+        edge_colouring.v2c
+        == np.array([0, 10, 1, 14, 7, 4, 10, 3, 16, 9, 4, 10, 1, 14, 7, 4, 13])
+    )
 
 
 def testCheckBranch():

@@ -109,13 +109,13 @@ def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
     P_prime, I_prime = dpp.sort_by_key(P_prime, I_prime)
     ## trivially parallelisable
     for i in range(c_max + 1):
-        c = I_prime[i]
-        colouring.c2v[i] = I_prime[i]
+        c = P_prime[i]
+        idx_v = I_prime[i]
+        colouring.c2v[i] = idx_v
         colouring.c_sizes[i] = 1
-        colouring.v2c[c] = i
+        colouring.v2c[idx_v] = c
         colouring.Delta[c] = 1
         colouring.Delta_t[c] = 0
-        colouring.deltas[i] = (i, 1)
 
     return c_max
 

@@ -17,9 +17,10 @@ def sort_packed_by_key(keys, values):
 def sort_str_by_key(key_array, num_keys, key_size):
     permutation = np.arange(num_keys, dtype=np.int64)
     print(permutation, key_array)
-    for i in range(num_keys - 1, -1, -1):  # moving from left to right
+    for i in range(key_size - 1, -1, -1):  # moving from left to right
         print(i, num_keys, key_size)
-        key_digits = key_array[i * key_size : (i + 1) * key_size]
+        key_digits = key_array[i * num_keys : (i + 1) * num_keys]
+        key_digits = key_digits[permutation]
         print(key_digits)
         P = np.argsort(key_digits, kind="stable")
         print(P)

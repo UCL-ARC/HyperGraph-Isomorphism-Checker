@@ -7,9 +7,9 @@ from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     InitialColouring,
     constructNodeColourKeys,
     constructEdgeColourKeys,
-    colourSetDecomposition,
     setupColourCellKeyArrays,
     InitialCompare,
+    refineColouring,
 )
 from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 import numpy as np
@@ -162,38 +162,65 @@ def test_colour_decomposition():
         g_flat.edge_cell_keys,
         edge_colouring,
     )
-    print(node_colouring)
-    print(edge_colouring)
-    print(g_flat.node_sources)
-    print(g_flat.node_targets)
-    print(g_flat.node_keys)
-    constructNodeColourKeys(
-        g_flat.num_nodes,
-        g_flat.node_keys,
-        g_flat.node_sources,
-        g_flat.node_s_ports,
-        g_flat.node_targets,
-        g_flat.node_t_ports,
-        node_colouring,
-        edge_colouring,
-    )
-    constructEdgeColourKeys(
-        g_flat.num_edges,
-        g_flat.edge_keys,
-        g_flat.edge_sources,
-        g_flat.edge_targets,
-        edge_colouring,
-        node_colouring,
-    )
-    colourSetDecomposition(
-        g_flat.num_nodes, g_flat.node_cell_keys, g_flat.node_keys, node_colouring, 2
-    )
-    print("Edge set decomposition")
-    colourSetDecomposition(
-        g_flat.num_edges, g_flat.edge_cell_keys, g_flat.edge_keys, edge_colouring, 2
-    )
+
+    refineColouring(g_flat, node_colouring, edge_colouring, 2)
 
     assert np.all(edge_colouring.c2v == np.array([0, 1, 2, 3]))
     assert np.all(edge_colouring.v2c == np.array([0, 1, 2, 3]))
     assert np.all(edge_colouring.Delta == np.array([1, 1, 2, 1]))
     assert np.all(edge_colouring.Delta_t == np.array([1, 1, 1, 2]))
+
+
+def testConvergeColouring():
+    """Tests multi-step refinement until colouring is stable"""
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    g_flat = g.flatten()
+    node_colouring = ColourData(g_flat.num_nodes)
+    edge_colouring = ColourData(g_flat.num_edges)
+    c_max = ColourGlobalInterface(g_flat, node_colouring)
+    (_, _) = InitialColouring(g_flat, node_colouring, edge_colouring, c_max)
+    setupColourCellKeyArrays(
+        g_flat.num_nodes,
+        g_flat.node_sources,
+        g_flat.node_targets,
+        g_flat.node_cell_keys,
+        node_colouring,
+    )
+    setupColourCellKeyArrays(
+        g_flat.num_edges,
+        g_flat.edge_sources,
+        g_flat.edge_targets,
+        g_flat.edge_cell_keys,
+        edge_colouring,
+    )
+
+    refineColouring(g_flat, node_colouring, edge_colouring, 2)
+
+
+def testCompareNodeInvarient():
+    pass
+
+
+def testSelectTargetCell():
+    pass
+
+
+def testCheckIsomorphism():
+    pass
+
+
+def testRollback():
+    pass
+
+
+def testCheckBranch():
+    pass
+
+
+def testProcessStable():
+    pass
+
+
+def testFullIsomorphism():
+    pass

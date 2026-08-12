@@ -18,8 +18,8 @@ class Node:
     label: str
     display_label: str = field(init=False)
 
-    prev: list[EdgeInfo] = field(default_factory=list, init=False)
-    next: list[EdgeInfo] = field(default_factory=list, init=False)
+    sources: list[EdgeInfo] = field(default_factory=list, init=False)
+    targets: list[EdgeInfo] = field(default_factory=list, init=False)
 
     def __post_init__(self):
         self.display_label = f"{self.label}, {self.index}"

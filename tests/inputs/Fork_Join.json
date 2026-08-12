@@ -1,0 +1,44 @@
+{
+
+    "graph_name": "ForkJoin",
+    "comment": [
+      "Naming convention: type_label is a string,",
+      "lowercase strings for nodes,",
+      "uppercase strings for edges"
+    ],
+    "nodes":
+    [
+      {"type_label": "a"}, {"type_label": "a"}, {"type_label": "a"},
+      {"type_label": "a"}, {"type_label": "a"}, {"type_label": "a"},
+      {"type_label": "a"}, {"type_label": "a"}, {"type_label": "a"},
+      {"type_label": "a"}, {"type_label": "a"}, {"type_label": "a"},
+      {"type_label": "a"}, {"type_label": "a"}, {"type_label": "a"},
+      {"type_label": "a"}
+    ],
+    "hyperedges":
+    [
+      {"type_label": "F", "source_nodes": [0], "target_nodes": [1]},
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [2]},
+      {"type_label": "F", "source_nodes": [2], "target_nodes": [3]},
+      {"type_label": "G", "source_nodes": [3], "target_nodes": [4]},
+      {"type_label": "F", "source_nodes": [4], "target_nodes": [5]},
+      {"type_label": "F", "source_nodes": [5], "target_nodes": [14]},
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [6]},
+      {"type_label": "F", "source_nodes": [6], "target_nodes": [7]},
+      {"type_label": "H", "source_nodes": [7], "target_nodes": [8]},
+      {"type_label": "F", "source_nodes": [8], "target_nodes": [9]},
+      {"type_label": "F", "source_nodes": [9], "target_nodes": [14]},
+      {"type_label": "F", "source_nodes": [1], "target_nodes": [10]},
+      {"type_label": "F", "source_nodes": [10], "target_nodes": [11]},
+      {"type_label": "G", "source_nodes": [11], "target_nodes": [12]},
+      {"type_label": "F", "source_nodes": [12], "target_nodes": [13]},
+      {"type_label": "F", "source_nodes": [13], "target_nodes": [14]},
+      {"type_label": "F", "source_nodes": [14], "target_nodes": [15]}
+    ],
+    "Inputs":
+    [
+      0
+    ],
+    "Outputs":
+    [15]
+  }

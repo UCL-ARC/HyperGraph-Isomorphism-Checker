@@ -24,6 +24,7 @@ from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
 from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 import numpy as np
 import copy
+import pytest
 
 test_graph_dir = "tests/inputs/"
 
@@ -480,18 +481,27 @@ def testCheckBranch():
     assert checkBranch(cg, cg3, c_target, c_new, 0, t1, t2)
 
 
-def testProcessStable():
-    pass
+graphs = [
+    "Fork_Join",
+    "Acyclic_Graph",
+    "Clique",
+    "Unit_Graph",
+    "Cyclic_Graph",
+    "Recursive_Function_Graph",
+    "NonMonogamousGraph",
+    "Multi_Step_Colouring",
+]
 
 
-def testFullIsomorphism():
-    g1 = create_hypergraph(test_graph_dir + "Fork_Join.json")
-    draw_graph(g1, "colour_decomp_test_graph.png")
+@pytest.mark.parametrize("graph_file", graphs)
+def testFullIsomorphism(graph_file):
+    g1 = create_hypergraph(test_graph_dir + graph_file + ".json")
+    # draw_graph(g1, "colour_decomp_test_graph.png")
     g1_flat = g1.flatten()
 
-    g2 = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    g2 = create_hypergraph(test_graph_dir + graph_file + ".json")
     pv, pe, g2 = permute_graph(g2)
-    draw_graph(g2, "colour_decomp_test_graph_iso.png")
+    # draw_graph(g2, "colour_decomp_test_graph_iso.png")
     g2_flat = g2.flatten()
 
     assert determineIsomorphism(g1_flat, g2_flat)

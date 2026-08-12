@@ -86,6 +86,8 @@ class ColouredGraph:
 
 def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
     N_int = len(g.global_interface)
+    if N_int < 1:
+        return -1
     P = np.arange(N_int, dtype=np.int64)
     I = g.global_interface
     I, P = dpp.stable_sort_by_key(I, P)
@@ -162,6 +164,8 @@ def initialiseColoursFromKeys(N, colouring, c_max, keys):
     All assigned colours up to this point are guaranteed to be unique."""
     c_next = c_max + 1
     subsize = N - (c_next)  # number of elements yet to be coloured
+    if subsize < 1:
+        return 0
 
     P = np.arange(N, dtype=np.int64)
     keys, P = dpp.sort_packed_by_key(keys, P)
@@ -188,7 +192,7 @@ def initialiseColoursFromKeys(N, colouring, c_max, keys):
         for j in range(n):
             colouring.c2v[c + j] = P[c + j]
             colouring.v2c[P[c + j]] = c
-    return i_max  ## next delta entry index
+    return i_max
 
 
 def setupColourCellKeyArrays(
@@ -444,6 +448,11 @@ def checkCompleteness(vertex_colours: ColourData, edge_colours: ColourData):
     return (vertices_discrete, edges_discrete)
 
 
+def checkCompleteGraph(cg: ColouredGraph):
+    v_discrete, e_discrete = checkCompleteness(cg.vertexColours, cg.edgeColours)
+    return v_discrete and e_discrete
+
+
 def processStableColourings(cg1: ColouredGraph, cg2: ColouredGraph, t: int) -> bool:
     (v_discrete, e_discrete) = checkCompleteness(cg1.vertexColours, cg1.edgeColours)
     # at this point since the histories are identical the same must be true of cg2
@@ -495,9 +504,12 @@ def exploreBranches(
 
 def forceRecolour(cg: ColouredGraph, target_colour, t):
     target_cell_size = cg.vertexColours.c_sizes[target_colour]
-    new_colour = target_colour + target_cell_size - 1
+    target_offset = target_cell_size - 1
+    new_colour = target_colour + target_offset
     target_vertex = cg.vertexColours.c2v[new_colour]
-    recolourTarget(cg.vertexColours, target_colour, new_colour, target_vertex, t + 1)
+    recolourTarget(
+        cg.vertexColours, target_colour, new_colour, target_vertex, target_offset, t + 1
+    )
 
     # Propragate the consequences in g1
     t1 = convergeColouring(cg.g, cg.vertexColours, cg.edgeColours, t + 1)
@@ -506,7 +518,9 @@ def forceRecolour(cg: ColouredGraph, target_colour, t):
 
 def checkBranch(cg1, cg2, target_colour, new_colour, i, t1, t) -> bool:
     target_vertex2 = cg2.vertexColours.c2v[target_colour + i]
-    recolourTarget(cg2.vertexColours, target_colour, new_colour, target_vertex2, t + 1)
+    recolourTarget(
+        cg2.vertexColours, target_colour, new_colour, target_vertex2, i, t + 1
+    )
     t2 = convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, t + 1)
     if t1 != t2:
         return False
@@ -518,12 +532,23 @@ def checkBranch(cg1, cg2, target_colour, new_colour, i, t1, t) -> bool:
         return processStableColourings(cg1, cg2, t1)
 
 
-def recolourTarget(colouring1, target_colour, new_colour, target_vertex, t):
-    colouring1.v2c[target_vertex] = new_colour
-    colouring1.c_sizes[new_colour] = 1
-    colouring1.c_sizes[target_colour] -= 1
-    colouring1.Delta[new_colour] = 1
-    colouring1.Delta_t[new_colour] = t
+def recolourTarget(
+    colouring: ColourData,
+    target_colour: int,
+    new_colour: int,
+    target_vertex: int,
+    colour_offset: int,
+    t: int,
+):
+    prev_colour_slot = colouring.v2c[target_vertex] + colour_offset
+    dummy = colouring.c2v[new_colour]
+    colouring.c2v[prev_colour_slot] = dummy
+    colouring.c2v[new_colour] = target_vertex
+    colouring.v2c[target_vertex] = new_colour
+    colouring.c_sizes[new_colour] = 1
+    colouring.c_sizes[target_colour] -= 1
+    colouring.Delta[new_colour] = 1
+    colouring.Delta_t[new_colour] = t
 
 
 def compareNodeInvariant(cg1: ColouredGraph, cg2: ColouredGraph) -> bool:
@@ -630,6 +655,15 @@ def determineIsomorphism(g1: FlatHypergraph, g2: FlatHypergraph):
     if not compareNodeInvariant(cg1, cg2):
         return False
 
+    g1_complete = checkCompleteGraph(cg1)
+    g2_complete = checkCompleteGraph(cg2)
+
+    if g1_complete != g2_complete:
+        return False
+
+    if g1_complete:
+        return checkIsomorphism(cg1, cg2)
+
     initialiseKeyArrays(cg1)
     initialiseKeyArrays(cg2)
 
@@ -642,9 +676,11 @@ def determineIsomorphism(g1: FlatHypergraph, g2: FlatHypergraph):
         return False
 
     ## Recursive tree search
-    v_complete_1, e_complete_1 = checkCompleteness(cg1.vertexColours, cg1.edgeColours)
-    v_complete_2, e_complete_2 = checkCompleteness(cg2.vertexColours, cg2.edgeColours)
-    if not (v_complete_1 and e_complete_1 and v_complete_2 and e_complete_2):
+    g1_complete = checkCompleteGraph(cg1)
+    g2_complete = checkCompleteGraph(cg2)
+    if g1_complete != g2_complete:
+        return False
+    if not (g1_complete):
         if not processStableColourings(cg1, cg2, t1):
             return False
 

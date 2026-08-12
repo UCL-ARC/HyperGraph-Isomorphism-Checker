@@ -95,7 +95,7 @@ def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
     B = dpp.genChangeArray(N_int, I)
     B[0] = 1
 
-    S = dpp.prefix_sum(B) - 1  ## S[i] <= i
+    S = dpp.prefix_sum(B) - 1
 
     c_max = S[N_int - 1]
     P_prime = np.zeros(c_max + 1, dtype=np.int64)

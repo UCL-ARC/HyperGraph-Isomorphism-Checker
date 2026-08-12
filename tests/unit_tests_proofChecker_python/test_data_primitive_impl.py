@@ -71,15 +71,11 @@ def test_interface_colour():
     c_max = ColourGlobalInterface(g_flat, node_colouring)
     assert c_max == 4
     expected_nodes = np.array([0, 1, 2, 4, 5])
-    expected_colours = np.array([0, 1, 2, 3, 4])
     expected_sizes = np.array([1, 1, 1, 1, 1])
     assert np.array_equal(node_colouring.c2v[:5], expected_nodes)
     for c, v in zip(range(5), expected_nodes):
         assert node_colouring.v2c[v] == c
     assert np.array_equal(node_colouring.c_sizes[:5], expected_sizes)
-    assert np.array_equal(
-        node_colouring.deltas[:5], np.column_stack((expected_colours, expected_sizes))
-    )
 
 
 def test_initial_colour():

@@ -9,6 +9,7 @@ from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     constructNodeColourKeys,
     constructEdgeColourKeys,
     setupColourCellKeyArrays,
+    initialiseKeyArrays,
     InitialCompare,
     refineColouring,
     convergeColouring,
@@ -17,6 +18,8 @@ from IsomorphismChecker_python_serial.data_primitive_isomorphism import (
     checkCompleteness,
     rollBackColouring,
     checkIsomorphism,
+    checkBranch,
+    determineIsomorphism,
 )
 from IsomorphismChecker_python_serial.isomorphisms import permute_graph
 import numpy as np
@@ -452,7 +455,29 @@ def testRollback():
 
 
 def testCheckBranch():
-    pass
+    """Tests multi-step refinement until colouring is stable"""
+    g = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g, "colour_decomp_test_graph.png")
+    cg = ColouredGraph(g.flatten())
+    c_max = ColourGlobalInterface(cg.g, cg.vertexColours)
+    (_, _) = InitialColouring(cg.g, cg.vertexColours, cg.edgeColours, c_max)
+    initialiseKeyArrays(cg)
+    t1 = convergeColouring(cg.g, cg.vertexColours, cg.edgeColours, 1)
+
+    c_target = selectTargetCell(cg.vertexColours)
+    (size, c_new, t1) = forceRecolour(cg, c_target, t1)
+
+    g2 = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    pn, pe, g2prime = permute_graph(g2)
+    cg2 = ColouredGraph(g2prime.flatten())
+    c_max2 = ColourGlobalInterface(cg2.g, cg2.vertexColours)
+    (_, _) = InitialColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, c_max2)
+    initialiseKeyArrays(cg2)
+    t2 = convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, 1)
+    cg3 = copy.deepcopy(cg2)
+    # These branches are automorphic so both should work
+    assert checkBranch(cg, cg2, c_target, c_new, 1, t1, t2)
+    assert checkBranch(cg, cg3, c_target, c_new, 0, t1, t2)
 
 
 def testProcessStable():
@@ -460,4 +485,13 @@ def testProcessStable():
 
 
 def testFullIsomorphism():
-    pass
+    g1 = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    draw_graph(g1, "colour_decomp_test_graph.png")
+    g1_flat = g1.flatten()
+
+    g2 = create_hypergraph(test_graph_dir + "Fork_Join.json")
+    pv, pe, g2 = permute_graph(g2)
+    draw_graph(g2, "colour_decomp_test_graph_iso.png")
+    g2_flat = g2.flatten()
+
+    assert determineIsomorphism(g1_flat, g2_flat)

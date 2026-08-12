@@ -91,8 +91,9 @@ def ColourGlobalInterface(g: FlatHypergraph, colouring: ColourData):
     I, P = dpp.stable_sort_by_key(I, P)
 
     B = dpp.genChangeArray(N_int, I)
+    B[0] = 1
 
-    S = dpp.prefix_sum(B)  ## S[i] <= i
+    S = dpp.prefix_sum(B) - 1  ## S[i] <= i
 
     c_max = S[N_int - 1]
     P_prime = np.zeros(c_max + 1, dtype=np.int64)
@@ -205,6 +206,23 @@ def setupColourCellKeyArrays(
         key_size = sources.sizes[colour_rep] + targets.sizes[colour_rep]
         cell_keys.sizes[c] = key_size
     cell_keys.initials = dpp.prefix_sum(cell_keys.sizes) - cell_keys.sizes[0]
+
+
+def initialiseKeyArrays(cg: ColouredGraph):
+    setupColourCellKeyArrays(
+        cg.g.num_nodes,
+        cg.g.node_sources,
+        cg.g.node_targets,
+        cg.g.node_cell_keys,
+        cg.vertexColours,
+    )
+    setupColourCellKeyArrays(
+        cg.g.num_edges,
+        cg.g.edge_sources,
+        cg.g.edge_targets,
+        cg.g.edge_cell_keys,
+        cg.edgeColours,
+    )
 
 
 def constructEdgeColourKeys(
@@ -612,19 +630,21 @@ def determineIsomorphism(g1: FlatHypergraph, g2: FlatHypergraph):
     if not compareNodeInvariant(cg1, cg2):
         return False
 
+    initialiseKeyArrays(cg1)
+    initialiseKeyArrays(cg2)
+
     ## Initial convergence for both graphs; we can put more checks in if we combine these into one function
-    t1 = convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, 2)
-    t2 = convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, 2)
+    t1 = convergeColouring(cg1.g, cg1.vertexColours, cg1.edgeColours, 1)
+    t2 = convergeColouring(cg2.g, cg2.vertexColours, cg2.edgeColours, 1)
     if not (t1 == t2):
         return False
     if not compareNodeInvariant(cg1, cg2):
         return False
 
     ## Recursive tree search
-    if not (
-        checkCompleteness(cg1.vertexColours, cg1.edgeColours)
-        and checkCompleteness(cg2.vertexColours, cg2.edgeColours)
-    ):
+    v_complete_1, e_complete_1 = checkCompleteness(cg1.vertexColours, cg1.edgeColours)
+    v_complete_2, e_complete_2 = checkCompleteness(cg2.vertexColours, cg2.edgeColours)
+    if not (v_complete_1 and e_complete_1 and v_complete_2 and e_complete_2):
         if not processStableColourings(cg1, cg2, t1):
             return False
 

@@ -1,0 +1,451 @@
+{
+  "graph_name": "Grid_5x5",
+  "comment": [
+    "5x5 grid graph with 40 edges"
+  ],
+  "nodes": [
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    },
+    {
+      "type_label": "cell"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        6
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        8
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        5
+      ],
+      "target_nodes": [
+        6
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        5
+      ],
+      "target_nodes": [
+        10
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        6
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        6
+      ],
+      "target_nodes": [
+        11
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        7
+      ],
+      "target_nodes": [
+        8
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        7
+      ],
+      "target_nodes": [
+        12
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        8
+      ],
+      "target_nodes": [
+        9
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        8
+      ],
+      "target_nodes": [
+        13
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        9
+      ],
+      "target_nodes": [
+        14
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        10
+      ],
+      "target_nodes": [
+        11
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        10
+      ],
+      "target_nodes": [
+        15
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        11
+      ],
+      "target_nodes": [
+        12
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        11
+      ],
+      "target_nodes": [
+        16
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        12
+      ],
+      "target_nodes": [
+        13
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        12
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        13
+      ],
+      "target_nodes": [
+        14
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        13
+      ],
+      "target_nodes": [
+        18
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        14
+      ],
+      "target_nodes": [
+        19
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        15
+      ],
+      "target_nodes": [
+        16
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        15
+      ],
+      "target_nodes": [
+        20
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        16
+      ],
+      "target_nodes": [
+        17
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        16
+      ],
+      "target_nodes": [
+        21
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        17
+      ],
+      "target_nodes": [
+        18
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        17
+      ],
+      "target_nodes": [
+        22
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        18
+      ],
+      "target_nodes": [
+        19
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        18
+      ],
+      "target_nodes": [
+        23
+      ]
+    },
+    {
+      "type_label": "DOWN",
+      "source_nodes": [
+        19
+      ],
+      "target_nodes": [
+        24
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        20
+      ],
+      "target_nodes": [
+        21
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        21
+      ],
+      "target_nodes": [
+        22
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        22
+      ],
+      "target_nodes": [
+        23
+      ]
+    },
+    {
+      "type_label": "RIGHT",
+      "source_nodes": [
+        23
+      ],
+      "target_nodes": [
+        24
+      ]
+    }
+  ],
+  "Inputs": [
+    0
+  ],
+  "Outputs": [
+    24
+  ]
+}

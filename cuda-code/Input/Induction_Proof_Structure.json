@@ -1,0 +1,86 @@
+{
+  "graph_name": "Induction_Proof_Structure",
+  "comment": [
+    "P(0), P(n)\u2192P(n+1) \u22a2 \u2200n.P(n)"
+  ],
+  "nodes": [
+    {
+      "type_label": "base_case"
+    },
+    {
+      "type_label": "inductive_hyp"
+    },
+    {
+      "type_label": "inductive_step"
+    },
+    {
+      "type_label": "succ_n"
+    },
+    {
+      "type_label": "conclusion"
+    },
+    {
+      "type_label": "forall"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "BASE",
+      "source_nodes": [],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "ASSUME",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "SUCCESSOR",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "STEP",
+      "source_nodes": [
+        1,
+        3
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "INDUCTION",
+      "source_nodes": [
+        0,
+        2
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "GENERALIZE",
+      "source_nodes": [
+        4
+      ],
+      "target_nodes": [
+        5
+      ]
+    }
+  ],
+  "Inputs": [],
+  "Outputs": [
+    5
+  ]
+}

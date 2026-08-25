@@ -1,0 +1,56 @@
+{
+  "graph_name": "Parallel_Edges",
+  "comment": [
+    "Multiple edges with same label between same node sets"
+  ],
+  "nodes": [
+    {
+      "type_label": "a"
+    },
+    {
+      "type_label": "b"
+    },
+    {
+      "type_label": "c"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "PARALLEL",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "PARALLEL",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "PARALLEL",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    1
+  ],
+  "Outputs": [
+    2
+  ]
+}

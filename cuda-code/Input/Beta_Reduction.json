@@ -1,0 +1,98 @@
+{
+  "graph_name": "Beta_Reduction",
+  "comment": [
+    "(\u03bbx.x+1) 5 \u2192 5+1 \u2192 6"
+  ],
+  "nodes": [
+    {
+      "type_label": "var_x"
+    },
+    {
+      "type_label": "const_1"
+    },
+    {
+      "type_label": "const_5"
+    },
+    {
+      "type_label": "plus_x_1"
+    },
+    {
+      "type_label": "lambda"
+    },
+    {
+      "type_label": "application"
+    },
+    {
+      "type_label": "subst"
+    },
+    {
+      "type_label": "result_6"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "ADD",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "LAMBDA",
+      "source_nodes": [
+        0,
+        3
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "APPLY",
+      "source_nodes": [
+        4,
+        2
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "BETA_REDUCE",
+      "source_nodes": [
+        5
+      ],
+      "target_nodes": [
+        6
+      ]
+    },
+    {
+      "type_label": "EVAL_ADD",
+      "source_nodes": [
+        2,
+        1
+      ],
+      "target_nodes": [
+        7
+      ]
+    },
+    {
+      "type_label": "SIMPLIFY",
+      "source_nodes": [
+        6
+      ],
+      "target_nodes": [
+        7
+      ]
+    }
+  ],
+  "Inputs": [
+    2
+  ],
+  "Outputs": [
+    7
+  ]
+}

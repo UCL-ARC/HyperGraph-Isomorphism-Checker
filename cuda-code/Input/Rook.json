@@ -1,0 +1,27 @@
+{
+  "graph_name": "Symmetric_Rooks_Grid_4x4",
+  "comment": [
+    "Highly symmetric 4x4 grid.",
+    "WL-2 will start with 1 bin of size 16.",
+    "Depth 0 pivot will leave bins of size 6 and 9.",
+    "Requires at least Depth 2 or 3 to reach a discrete partition."
+  ],
+  "nodes": [
+    {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"},
+    {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"},
+    {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"},
+    {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"}, {"type_label": "cell"}
+  ],
+  "hyperedges": [
+    { "type_label": "ROW", "source_nodes": [0, 1, 2, 3], "target_nodes": [] },
+    { "type_label": "ROW", "source_nodes": [4, 5, 6, 7], "target_nodes": [] },
+    { "type_label": "ROW", "source_nodes": [8, 9, 10, 11], "target_nodes": [] },
+    { "type_label": "ROW", "source_nodes": [12, 13, 14, 15], "target_nodes": [] },
+    { "type_label": "COL", "source_nodes": [0, 4, 8, 12], "target_nodes": [] },
+    { "type_label": "COL", "source_nodes": [1, 5, 9, 13], "target_nodes": [] },
+    { "type_label": "COL", "source_nodes": [2, 6, 10, 14], "target_nodes": [] },
+    { "type_label": "COL", "source_nodes": [3, 7, 11, 15], "target_nodes": [] }
+  ],
+  "Inputs": [],
+  "Outputs": []
+}

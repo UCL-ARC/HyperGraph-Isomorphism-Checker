@@ -1,0 +1,87 @@
+{
+  "graph_name": "Church_Numeral_2",
+  "comment": [
+    "Church encoding of number 2: \u03bbf.\u03bbx.f(f(x))"
+  ],
+  "nodes": [
+    {
+      "type_label": "var_f"
+    },
+    {
+      "type_label": "var_x"
+    },
+    {
+      "type_label": "app_fx"
+    },
+    {
+      "type_label": "app_ffx"
+    },
+    {
+      "type_label": "lambda_x"
+    },
+    {
+      "type_label": "lambda_f"
+    },
+    {
+      "type_label": "church_2"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "APP_FX",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "APP_F_FX",
+      "source_nodes": [
+        0,
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "LAMBDA_X",
+      "source_nodes": [
+        1,
+        3
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "LAMBDA_F",
+      "source_nodes": [
+        0,
+        4
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "CHURCH_2",
+      "source_nodes": [
+        5
+      ],
+      "target_nodes": [
+        6
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    1
+  ],
+  "Outputs": [
+    6
+  ]
+}

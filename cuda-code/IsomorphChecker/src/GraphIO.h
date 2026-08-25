@@ -268,124 +268,103 @@ static void ParseInputFilenames(int argc, char* argv[], string filenames[2])
 }
 /*===================================================================================================================*/
 
-/*===================================================================================================================*/
-/** IO Mimic by reading a JSON file and creating the compact lists for node and edges */
-/*===================================================================================================================*/
+// Persistent registries to synchronize labels across BOTH graph loads
+static std::map<std::string, int> global_node_label_map;
+static std::map<std::string, int> global_edge_label_map;
+static std::vector<std::string> global_node_labels_db;
+static std::vector<std::string> global_edge_labels_db;
+
+/**
+ * Resets the global label registry.
+ * Call this before starting a NEW isomorphism comparison test.
+ */
+void ResetGlobalLabelRegistry() {
+    global_node_label_map.clear();
+    global_edge_label_map.clear();
+    global_node_labels_db.clear();
+    global_edge_labels_db.clear();
+}
+
 void parseGraphJSON_global(std::istream& json_stream, InputGraph& graph, uint& maxNodesPerEdge)
 {
-	json j;
+    json j;
 
-	// Maps for tracking unique labels
-	std::map<std::string, int> node_label_to_index;
-	std::map<std::string, int> edge_label_to_index;
+    // Clear graph-specific connectivity and indices, but NOT the global maps
+    graph.nodeLabelIndex.clear();
+    graph.edges.clear();
+    graph.globalInputs.clear();
+    graph.globalOutputs.clear();
 
-	// Clear all vectors in the struct
-	graph.nodeLabelsDB.clear();
-	graph.nodeLabelIndex.clear();
+    try
+    {
+        json_stream >> j;
 
-	graph.edgeLabelsDB.clear();
-	graph.edges.clear();
-	graph.globalInputs.clear();
-	graph.globalOutputs.clear();
+        /*-----------------------------------------------------------------------------*/
+        /** 1. Process Nodes with Global Mapping */
+        for (const auto& node_obj : j["nodes"])
+        {
+            std::string label = node_obj.value("type_label", "Node");
+            int index;
 
+            if (global_node_label_map.find(label) == global_node_label_map.end())
+            {
+                global_node_labels_db.push_back(label);
+                index = global_node_labels_db.size() - 1;
+                global_node_label_map[label] = index;
+            }
+            else
+            {
+                index = global_node_label_map[label];
+            }
+            graph.nodeLabelIndex.push_back(index);
+        }
+        // Copy the current state of the global DB to the graph for GPU transfer
+        graph.nodeLabelsDB = global_node_labels_db;
 
-	try
-	{
+        /*-----------------------------------------------------------------------------*/
+        /** 2. Process Hyperedges with Global Mapping */
+        for (const auto& edge_obj : j["hyperedges"])
+        {
+            IO_hyperEdge edge;
+            std::string label_str = edge_obj.value("type_label", "LINK");
+            int index;
 
+            if (global_edge_label_map.find(label_str) == global_edge_label_map.end())
+            {
+                global_edge_labels_db.push_back(label_str);
+                index = global_edge_labels_db.size() - 1;
+                global_edge_label_map[label_str] = index;
+            }
+            else
+            {
+                index = global_edge_label_map[label_str];
+            }
+            edge.labelIndex = index;
 
-		json_stream >> j;
+            // Extract connectivity
+            edge.sourceNodes = edge_obj.value("source_nodes", std::vector<uint>());
+            edge.targetNodes = edge_obj.value("target_nodes", std::vector<uint>());
 
-		/*-----------------------------------------------------------------------------*/
-		/** 1. Read Node and extract unique labels */
-		for (const auto& node_obj : j["nodes"])
-		{
-			std::string label = node_obj["type_label"];
-			int index;
-			auto it = node_label_to_index.find(label);
+            // Update max nodes per edge for kernel sizing
+            maxNodesPerEdge = std::max((uint)maxNodesPerEdge, (uint)edge.sourceNodes.size());
+            maxNodesPerEdge = std::max((uint)maxNodesPerEdge, (uint)edge.targetNodes.size());
 
-			if (it == node_label_to_index.end())
-			{
-				graph.nodeLabelsDB.push_back(label);
-				index = graph.nodeLabelsDB.size() - 1;
-				node_label_to_index[label] = index;
-			}
-			else
-			{
-				index = it->second;
-			}
-			graph.nodeLabelIndex.push_back(index);
-		}
-		/*-----------------------------------------------------------------------------*/
+            graph.edges.push_back(edge);
+        }
+        graph.edgeLabelsDB = global_edge_labels_db;
 
+        /*-----------------------------------------------------------------------------*/
+        /** 3. Extract I/O Nodes (Ensuring they are treated as structural anchors) */
+        if (j.contains("Inputs")) graph.globalInputs = j["Inputs"].get<std::vector<uint>>();
+        if (j.contains("Outputs")) graph.globalOutputs = j["Outputs"].get<std::vector<uint>>();
 
-
-		/*-----------------------------------------------------------------------------*/
-		/** 2. Extract Hyperedges */
-		for (const auto& edge_obj : j["hyperedges"])
-		{
-			IO_hyperEdge edge;
-			std::string label_str = edge_obj["type_label"];
-			int index;
-			auto it = edge_label_to_index.find(label_str);
-
-			if (it == edge_label_to_index.end())
-			{
-				// It's a new edge label
-				graph.edgeLabelsDB.push_back(label_str);
-				index = graph.edgeLabelsDB.size() - 1;
-				edge_label_to_index[label_str] = index;
-			}
-			else
-			{
-				index = it->second;
-			}
-			edge.labelIndex = index;
-
-
-			/** Debug not used on GPU */
-			edge.sourceNodes = edge_obj["source_nodes"].get<std::vector<uint>>();
-			edge.targetNodes = edge_obj["target_nodes"].get<std::vector<uint>>();
-
-			if(edge.sourceNodes.size()>maxNodesPerEdge)
-			{
-				maxNodesPerEdge = edge.sourceNodes.size();
-			}
-
-			if(edge.targetNodes.size()>maxNodesPerEdge)
-			{
-				maxNodesPerEdge = edge.targetNodes.size();
-			}
-
-			graph.edges.push_back(edge);
-		}
-		/*-----------------------------------------------------------------------------*/
-
-
-		/*-----------------------------------------------------------------------------*/
-		/** 3. Extract Global Inputs Nodes */
-		graph.globalInputs = j["Inputs"].get<std::vector<uint>>();
-		/*-----------------------------------------------------------------------------*/
-
-		/*-----------------------------------------------------------------------------*/
-		/** 4. Extract Global Output Nodes */
-		graph.globalOutputs = j["Outputs"].get<std::vector<uint>>();
-		/*-----------------------------------------------------------------------------*/
-
-	}
-	catch (json::parse_error& e)
-	{
-		std::cerr << "JSON parse error: " << e.what() << std::endl;
-	}
-	catch (json::type_error& e)
-	{
-		std::cerr << "JSON type error: " << e.what() << std::endl;
-	}
-	catch (std::exception& e)
-	{
-		std::cerr << "An unexpected error occurred: " << e.what() << std::endl;
-	}
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Parser error: " << e.what() << std::endl;
+    }
 }
-/*===================================================================================================================*/
+
 
 
 /*===================================================================================================================*/

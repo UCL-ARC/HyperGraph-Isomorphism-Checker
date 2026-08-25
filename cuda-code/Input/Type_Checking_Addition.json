@@ -1,0 +1,86 @@
+{
+  "graph_name": "Type_Checking_Addition",
+  "comment": [
+    "Type derivation for integer addition"
+  ],
+  "nodes": [
+    {
+      "type_label": "term_x"
+    },
+    {
+      "type_label": "term_y"
+    },
+    {
+      "type_label": "term_plus"
+    },
+    {
+      "type_label": "type_int_x"
+    },
+    {
+      "type_label": "type_int_y"
+    },
+    {
+      "type_label": "type_int_result"
+    },
+    {
+      "type_label": "judgment"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "HAS_TYPE",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "HAS_TYPE",
+      "source_nodes": [
+        1
+      ],
+      "target_nodes": [
+        4
+      ]
+    },
+    {
+      "type_label": "PLUS_OP",
+      "source_nodes": [
+        0,
+        1
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "TYPE_PLUS",
+      "source_nodes": [
+        3,
+        4
+      ],
+      "target_nodes": [
+        5
+      ]
+    },
+    {
+      "type_label": "DERIVE",
+      "source_nodes": [
+        2,
+        5
+      ],
+      "target_nodes": [
+        6
+      ]
+    }
+  ],
+  "Inputs": [
+    0,
+    1
+  ],
+  "Outputs": [
+    6
+  ]
+}

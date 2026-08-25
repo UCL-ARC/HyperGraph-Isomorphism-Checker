@@ -1,0 +1,35 @@
+{
+  "graph_name": "Generator_Function",
+  "comment": [
+    "Hyperedge with no sources (generator/constant)"
+  ],
+  "nodes": [
+    {
+      "type_label": "output"
+    },
+    {
+      "type_label": "output"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "GEN_A",
+      "source_nodes": [],
+      "target_nodes": [
+        0
+      ]
+    },
+    {
+      "type_label": "GEN_B",
+      "source_nodes": [],
+      "target_nodes": [
+        1
+      ]
+    }
+  ],
+  "Inputs": [],
+  "Outputs": [
+    0,
+    1
+  ]
+}

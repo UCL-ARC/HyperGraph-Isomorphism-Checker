@@ -1,0 +1,65 @@
+{
+  "graph_name": "Modus_Ponens",
+  "comment": [
+    "Classic inference rule: P \u2192 Q, P \u22a2 Q"
+  ],
+  "nodes": [
+    {
+      "type_label": "prop_P"
+    },
+    {
+      "type_label": "prop_Q"
+    },
+    {
+      "type_label": "implication"
+    },
+    {
+      "type_label": "conclusion"
+    }
+  ],
+  "hyperedges": [
+    {
+      "type_label": "IMPLIES",
+      "source_nodes": [
+        0
+      ],
+      "target_nodes": [
+        2
+      ]
+    },
+    {
+      "type_label": "IMPLIES",
+      "source_nodes": [
+        2
+      ],
+      "target_nodes": [
+        1
+      ]
+    },
+    {
+      "type_label": "MODUS_PONENS",
+      "source_nodes": [
+        0,
+        2
+      ],
+      "target_nodes": [
+        3
+      ]
+    },
+    {
+      "type_label": "CONCLUDE",
+      "source_nodes": [
+        3
+      ],
+      "target_nodes": [
+        1
+      ]
+    }
+  ],
+  "Inputs": [
+    0
+  ],
+  "Outputs": [
+    1
+  ]
+}
